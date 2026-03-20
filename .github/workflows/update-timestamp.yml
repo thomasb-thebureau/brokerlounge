@@ -1,0 +1,36 @@
+# .github/workflows/update-timestamp.yml
+# Met à jour updated_at.txt chaque fois que data.json est modifié
+# ou manuellement via workflow_dispatch.
+# Utilisé par broker_lounge.html ET teamlounge (index.html) — même source.
+
+name: Update timestamp
+
+on:
+  push:
+    paths:
+      - 'data.json'          # Se déclenche dès que data.json change
+  workflow_dispatch:          # Déclenchement manuel depuis GitHub Actions
+
+jobs:
+  timestamp:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Write updated_at.txt
+        run: |
+          # Format ISO 8601 — parseable par new Date() côté navigateur
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > updated_at.txt
+          echo "Timestamp written: $(cat updated_at.txt)"
+
+      - name: Commit & push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update timestamp [skip ci]"
+          file_pattern: updated_at.txt
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
