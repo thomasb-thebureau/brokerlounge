@@ -1202,19 +1202,20 @@ function renderTiersTable(parent, selData){
   tbl.className='tiers-table';
   tbl.style.cssText='border:1px solid var(--cf);border-radius:3px;overflow:hidden';
   var paliers = [
-    {label:'Mensuel (3 mois minimum)',d:0,eng:'mensuel'},
-    {label:'12 mois',d:0.05,eng:'12m'},
-    {label:'24 mois',d:0.10,eng:'24m'},
-    {label:'36 mois',d:0.15,eng:'36m'}
-  ];
+    {label:'Mensuel (3 mois minimum)',d:0,eng:'mensuel',idx:0},
+    {label:'12 mois',d:0.05,eng:'12m',idx:1},
+    {label:'24 mois',d:0.10,eng:'24m',idx:2},
+    {label:'36 mois',d:0.15,eng:'36m',idx:3}
+  ].filter(function(p){ return TIER_SEL[p.idx]; });
+  if(paliers.length===0){ parent.appendChild(tbl); return; }
   paliers.forEach(function(p,pi){
     var tot = selData.reduce(function(s,b){ return s+Math.round(b.prix*(1-p.d)); },0);
     var save = Math.round((baseTotal-tot)*12);
     var tr = document.createElement('tr');
-    tr.className = pi===0?'ref-row':'disc-row';
-    var saveChip = pi>0&&save>0?'<span class="tier-save">\u2713 '+fmt(save)+'\u00a0\u20ac\u2009/\u00a0an</span>':'';
-    var disc_pct = pi>0?' <span class="echip">-'+Math.round(p.d*100)+'%</span>':'';
-    tr.innerHTML='<td>'+p.label+disc_pct+saveChip+'</td><td style="text-align:right;font-weight:'+(pi>0?600:400)+';font-family:\'Plus Jakarta Sans\',sans-serif;font-size:'+(pi>0?18:16)+'px;white-space:nowrap">'+fmt(tot)+'\u00a0\u20ac <span style="font-size:10px;font-weight:300;font-family:Plus Jakarta Sans,sans-serif;color:var(--gc)">H.T./mois</span></td>';
+    tr.className = p.d===0?'ref-row':'disc-row';
+    var saveChip = p.d>0&&save>0?'<span class="tier-save">\u2713 '+fmt(save)+'\u00a0\u20ac\u2009/\u00a0an</span>':'';
+    var disc_pct = p.d>0?' <span class="echip">-'+Math.round(p.d*100)+'%</span>':'';
+    tr.innerHTML='<td>'+p.label+disc_pct+saveChip+'</td><td style="text-align:right;font-weight:'+(p.d>0?600:400)+';font-family:\'Plus Jakarta Sans\',sans-serif;font-size:'+(p.d>0?18:16)+'px;white-space:nowrap">'+fmt(tot)+'\u00a0\u20ac <span style="font-size:10px;font-weight:300;font-family:Plus Jakarta Sans,sans-serif;color:var(--gc)">H.T./mois</span></td>';
     tbl.appendChild(tr);
   });
   parent.appendChild(tbl);
