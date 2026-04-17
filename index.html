@@ -106,6 +106,27 @@ body.dark .logo-tag{color:var(--or)}
 .pm{font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:600;color:var(--encre);line-height:1}
 .pm sup{font-size:16px;font-weight:500;margin-right:2px;top:-.4em}
 .sav{display:inline-flex;align-items:center;gap:5px;margin-top:6px;background:rgba(30,64,53,.08);color:var(--vert);border:1px solid rgba(30,64,53,.2);border-radius:50px;padding:3px 10px;font-size:10.5px;font-weight:500;font-family:'Plus Jakarta Sans',sans-serif}
+/* ITINERANT CARD */
+.itin-card{border:2px solid rgba(30,64,53,.4)!important;border-top:4px solid var(--vert)!important;background:linear-gradient(160deg,#1E4035,#1a3a30)!important;color:#F5EFE5}
+.itin-card .cref{color:#FAFAFA!important}
+.itin-card .csite{color:rgba(176,148,56,.7)!important}
+.itin-card .cdesc{color:rgba(245,239,229,.65)!important}
+.itin-card .pb{border-top:1px solid rgba(176,148,56,.15)!important;padding-top:10px;margin-top:10px}
+.itin-card .pm{color:#FAFAFA!important}
+.itin-card .psub{color:rgba(245,239,229,.55)!important}
+.itin-card .rack{color:rgba(176,148,56,.45)!important}
+.itin-card .sav{background:rgba(245,239,229,.08)!important;color:#a5d8b5!important;border-color:rgba(165,216,181,.3)!important}
+.itin-card .sav svg{fill:#a5d8b5!important}
+.itin-card .chk{background:rgba(245,239,229,.08)!important;border-color:rgba(176,148,56,.5)!important}
+.itin-card.sel{background:linear-gradient(160deg,#162e28,#0F0F0F)!important;outline-color:var(--or2)!important}
+.itin-card.sel .chk{background:var(--or2)!important;border-color:var(--or2)!important}
+.itin-badge{display:inline-flex;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#0F0F0F;font-weight:600;padding:2px 8px;background:var(--or2);border-radius:50px;margin-left:8px;vertical-align:middle}
+.itin-chip{background:rgba(176,148,56,.15)!important;border-color:rgba(176,148,56,.4)!important;color:#D4B870!important}
+.itin-row{display:flex;align-items:center;gap:10px;margin-top:9px;flex-wrap:wrap}
+.itin-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(176,148,56,.7);min-width:52px}
+.itin-chk-lbl{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:rgba(245,239,229,.85)}
+.itin-chk-lbl input{accent-color:var(--or);cursor:pointer}
+.itin-addon-price{color:rgba(176,148,56,.7);font-size:10px}
 .sav svg{width:11px;height:11px;flex-shrink:0}
 body.dark .sav{background:rgba(74,154,122,.14);color:#5cb88a;border-color:rgba(92,184,138,.3)}
 body.dark .sav svg{fill:#5cb88a!important}
@@ -620,6 +641,8 @@ const FALLBACK = [{"site": "I", "label": "The Bureau I", "adresse": "28, Cours A
 var DATA = FALLBACK.slice();
 var BROKER = { localisation: null, postes_max: null, duree_mois: null };
 var ST = { sites:{all:true}, eng:'mensuel', cmin:'', cmax:'', dispo:'all', sort:'nom', search:'' };
+var ITIN_PRIX = 499;
+var ITIN_ADDONS_BY_SITE = {}; /* { 'I': {domi:false, casier:false}, ... } */
 var SEL = {};
 var SEL_ORDER = [];
 var MODAL_SORT = 'custom';
@@ -804,10 +827,92 @@ function sortData(arr){
   });
 }
 
+function makeItinCard(siteId){
+  var d = disc();
+  var ref = 'ITIN-'+siteId;
+  var isSel = !!SEL[ref];
+  if(!ITIN_ADDONS_BY_SITE[siteId]) ITIN_ADDONS_BY_SITE[siteId] = {domi:false, casier:false};
+  var addons = ITIN_ADDONS_BY_SITE[siteId];
+  var extra = (addons.domi?60:0) + (addons.casier?30:0);
+  var base = ITIN_PRIX + extra;
+  var price = Math.round(ITIN_PRIX*(1-d)) + extra;
+  var save = d > 0 ? Math.round((ITIN_PRIX - Math.round(ITIN_PRIX*(1-d))) * 12) : 0;
+  var engLbl = d===0
+    ? 'H.T./mois/pers. \u2014 tarif r\u00e9f\u00e9rence'
+    : 'H.T./mois/pers. \u2014 engagement '+ST.eng+' <span class="echip">-'+Math.round(d*100)+'%</span>';
+  var rackHtml = d>0 ? '<span class="rack">'+base+' \u20ac</span>' : '';
+  var savHtml  = d>0 ? '<div class="sav"><svg viewBox="0 0 24 24" fill="var(--vert)"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>\u00c9conomie\u00a0: '+fmt(save)+' \u20ac / an</div>' : '';
+
+  var div = document.createElement('div');
+  div.className = 'card itin-card' + (isSel?' sel':'');
+  div.dataset.ref = ref;
+
+  div.innerHTML =
+    '<div class="chk"><svg viewBox="0 0 12 10"><polyline points="1,5 4,8 11,1"/></svg></div>'+
+    '<div class="ctop">'+
+      '<div>'+
+        '<div class="cref">Itin\u00e9rant <span class="itin-badge">Starter</span></div>'+
+        '<div class="csite">'+esc(SITE_LABELS[siteId])+' \u2014 '+esc(SITE_ADDR[siteId])+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<p class="cdesc">Acc\u00e8s en placement libre aux espaces partag\u00e9s et services The Bureau. Acc\u00e8s 24/7 au site, acc\u00e8s \u00e0 la journ\u00e9e aux autres sites. Formule all-incluse.</p>'+
+    '<div class="chips">'+
+      '<span class="chip itin-chip">Placement libre</span>'+
+      '<span class="chip itin-chip">Acc\u00e8s 24/7</span>'+
+      '<span class="chip itin-chip">Global Collective</span>'+
+    '</div>'+
+    '<div class="itin-row" onclick="event.stopPropagation()">'+
+      '<span class="itin-lbl">Options</span>'+
+      '<label class="itin-chk-lbl"><input type="checkbox" class="itin-domi" '+(addons.domi?'checked':'')+'> Domiciliation <span class="itin-addon-price">+60\u00a0\u20ac/mois</span></label>'+
+      '<label class="itin-chk-lbl"><input type="checkbox" class="itin-casier" '+(addons.casier?'checked':'')+'> Casier <span class="itin-addon-price">+30\u00a0\u20ac/mois</span></label>'+
+    '</div>'+
+    '<div class="pb">'+
+      '<div class="pr"><div class="pm"><sup>\u20ac</sup>'+fmt(price)+'</div>'+rackHtml+'</div>'+
+      '<div class="psub">'+engLbl+'</div>'+savHtml+
+    '</div>';
+
+  function rebuildItin(){
+    addons.domi   = !!div.querySelector('.itin-domi').checked;
+    addons.casier = !!div.querySelector('.itin-casier').checked;
+    if(SEL[ref]){
+      SEL[ref].addons = JSON.parse(JSON.stringify(addons));
+      SEL[ref].prix   = ITIN_PRIX + (addons.domi?60:0) + (addons.casier?30:0);
+    }
+    var old = document.querySelector('.itin-card[data-ref="'+ref+'"]');
+    if(old) old.parentNode.replaceChild(makeItinCard(siteId), old);
+    updateSelBar();
+  }
+  div.querySelector('.itin-domi').addEventListener('change', rebuildItin);
+  div.querySelector('.itin-casier').addEventListener('change', rebuildItin);
+
+  div.addEventListener('click', function(){
+    if(!SEL[ref]){
+      SEL[ref] = {
+        ref:ref, site:siteId,
+        label:SITE_LABELS[siteId], adresse:SITE_ADDR[siteId],
+        prix:ITIN_PRIX+(addons.domi?60:0)+(addons.casier?30:0),
+        cap:1, etage:0, surface:null, dispo:'immediate', date:null,
+        desc:'Acc\u00e8s en placement libre aux espaces partag\u00e9s et services The Bureau.',
+        addons:JSON.parse(JSON.stringify(addons)),
+        isItin:true
+      };
+      SEL_ORDER.push(ref);
+    } else {
+      delete SEL[ref];
+      SEL_ORDER = SEL_ORDER.filter(function(r){ return r!==ref; });
+    }
+    var old2 = document.querySelector('.itin-card[data-ref="'+ref+'"]');
+    if(old2) old2.parentNode.replaceChild(makeItinCard(siteId), old2);
+    updateSelBar();
+  });
+  return div;
+}
+
 function render(){
   var cmin = ST.cmin!==''?parseInt(ST.cmin):0;
   var cmax = ST.cmax!==''?parseInt(ST.cmax):Infinity;
   var allSites = !!ST.sites.all;
+  var showItin = ST.cmax!=='' && cmax < 3;
   var filtered = DATA.filter(function(b){
     if(b.dispo==='occupied') return false;/* Never show occupied in broker view */
     if(!allSites&&!ST.sites[b.site]) return false;
@@ -821,21 +926,37 @@ function render(){
   var empty = document.getElementById('empty');
   grid.innerHTML = '';
   grid.appendChild(empty);
-  if(filtered.length===0){
+  if(filtered.length===0 && !showItin){
     empty.classList.add('on');
   } else {
     empty.classList.remove('on');
     var frag = document.createDocumentFragment();
+    var seenSites = {};
     var prevSite = null;
+
+    function insertSiteHeaderAndItin(siteId){
+      if(seenSites[siteId]) return;
+      seenSites[siteId] = true;
+      var sep = document.createElement('div');
+      sep.className = 'building-sep';
+      sep.innerHTML =
+        '<span class="building-sep-title">'+esc(SITE_LABELS[siteId])+'</span>'+
+        '<span class="building-sep-addr">'+esc(SITE_ADDR[siteId])+'</span>'+
+        '<span class="building-sep-line"></span>';
+      frag.appendChild(sep);
+      if(showItin) frag.appendChild(makeItinCard(siteId));
+    }
+
+    if(showItin){
+      /* Insert ITIN card for every site that passes the site filter, even if no bureaux match */
+      ['I','II','III','IV'].forEach(function(sid){
+        if(allSites || ST.sites[sid]) insertSiteHeaderAndItin(sid);
+      });
+    }
+
     filtered.forEach(function(b){
       if(b.site !== prevSite){
-        var sep = document.createElement('div');
-        sep.className = 'building-sep';
-        sep.innerHTML =
-          '<span class="building-sep-title">'+esc(SITE_LABELS[b.site]||b.label)+'</span>'+
-          '<span class="building-sep-addr">'+esc(SITE_ADDR[b.site]||b.adresse)+'</span>'+
-          '<span class="building-sep-line"></span>';
-        frag.appendChild(sep);
+        insertSiteHeaderAndItin(b.site);
         prevSite = b.site;
       }
       frag.appendChild(makeCard(b));
