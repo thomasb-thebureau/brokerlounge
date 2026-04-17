@@ -1,0 +1,15 @@
+{
+  "name": "The Bureau \u2014 Broker Lounge",
+  "short_name": "Broker Lounge",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f0e8",
+  "theme_color": "#303030",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

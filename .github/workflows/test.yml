@@ -1,0 +1,22 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'data.json'
+      - 'updated_at.txt'
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate data.json
+        run: python3 -c "import json; json.load(open('data.json')); print('data.json OK')"
+
+      - name: Sanity check index.html
+        run: grep -q '</html>' index.html && echo 'index.html OK'
