@@ -193,12 +193,12 @@ body.dark .sav svg{fill:#5cb88a!important}
 .smoverlay{position:fixed;inset:0;z-index:500;background:rgba(28,28,28,.78);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
 .smoverlay.on{display:flex}
 .smodal{background:var(--blanc);border-radius:4px;width:100%;max-width:960px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.4)}
-.smodal-hdr{background:#F5EFE5;padding:22px 28px 18px;border-bottom:1px solid var(--cf);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0}
-.smodal-hdr .eyebrow{margin-bottom:4px;color:var(--orAA)}
-.smodal-hdr h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:300;color:var(--encre);line-height:1.1}
-.smodal-hdr .mclose{color:var(--gris)}
-body.dark .smodal-hdr{background:#2a2a2a}
-body.dark .smodal-hdr h2{color:#F5EFE5}
+.smodal-hdr{background:var(--vert);padding:22px 28px 18px;border-bottom:1px solid rgba(245,239,229,.12);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0}
+.smodal-hdr .eyebrow{margin-bottom:4px;color:var(--or)}
+.smodal-hdr h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:300;color:#F5EFE5;line-height:1.1}
+.smodal-hdr .mclose{color:rgba(245,239,229,.75)}
+.smodal-hdr .mclose:hover{color:#fff}
+body.dark .smodal-hdr{background:#112820}
 .mclose{background:none;border:none;cursor:pointer;color:var(--gris);padding:3px;transition:color .18s}
 .mclose:hover{color:var(--creme)}
 .mclose svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2}
@@ -248,8 +248,8 @@ body.dark .smodal-hdr h2{color:#F5EFE5}
 .msb{font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:50px;border:1px solid var(--cf);background:var(--creme);color:var(--gris);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s}
 .msb.on{background:var(--encre);color:var(--or);border-color:var(--encre)}
 /* Right panel: commission */
-.sm-right{width:260px;flex-shrink:0;background:var(--vert);color:#F5EFE5;border-left:1px solid rgba(30,64,53,.3);display:flex;flex-direction:column;overflow-y:auto}
-body.dark .sm-right{background:#112820}
+.sm-right{width:260px;flex-shrink:0;background:#F5EFE5;color:var(--encre);border-left:1px solid var(--cf);display:flex;flex-direction:column;overflow-y:auto}
+body.dark .sm-right{background:#2a2a2a;color:#F5EFE5;border-left-color:rgba(255,255,255,.08)}
 .comm-hdr{padding:18px 18px 14px;border-bottom:1px solid rgba(201,169,110,.12)}
 .comm-eyebrow{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(201,169,110,.5);margin-bottom:4px}
 .comm-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:300;color:var(--creme);line-height:1.1}
@@ -635,7 +635,7 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
         </button>
         <button class="btn-pdf" id="btnPdf" onclick="exportPDF()">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          PDF tableau
+          PDF
         </button>
       </div>
     </div>
@@ -1288,7 +1288,7 @@ function renderOptTiersInline(el, opt, selData){
   el.innerHTML='';
   var optBureaux = selData.filter(function(b){ return opt.refs.indexOf(b.ref)>=0; });
   if(optBureaux.length===0) return;
-  var paliers=[{label:'Mensuel',d:0},{label:'12 mois -5%',d:0.05},{label:'24 mois -10%',d:0.10},{label:'36 mois -15%',d:0.15}];
+  var paliers=[{label:'Mensuel',d:0,idx:0},{label:'12 mois -5%',d:0.05,idx:1},{label:'24 mois -10%',d:0.10,idx:2},{label:'36 mois -15%',d:0.15,idx:3}].filter(function(p){ return TIER_SEL[p.idx]; });
   paliers.forEach(function(p){
     var tot=optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-p.d)); },0);
     var row=document.createElement('div');
@@ -1406,7 +1406,7 @@ function exportCSV(){
   if(selData.length===0) return;
   var activeTiers = TIERS.filter(function(_,i){ return TIER_SEL[i]; });
   var etLblFn = function(e){ return e===0?'RDC':e+'e'; };
-  var header = ['Ref','Site','Adresse','Etage','Surface (m²)','Postes','Disponibilite','Date liberation'];
+  var header = ['Ref','Site','Adresse','Etage','Surface (m²)','Postes','Disponibilite','Date liberation','Description'];
   activeTiers.forEach(function(t){ header.push('Prix '+t.label+' (€/mois HT)'); header.push('Economie '+t.label+' (€/an)'); });
   var rows = [header];
   selData.forEach(function(b){
@@ -1415,7 +1415,8 @@ function exportCSV(){
       b.surface!=null?String(b.surface).replace('.',','):'',
       b.cap,
       b.dispo==='immediate'?'Immediate':(b.dispo==='future'?'A venir':b.dispo),
-      b.date||''
+      b.date||'',
+      cleanDesc(b.desc||'')
     ];
     activeTiers.forEach(function(t){
       var price = Math.round(b.prix*(1-t.d));
@@ -1481,50 +1482,68 @@ function exportPDF(){
     totals[t.key] = selData.reduce(function(s,b){ return s + Math.round(b.prix*(1-t.d)); }, 0);
   });
 
+  var logoOrigin = window.location.origin;
+  var logoUrl = logoOrigin + '/logo.svg';
+  var IVORY='#F5EFE5';
+
   var h = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Sélection — The Bureau Broker Lounge</title>';
   h += '<link href="'+GFONTS+'" rel="stylesheet"/>';
   h += '<style>';
-  h += '@page{size:A4 landscape;margin:14mm 12mm}';
+  h += '@page{size:A4 landscape;margin:0}';
   h += '*{box-sizing:border-box;margin:0;padding:0}';
-  h += 'html,body{font-family:\'Plus Jakarta Sans\',Arial,sans-serif;color:'+INK+';background:#fff;font-size:10px;line-height:1.4;-webkit-print-color-adjust:exact;print-color-adjust:exact}';
+  h += 'html,body{font-family:\'Plus Jakarta Sans\',Arial,sans-serif;color:'+INK+';background:#fff;font-size:10px;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact}';
+  h += '.page{width:297mm;min-height:210mm;padding:16mm 18mm;display:flex;flex-direction:column;position:relative}';
   h += '.btn-print{position:fixed;top:12px;right:12px;background:'+JADE+';color:#fff;border:none;border-radius:50px;padding:9px 20px;font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:999}';
-  h += '@media print{.no-print{display:none!important}}';
-  h += 'header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid '+JADE+';padding-bottom:10px;margin-bottom:14px}';
-  h += '.hd-l .eyebrow{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:'+OR2+';font-weight:600;margin-bottom:3px}';
-  h += '.hd-l h1{font-size:22px;font-weight:300;color:'+INK+'}';
-  h += '.hd-l h1 em{font-style:normal;font-weight:700;color:'+OR2+'}';
-  h += '.hd-r{text-align:right;font-size:9.5px;color:'+GR+';line-height:1.5}';
-  h += '.hd-r strong{font-weight:600;color:'+INK+'}';
-  h += 'table.grid{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:9.5px}';
-  h += 'table.grid th{background:'+JADE+';color:'+CR+';text-align:left;padding:7px 9px;font-weight:600;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase}';
+  h += '@media print{.no-print{display:none!important}.page{padding:14mm 16mm}}';
+  h += 'header.hd{background:'+IVORY+';padding:14px 22px;border-radius:4px;border:1px solid #ece5d6;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:16px}';
+  h += '.hd-logo{height:38px;width:auto;flex-shrink:0}';
+  h += '.hd-mid{flex:1;text-align:left;padding-left:18px;border-left:1px solid rgba(30,64,53,.18);margin-left:4px}';
+  h += '.hd-mid .eyebrow{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:'+OR2+';font-weight:600;margin-bottom:3px}';
+  h += '.hd-mid h1{font-size:22px;font-weight:300;color:'+INK+';line-height:1}';
+  h += '.hd-mid h1 em{font-style:normal;font-weight:700;color:'+JADE+'}';
+  h += '.hd-r{text-align:right;font-size:10px;color:'+GR+';line-height:1.5;white-space:nowrap}';
+  h += '.hd-r strong{font-weight:700;color:'+INK+';font-size:11px;letter-spacing:.02em}';
+  h += '.hd-r .tiers-inline{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:'+OR2+';font-weight:600;margin-top:2px}';
+  h += 'main.body{flex:1;display:flex;flex-direction:column}';
+  h += 'table.grid{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:9.5px;border-radius:4px;overflow:hidden;box-shadow:0 0 0 1px #ece5d6}';
+  h += 'table.grid th{background:'+JADE+';color:'+CR+';text-align:left;padding:8px 10px;font-weight:600;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase}';
   h += 'table.grid th.num{text-align:right}';
-  h += 'table.grid td{padding:7px 9px;border-bottom:1px solid #ece5d6;vertical-align:middle}';
+  h += 'table.grid td{padding:8px 10px;border-bottom:1px solid #ece5d6;vertical-align:middle}';
   h += 'table.grid tr:nth-child(even) td{background:'+LIGHT+'}';
   h += 'table.grid td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}';
   h += 'table.grid td.price{font-weight:600;color:'+INK+'}';
-  h += 'table.grid tr.totrow td{background:#fff;border-top:2px solid '+JADE+';border-bottom:none;font-weight:700;padding-top:9px}';
-  h += 'table.grid tr.totrow td.num{color:'+OR2+';font-size:11px}';
-  h += '.ref-badge{display:inline-block;background:'+JADE+';color:'+CR+';padding:2px 7px;border-radius:50px;font-size:9px;font-weight:600;letter-spacing:.05em}';
-  h += '.bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}';
-  h += '.box{background:'+LIGHT+';border:1px solid #ece5d6;border-radius:3px;padding:12px 14px}';
-  h += '.box h3{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:'+OR2+';margin-bottom:8px;font-weight:700}';
+  h += 'table.grid tr.totrow td{background:'+IVORY+';border-top:2px solid '+JADE+';border-bottom:none;font-weight:700;padding:10px}';
+  h += 'table.grid tr.totrow td.num{color:'+JADE+';font-size:12px}';
+  h += '.ref-badge{display:inline-block;background:'+JADE+';color:'+CR+';padding:3px 9px;border-radius:50px;font-size:9px;font-weight:600;letter-spacing:.06em}';
+  h += '.bottom{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}';
+  h += '.box{background:'+LIGHT+';border:1px solid #ece5d6;border-radius:4px;padding:13px 16px}';
+  h += '.box h3{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:'+OR2+';margin-bottom:9px;font-weight:700}';
   h += '.box ul{list-style:none}';
-  h += '.box li{position:relative;padding-left:14px;margin-bottom:4px;font-size:9px;color:'+GR+';line-height:1.5}';
+  h += '.box li{position:relative;padding-left:14px;margin-bottom:5px;font-size:9px;color:'+GR+';line-height:1.5}';
+  h += '.box li:last-child{margin-bottom:0}';
   h += '.box li::before{content:\'\u2713\';position:absolute;left:0;top:0;color:'+JADE+';font-weight:700}';
   h += '.box.cond li::before{content:\'\u2022\';color:'+OR2+'}';
-  h += 'footer{margin-top:14px;padding-top:8px;border-top:1px solid #ece5d6;display:flex;justify-content:space-between;font-size:8.5px;color:'+GR+';letter-spacing:.04em}';
-  h += 'footer strong{color:'+INK+';font-weight:600}';
+  h += 'footer.ft{background:'+JADE+';color:'+CR+';padding:12px 22px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:auto}';
+  h += 'footer.ft .ft-l{font-size:10px;line-height:1.5}';
+  h += 'footer.ft .ft-l strong{color:#fff;font-weight:700;font-size:11px}';
+  h += 'footer.ft .ft-l a{color:'+CR+';text-decoration:none}';
+  h += 'footer.ft .ft-r{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,239,229,.75);text-align:right;line-height:1.6}';
+  h += 'footer.ft .ft-r strong{color:'+OR+';font-weight:600}';
   h += '</style></head><body>';
   h += '<button class="btn-print no-print" onclick="window.print()">Imprimer / PDF</button>';
+  h += '<div class="page">';
 
-  /* HEADER */
-  h += '<header><div class="hd-l"><div class="eyebrow">The Bureau — Broker Lounge</div><h1>Sélection <em>bureaux</em></h1></div>';
-  h += '<div class="hd-r"><strong>Proposition du '+dateFr+'</strong><br>'+selData.length+' bureau'+(selData.length>1?'x':'')+' — ';
-  h += activeTiers.map(function(t){ return t.label; }).join(' · ')+'</div></header>';
+  /* HEADER with logo */
+  h += '<header class="hd">';
+  h += '<img class="hd-logo" src="'+logoUrl+'" alt="The Bureau"/>';
+  h += '<div class="hd-mid"><div class="eyebrow">Broker Lounge — Proposition</div><h1>Sélection <em>bureaux</em></h1></div>';
+  h += '<div class="hd-r"><strong>'+dateFr+'</strong><br>'+selData.length+' bureau'+(selData.length>1?'x':'')+'<div class="tiers-inline">'+activeTiers.map(function(t){ return t.label; }).join(' · ')+'</div></div>';
+  h += '</header>';
+  h += '<main class="body">';
 
   /* MAIN GRID */
   h += '<table class="grid"><thead><tr>';
-  h += '<th style="width:56px">Réf.</th><th>Site</th><th style="width:56px">Étage</th><th class="num" style="width:50px">m²</th><th class="num" style="width:50px">Postes</th><th style="width:110px">Dispo.</th>';
+  h += '<th style="width:54px">Réf.</th><th style="width:140px">Site</th><th style="width:44px">Étage</th><th class="num" style="width:40px">m²</th><th class="num" style="width:44px">Postes</th><th style="width:96px">Dispo.</th><th>Description</th>';
   activeTiers.forEach(function(t){ h += '<th class="num">'+t.label+(t.d>0?' <span style="color:'+OR+';font-weight:500">-'+Math.round(t.d*100)+'%</span>':'')+'</th>'; });
   h += '</tr></thead><tbody>';
   selData.forEach(function(b){
@@ -1535,6 +1554,7 @@ function exportPDF(){
     h += '<td class="num">'+(b.surface!=null?b.surface.toLocaleString('fr-FR'):'—')+'</td>';
     h += '<td class="num">'+b.cap+'</td>';
     h += '<td>'+dispoStr(b)+'</td>';
+    h += '<td style="font-size:8.5px;color:'+GR+';line-height:1.45">'+esc(cleanDesc(b.desc||''))+'</td>';
     activeTiers.forEach(function(t){
       var price = Math.round(b.prix*(1-t.d));
       h += '<td class="num price">'+fmtEur(price)+'</td>';
@@ -1542,7 +1562,7 @@ function exportPDF(){
     h += '</tr>';
   });
   /* Total row */
-  h += '<tr class="totrow"><td colspan="6" style="text-align:right;text-transform:uppercase;font-size:9px;letter-spacing:.12em;color:'+GR+'">Total mensuel H.T.</td>';
+  h += '<tr class="totrow"><td colspan="7" style="text-align:right;text-transform:uppercase;font-size:9px;letter-spacing:.12em;color:'+GR+'">Total mensuel H.T.</td>';
   activeTiers.forEach(function(t){ h += '<td class="num">'+fmtEur(totals[t.key])+'</td>'; });
   h += '</tr>';
   h += '</tbody></table>';
@@ -1557,11 +1577,13 @@ function exportPDF(){
   h += '</ul></div>';
   h += '</div>';
 
-  /* FOOTER */
-  h += '<footer><div><strong>Thomas Bougeard</strong> — Directeur Commercial · +33 6 59 23 15 92 · thomasb@thebureau.paris</div>';
-  h += '<div>thebureau.paris — Commission broker 10% du CA HT première année</div></footer>';
-
-  h += '</body></html>';
+  h += '</main>';
+  /* FOOTER jade */
+  h += '<footer class="ft">';
+  h += '<div class="ft-l"><strong>Thomas Bougeard</strong> · Directeur Commercial<br>+33 6 59 23 15 92 · <a href="mailto:thomasb@thebureau.paris">thomasb@thebureau.paris</a> · <a href="https://www.thebureau.paris">thebureau.paris</a></div>';
+  h += '<div class="ft-r">The Bureau Paris<br><strong>75002 · 75008</strong></div>';
+  h += '</footer>';
+  h += '</div></body></html>';
 
   var win = window.open('', '_blank', 'width=1200,height=800');
   if(win){ win.document.write(h); win.document.close(); }
