@@ -238,10 +238,10 @@ body.dark .smodal-hdr{background:#112820}
 .opt-row-label{font-size:11px;color:var(--encre)}
 .opt-row-price{font-size:11px;color:var(--gris);margin-left:auto}
 .opt-total{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;color:var(--encre);text-align:right;padding:6px 0 0;border-top:1px solid var(--cf);margin-top:4px}
-.btn-add-opt{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:50px;border:1px solid var(--or2);background:transparent;color:var(--or2);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s}
-.btn-add-opt:hover{background:var(--or2);color:var(--blanc)}
-.btn-del-opt{background:none;border:none;cursor:pointer;color:rgba(201,169,110,.5);font-size:12px;transition:color .15s}
-.btn-del-opt:hover{color:#c0392b}
+.btn-add-opt{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:50px;border:1px solid var(--orAA);background:transparent;color:var(--orAA);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;font-weight:600}
+.btn-add-opt:hover{background:var(--orAA);color:var(--blanc)}
+.btn-del-opt{background:none;border:none;cursor:pointer;color:#D4B870;font-size:11px;font-weight:600;transition:color .15s;letter-spacing:.04em}
+.btn-del-opt:hover{color:#e55a4a}
 .btn-opt-mode{font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;border-radius:50px;border:1px solid var(--cf);background:var(--creme);color:var(--gris);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s}
 .btn-opt-mode.on{background:var(--encre);color:var(--or);border-color:var(--encre)}
 .msort-btns{display:flex;gap:4px}
@@ -1291,7 +1291,7 @@ function refreshOptTotal(el, opt, selData, d){
   var optBureaux = selData.filter(function(b){ return opt.refs.indexOf(b.ref)>=0; });
   var tot = optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-d)); },0);
   el.innerHTML = tot>0
-    ? 'Total option : <strong style="color:var(--or2)">'+fmt(tot)+'\u00a0\u20ac</strong> <span style="font-size:10px;color:var(--gc)">H.T./mois</span>'
+    ? 'Total option : <strong style="color:var(--orAA)">'+fmt(tot)+'\u00a0\u20ac</strong> <span style="font-size:10px;color:var(--gris)">H.T./mois</span>'
     : 'Aucun bureau s\u00e9lectionn\u00e9';
 }
 
@@ -1304,7 +1304,7 @@ function renderOptTiersInline(el, opt, selData){
     var tot=optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-p.d)); },0);
     var row=document.createElement('div');
     row.style.cssText='display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid var(--cf);font-size:11px';
-    row.innerHTML='<span style="color:var(--gris)">'+p.label+'</span><span style="font-weight:500;color:var(--encre)">'+fmt(tot)+'\u00a0\u20ac <span style="font-weight:300;color:var(--gc);font-size:10px">H.T./mois</span></span>';
+    row.innerHTML='<span style="color:var(--gris)">'+p.label+'</span><span style="font-weight:600;color:var(--encre)">'+fmt(tot)+'\u00a0\u20ac <span style="font-weight:400;color:var(--gris);font-size:10px">H.T./mois</span></span>';
     el.appendChild(row);
   });
 }
@@ -1339,7 +1339,7 @@ function updateCommission(){
     row.innerHTML='<span class="comm-row-label">'+label+'</span><span class="comm-row-val">'+val+'</span>';
     body.appendChild(row);
   }
-  addRow('Durée retenue', duree ? moisCalc+' mois'+(plafonne?' <span style="font-size:9px;opacity:.6">(plafonn\u00e9e)</span>':'') : '12 mois <span style="font-size:9px;opacity:.6">(défaut)</span>');
+  addRow('Durée retenue', duree ? moisCalc+' mois'+(plafonne?' <span style="font-size:9px;color:var(--gris);font-weight:500">(plafonn\u00e9e)</span>':'') : '12 mois <span style="font-size:9px;color:var(--gris);font-weight:500">(défaut)</span>');
   addRow('Taux', '10% du CA HT');
 
   if(!OPT_MODE){
