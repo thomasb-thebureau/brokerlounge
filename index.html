@@ -2013,7 +2013,16 @@ setInterval(fetchData, REFRESH_MS);
 ============================================================ */
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('/sw.js').catch(function(e){ console.warn('[SW] register failed:',e); });
+    navigator.serviceWorker.register('/sw.js').then(function(reg){
+      /* Force update check on each load */
+      reg.update();
+    }).catch(function(e){ console.warn('[SW] register failed:',e); });
+    /* Auto-reload once when a new SW takes control (ensures shared links get latest code) */
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if(refreshing) return; refreshing = true;
+      window.location.reload();
+    });
   });
 }
 </script>
