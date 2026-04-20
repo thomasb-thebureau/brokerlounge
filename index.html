@@ -1588,7 +1588,7 @@ function exportPDF(){
       if(optBureaux.length===0) return;
       var optTotals = {};
       activeTiers.forEach(function(t){ optTotals[t.key] = optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-t.d)); },0); });
-      h += '<div style="background:'+JADE+';color:'+CR+';padding:7px 12px;border-radius:4px 4px 0 0;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-top:6px">'+esc(opt.label)+' \u2014 '+optBureaux.length+' bureau'+(optBureaux.length>1?'x':'')+'</div>';
+      h += '<div style="background:'+OR2+';color:#fff;padding:8px 14px;border-radius:4px 4px 0 0;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-top:8px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)">'+esc(opt.label)+' \u2014 '+optBureaux.length+' bureau'+(optBureaux.length>1?'x':'')+'</div>';
       h += '<table class="grid" style="margin-top:0;border-radius:0 0 4px 4px">';
       h += tableHeader();
       h += '<tbody>'+tableRows(optBureaux);
