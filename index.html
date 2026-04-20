@@ -208,11 +208,13 @@ body.dark .smodal-hdr{background:#112820}
 .sm-sect{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--orAA);font-weight:700;margin-bottom:10px;margin-top:18px;display:flex;align-items:center;justify-content:space-between}
 .sm-sect:first-child{margin-top:0}
 .moffs{display:flex;flex-direction:column;gap:6px}
-.mrow{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--creme);border-radius:3px;border:1px solid var(--cf);cursor:grab}
+.mrow{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 14px;background:var(--creme);border-radius:3px;border:1px solid var(--cf);cursor:grab;gap:12px}
 .mrow:active{cursor:grabbing}
 .mref{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--orAA);font-weight:700;margin-bottom:3px}
 .mname{font-size:12.5px;color:var(--encre)}
-.mprice{font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;color:var(--encre);white-space:nowrap;flex-shrink:0;margin-left:14px}
+.mdesc{font-size:11px;color:var(--gris);line-height:1.5;margin-top:5px}
+.mprice{font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;color:var(--encre);white-space:nowrap;flex-shrink:0;margin-left:14px;font-weight:600}
+body.dark .mdesc{color:rgba(255,255,255,.7)}
 .mdel{background:none;border:none;cursor:pointer;color:var(--gc);padding:2px;margin-left:7px;transition:color .18s;flex-shrink:0}
 .mdel:hover{color:#c0392b}
 .mdel svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2}
@@ -638,6 +640,10 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
     <div class="smodal-ftr">
       <button class="bcnl" id="smcnl">Fermer</button>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn-csv" id="btnShare" onclick="shareSelection()" title="Copier un lien de la sélection">
+          <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span id="shareLabel">Partager</span>
+        </button>
         <button class="btn-csv" id="btnCsv" onclick="exportCSV()">
           <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M3 15v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"/></svg>
           CSV
@@ -1186,8 +1192,11 @@ function makeModalRow(b, d){
   var row = document.createElement('div');
   row.className='mrow'; row.dataset.ref=b.ref;
   var info = document.createElement('div');
+  info.style.cssText='min-width:0;flex:1';
+  var desc = cleanDesc(b.desc||'');
   info.innerHTML='<div class="mref">'+esc(b.ref)+' \u2014 '+esc(b.label)+'</div>'+
-    '<div class="mname">'+etLbl(b.etage)+' \u2014 '+b.cap+' poste'+(b.cap>1?'s':'')+(b.surface?' \u2014 '+b.surface.toLocaleString('fr-FR')+'\u00a0m\u00b2':'')+' \u2014 '+(b.dispo==='immediate'?'Dispo imm\u00e9diate':'Dispo le '+dtLbl(b.date))+'</div>';
+    '<div class="mname">'+etLbl(b.etage)+' \u2014 '+b.cap+' poste'+(b.cap>1?'s':'')+(b.surface?' \u2014 '+b.surface.toLocaleString('fr-FR')+'\u00a0m\u00b2':'')+' \u2014 '+(b.dispo==='immediate'?'Dispo imm\u00e9diate':'Dispo le '+dtLbl(b.date))+'</div>'+
+    (desc?'<div class="mdesc">'+esc(desc)+'</div>':'');
   var right = document.createElement('div');
   right.style.cssText='display:flex;align-items:center;gap:4px';
   var pe = document.createElement('div');
@@ -1409,6 +1418,90 @@ function updateCommission(){
   note.className='comm-note';
   note.textContent='Estimation non contractuelle. Commission verifiable selon les conditions de votre mandat.';
   body.appendChild(note);
+}
+
+/* ============================================================
+   SHARE SELECTION — URL hash
+============================================================ */
+function encodeSelectionHash(){
+  var parts = [];
+  var refs = SEL_ORDER.filter(function(r){ return SEL[r]; });
+  if(refs.length) parts.push('sel='+encodeURIComponent(refs.join(',')));
+  if(ST.eng && ST.eng!=='mensuel') parts.push('eng='+ST.eng);
+  var tiers = TIER_SEL.map(function(v,i){return v?i:null;}).filter(function(v){return v!==null;}).join(',');
+  if(tiers!=='0,1,2,3') parts.push('tiers='+tiers);
+  if(BROKER.duree_mois) parts.push('duree='+BROKER.duree_mois);
+  if(BROKER.localisation) parts.push('loc='+BROKER.localisation);
+  /* ITIN addons per site */
+  var addonParts = [];
+  Object.keys(ITIN_ADDONS_BY_SITE).forEach(function(sid){
+    var a = ITIN_ADDONS_BY_SITE[sid];
+    if(a.domi||a.casier) addonParts.push(sid+':'+(a.domi?'d':'')+(a.casier?'c':''));
+  });
+  if(addonParts.length) parts.push('addons='+addonParts.join('|'));
+  parts.push('open=1');
+  return parts.join('&');
+}
+function shareSelection(){
+  var refs = Object.keys(SEL);
+  if(refs.length===0){
+    var lbl0 = document.getElementById('shareLabel');
+    if(lbl0){ var o=lbl0.textContent; lbl0.textContent='Aucun bureau sélectionné'; setTimeout(function(){lbl0.textContent=o;},1400); }
+    return;
+  }
+  var url = location.origin + location.pathname + '#' + encodeSelectionHash();
+  var done = function(){
+    var lbl = document.getElementById('shareLabel');
+    if(!lbl) return; var prev = lbl.textContent;
+    lbl.textContent = '✓ Lien copié';
+    setTimeout(function(){ lbl.textContent = prev; }, 1800);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(done).catch(function(){ prompt('Copiez le lien :', url); });
+  } else {
+    var ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); done(); } catch(e){ prompt('Copiez le lien :', url); }
+    document.body.removeChild(ta);
+  }
+}
+function restoreFromHash(){
+  if(!location.hash) return false;
+  var obj = {};
+  location.hash.slice(1).split('&').forEach(function(p){ var kv=p.split('='); if(kv[0]) obj[kv[0]]=decodeURIComponent(kv[1]||''); });
+  if(!obj.sel && !obj.open) return false;
+  if(obj.loc){ BROKER.localisation = obj.loc; }
+  if(obj.duree){ BROKER.duree_mois = parseInt(obj.duree)||null; }
+  if(obj.eng){ ST.eng = obj.eng; }
+  if(obj.tiers){
+    TIER_SEL = [false,false,false,false];
+    obj.tiers.split(',').forEach(function(i){ var n=parseInt(i); if(n>=0&&n<4) TIER_SEL[n]=true; });
+  }
+  if(obj.addons){
+    obj.addons.split('|').forEach(function(p){
+      var parts = p.split(':'); var sid = parts[0]; var flags = parts[1]||'';
+      ITIN_ADDONS_BY_SITE[sid] = { domi: flags.indexOf('d')>=0, casier: flags.indexOf('c')>=0 };
+    });
+  }
+  if(obj.sel){
+    obj.sel.split(',').forEach(function(ref){
+      if(!ref) return;
+      var existing = DATA.find(function(b){ return b.ref===ref; });
+      if(existing){ SEL[ref]=true; SEL_ORDER.push(ref); }
+      else if(ref.indexOf('ITIN-')===0){
+        var sid = ref.split('-')[1];
+        var addons = ITIN_ADDONS_BY_SITE[sid] || {domi:false,casier:false};
+        SEL[ref] = { ref:ref, site:sid, label:SITE_LABELS[sid], adresse:SITE_ADDR[sid],
+          prix: ITIN_PRIX+(addons.domi?60:0)+(addons.casier?30:0),
+          cap:1, etage:0, surface:null, dispo:'immediate', date:null,
+          desc:'Accès en placement libre aux espaces partagés et services The Bureau.',
+          addons:JSON.parse(JSON.stringify(addons)), isItin:true };
+        SEL_ORDER.push(ref);
+      }
+    });
+  }
+  /* Clear hash after restoring (avoid repeat on reload) */
+  history.replaceState(null,'',location.pathname+location.search);
+  return obj.open==='1' || !!obj.sel;
 }
 
 /* ============================================================
@@ -1848,7 +1941,14 @@ function fetchData(){
         setStatus('live','Donn\u00e9es en direct');
         var lm=xhr.getResponseHeader?xhr.getResponseHeader('Last-Modified'):null;
         if(lm){ var dd=new Date(lm); if(!isNaN(dd)){ document.getElementById('dlabel').textContent='MAJ\u00a0'+dd.getDate().toString().padStart(2,'0')+'/'+(dd.getMonth()+1).toString().padStart(2,'0')+' - '+dd.getHours().toString().padStart(2,'0')+'h'+dd.getMinutes().toString().padStart(2,'0'); } }
-        render();
+        /* Restore shared selection from URL hash on first successful fetch */
+        if(!window._brkHashRestored && location.hash){
+          window._brkHashRestored = true;
+          var shouldOpen = restoreFromHash();
+          if(BROKER.localisation){ setLoc(BROKER.localisation); startBroker(); }
+          render();
+          if(shouldOpen){ setTimeout(openModal, 200); }
+        } else { render(); }
       }catch(e){ onFail(e.message); }
     } else { onFail('HTTP '+xhr.status); }
   };
