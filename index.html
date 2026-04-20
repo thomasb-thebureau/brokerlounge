@@ -253,6 +253,33 @@ body.dark .mdesc{color:rgba(255,255,255,.7)}
 /* Right panel: commission */
 .sm-right{width:260px;flex-shrink:0;background:#F5EFE5;color:var(--encre);border-left:1px solid var(--cf);display:flex;flex-direction:column;overflow-y:auto}
 .comm-mobile-toggle{display:none}
+/* Filter drawer (mobile) */
+.filter-fab{display:none}
+.fdrawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;align-items:flex-end;justify-content:center}
+.fdrawer{background:var(--creme);width:100%;max-height:88vh;border-radius:12px 12px 0 0;display:flex;flex-direction:column;animation:fdrawerSlide .28s cubic-bezier(.16,1,.3,1)}
+body.dark .fdrawer{background:#1a1a1a}
+@keyframes fdrawerSlide{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.fdrawer-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--cf);flex-shrink:0}
+.fdrawer-hdr h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:600;color:var(--encre)}
+body.dark .fdrawer-hdr h3{color:#F5EFE5}
+body.dark .fdrawer-hdr{border-bottom-color:rgba(255,255,255,.08)}
+.fdrawer-body{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:18px}
+.fdrawer-section{display:flex;flex-direction:column;gap:8px}
+.fdrawer-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gris);font-weight:600}
+.fdrawer-section .site-chips{display:flex;gap:6px;flex-wrap:wrap}
+.fdrawer-section .sr{display:flex;flex-wrap:wrap;gap:4px;border:1px solid var(--cf);border-radius:50px;overflow:hidden;background:var(--creme)}
+.fdrawer-section .sb{flex:1;min-width:0;padding:8px 12px;font-size:12px;background:transparent;border:none;cursor:pointer;color:var(--gris);border-left:1px solid var(--cf)}
+.fdrawer-section .sb:first-child{border-left:0}
+.fdrawer-section .sb.on{background:var(--vert);color:#F5EFE5}
+.fdrawer-section .rw{display:flex;gap:8px;align-items:center}
+.fdrawer-section .ri{flex:1;padding:9px 12px;font-size:13px;min-height:40px;border-radius:50px;border:1px solid var(--cf);background:var(--creme);text-align:center;outline:none;font-family:'Plus Jakarta Sans',sans-serif;color:var(--encre)}
+.fdrawer-section .fsel{width:100%;padding:9px 28px 9px 12px;font-size:13px;min-height:40px}
+body.dark .fdrawer-section .ri,body.dark .fdrawer-section .fsel,body.dark .fdrawer-section .sr{background:#2a2a2a;color:#F5EFE5;border-color:rgba(255,255,255,.12)}
+body.dark .fdrawer-section .sb{color:rgba(255,255,255,.7);border-left-color:rgba(255,255,255,.08)}
+.fdrawer-ftr{display:flex;gap:10px;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--cf);flex-shrink:0}
+body.dark .fdrawer-ftr{border-top-color:rgba(255,255,255,.08)}
+.fdrawer-ftr .bcnl{flex:0 0 auto}
+.fdrawer-ftr .btn-start{flex:1}
 body.dark .sm-right{background:#2a2a2a;color:#F5EFE5;border-left-color:rgba(255,255,255,.08)}
 .comm-hdr{padding:18px 18px 14px;border-bottom:1px solid var(--cf)}
 .comm-eyebrow{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--orAA);font-weight:700;margin-bottom:4px}
@@ -320,10 +347,22 @@ body.dark footer{background:#112820}
   .logo-main,.logo-main-dark{height:24px}
   .status,.dlabel{display:none}
   .hero{padding:20px 16px 18px}
-  .fp{padding:10px 12px;gap:8px;top:50px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
-  .fp::-webkit-scrollbar{height:0}
-  .fd{display:none}
-  .fl{display:none}
+  .fp{display:none}
+  .hero{display:none}
+  .config-banner{padding:8px 14px;gap:10px;font-size:10px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .config-banner::-webkit-scrollbar{height:0}
+  .cb-sep{display:none}
+  .cb-item{gap:4px;flex-shrink:0}
+  .modifier-btn{flex-shrink:0;margin-left:0!important}
+  .tb{position:sticky;top:44px;z-index:100;background:var(--creme);padding:10px 14px;gap:10px;border-bottom:1px solid var(--cf);align-items:center;transition:background .25s,border-color .25s,color .25s}
+  body.dark .tb{background:#1a1a1a;border-bottom-color:rgba(255,255,255,.08)}
+  .tb.stuck{background:var(--vert);color:#F5EFE5;border-bottom-color:rgba(30,64,53,.6);box-shadow:0 2px 12px rgba(0,0,0,.18)}
+  .tb.stuck .rc,.tb.stuck .rc strong{color:#F5EFE5}
+  .tb.stuck .rc strong{color:var(--or)}
+  .tb.stuck .filter-fab{background:#F5EFE5;color:var(--vert)}
+  .tb .hint{display:none}
+  .filter-fab{display:inline-flex!important;align-items:center;gap:6px;background:var(--vert);color:#F5EFE5;border:none;border-radius:50px;padding:7px 14px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-left:auto}
+  .fdrawer-overlay.on{display:flex!important}
   .tb{padding:8px 12px}
   .grid{grid-template-columns:1fr;margin-bottom:80px}
   .card{padding:16px 14px}
@@ -591,9 +630,31 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
 </div>
 
 <!-- TOOLBAR -->
+<div id="tbSentinel" style="height:1px"></div>
 <div class="tb">
   <div class="rc"><strong id="cnt">-</strong> bureau<span id="ps"></span> disponible<span id="ps2"></span></div>
   <span class="hint">Cliquer sur une carte pour sélectionner</span>
+  <button class="filter-fab" id="filterFab" onclick="openFilterDrawer()" aria-label="Ouvrir les filtres">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+    Filtres
+  </button>
+</div>
+
+<!-- MOBILE FILTER DRAWER -->
+<div class="fdrawer-overlay" id="fdrawerOv" role="dialog" aria-modal="true" aria-label="Filtres" onclick="if(event.target===this) closeFilterDrawer()">
+  <div class="fdrawer">
+    <div class="fdrawer-hdr">
+      <h3>Filtres</h3>
+      <button class="mclose" onclick="closeFilterDrawer()" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="fdrawer-body" id="fdrawerBody">
+      <!-- filled by JS — mirrors .fp controls -->
+    </div>
+    <div class="fdrawer-ftr">
+      <button class="bcnl" onclick="resetFilters()">Réinitialiser</button>
+      <button class="btn-start" onclick="closeFilterDrawer()" style="padding:10px 22px">Voir <strong id="fdrawerCnt">—</strong></button>
+    </div>
+  </div>
 </div>
 
 <!-- GRID -->
@@ -1954,6 +2015,89 @@ document.getElementById('commToggle').addEventListener('click', function(){
   var closed = panel.classList.toggle('mobile-closed');
   this.setAttribute('aria-expanded', closed ? 'false' : 'true');
 });
+
+/* Mobile filter drawer : mirror .fp controls in a bottom-sheet */
+function openFilterDrawer(){
+  var body = document.getElementById('fdrawerBody');
+  var sitesHtml = '<div class="site-chips">'+
+    '<span class="sc sc-all'+(ST.sites.all?' on':'')+'" data-site="all">Tous</span>'+
+    '<span class="sc sc-grp'+(ST.sites.I||ST.sites.II?' on':'')+'" data-site="75008">75008 <small style="font-size:10px;font-weight:500">TB I &amp; II</small></span>'+
+    '<span class="sc sc-grp'+(ST.sites.III||ST.sites.IV?' on':'')+'" data-site="75002">75002 <small style="font-size:10px;font-weight:500">TB III &amp; IV</small></span>'+
+  '</div>';
+  var engHtml = '<div class="sr">'+
+    ['mensuel','12m','24m','36m'].map(function(k){
+      var lbls={mensuel:'Mensuel',12:'12m ',24:'24m',36:'36m'};
+      var short={mensuel:'Mensuel','12m':'12 mois -5%','24m':'24 mois -10%','36m':'36 mois -15%'};
+      return '<button class="sb'+(ST.eng===k?' on':'')+'" data-eng="'+k+'">'+short[k]+'</button>';
+    }).join('')+'</div>';
+  var dispoHtml = '<div class="sr">'+
+    [{k:'all',l:'Toutes'},{k:'immediate',l:'Immédiate'},{k:'future',l:'À venir'}].map(function(o){
+      return '<button class="sb'+(ST.dispo===o.k?' on':'')+'" data-dispo="'+o.k+'">'+o.l+'</button>';
+    }).join('')+'</div>';
+  var postesHtml = '<div class="rw">'+
+    '<input type="number" class="ri" id="fdMin" placeholder="min" min="1" max="100" value="'+(ST.cmin||'')+'">'+
+    '<span style="color:var(--gc);font-size:12px">—</span>'+
+    '<input type="number" class="ri" id="fdMax" placeholder="max" min="1" max="100" value="'+(ST.cmax||'')+'">'+
+  '</div>';
+  var triOpts = [['nom','Référence'],['pa','Prix croissant'],['pd','Prix décroissant'],['ca','Capacité croissante'],['cd','Capacité décroissante'],['pp','Meilleure affaire (€/poste)']];
+  var triHtml = '<select class="fsel" id="fdSrt">'+triOpts.map(function(o){return '<option value="'+o[0]+'"'+(ST.sort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';
+  var searchHtml = '<input type="text" class="ri" id="fdSearch" placeholder="ex. C113" value="'+(ST.search||'').replace(/"/g,'&quot;')+'" style="width:100%">';
+
+  body.innerHTML =
+    '<div class="fdrawer-section"><div class="fdrawer-label">Sites</div>'+sitesHtml+'</div>'+
+    '<div class="fdrawer-section"><div class="fdrawer-label">Engagement</div>'+engHtml+'</div>'+
+    '<div class="fdrawer-section"><div class="fdrawer-label">Disponibilité</div>'+dispoHtml+'</div>'+
+    '<div class="fdrawer-section"><div class="fdrawer-label">Postes</div>'+postesHtml+'</div>'+
+    '<div class="fdrawer-section"><div class="fdrawer-label">Tri</div>'+triHtml+'</div>'+
+    '<div class="fdrawer-section"><div class="fdrawer-label">Référence</div>'+searchHtml+'</div>';
+
+  function refreshDrawerCnt(){ document.getElementById('fdrawerCnt').textContent = document.getElementById('cnt').textContent; }
+  refreshDrawerCnt();
+
+  /* Wire up drawer controls to the main .fp events */
+  body.querySelectorAll('.sc').forEach(function(chip){
+    chip.addEventListener('click', function(){ document.querySelector('#sf [data-site="'+this.dataset.site+'"]').click(); openFilterDrawer(); refreshDrawerCnt(); });
+  });
+  body.querySelectorAll('[data-eng]').forEach(function(b){
+    b.addEventListener('click', function(){ document.querySelector('#ef [data-eng="'+this.dataset.eng+'"]').click(); openFilterDrawer(); refreshDrawerCnt(); });
+  });
+  body.querySelectorAll('[data-dispo]').forEach(function(b){
+    b.addEventListener('click', function(){ document.querySelector('#df [data-dispo="'+this.dataset.dispo+'"]').click(); openFilterDrawer(); refreshDrawerCnt(); });
+  });
+  document.getElementById('fdMin').addEventListener('input', function(){ ST.cmin=this.value; document.getElementById('cmin').value=this.value; render(); refreshDrawerCnt(); });
+  document.getElementById('fdMax').addEventListener('input', function(){ ST.cmax=this.value; document.getElementById('cmax').value=this.value; render(); refreshDrawerCnt(); });
+  document.getElementById('fdSrt').addEventListener('change', function(){ ST.sort=this.value; document.getElementById('srt').value=this.value; render(); refreshDrawerCnt(); });
+  document.getElementById('fdSearch').addEventListener('input', function(){ ST.search=this.value.trim(); document.getElementById('search').value=this.value; render(); refreshDrawerCnt(); });
+
+  document.getElementById('fdrawerOv').classList.add('on');
+  document.body.style.overflow='hidden';
+}
+function closeFilterDrawer(){
+  document.getElementById('fdrawerOv').classList.remove('on');
+  document.body.style.overflow='';
+}
+
+/* Detect when .tb becomes sticky (mobile) to apply jade styling */
+(function(){
+  var tb = document.querySelector('.tb');
+  if(!tb) return;
+  var ticking = false;
+  function check(){
+    var r = tb.getBoundingClientRect();
+    /* tb is stuck when its top <= the sticky offset (~44px on mobile, 0 on desktop) */
+    var stuck = r.top <= 48 && window.innerWidth <= 768;
+    tb.classList.toggle('stuck', stuck);
+    ticking = false;
+  }
+  window.addEventListener('scroll', function(){
+    if(!ticking){ requestAnimationFrame(check); ticking = true; }
+  }, { passive: true });
+  window.addEventListener('resize', check);
+})();
+function resetFilters(){
+  document.getElementById('rst').click();
+  closeFilterDrawer();
+}
 
 /* ============================================================
    DATA FETCH
