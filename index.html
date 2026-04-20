@@ -1942,14 +1942,9 @@ function fetchData(){
         setStatus('live','Donn\u00e9es en direct');
         var lm=xhr.getResponseHeader?xhr.getResponseHeader('Last-Modified'):null;
         if(lm){ var dd=new Date(lm); if(!isNaN(dd)){ document.getElementById('dlabel').textContent='MAJ\u00a0'+dd.getDate().toString().padStart(2,'0')+'/'+(dd.getMonth()+1).toString().padStart(2,'0')+' - '+dd.getHours().toString().padStart(2,'0')+'h'+dd.getMinutes().toString().padStart(2,'0'); } }
-        /* Restore shared selection from URL hash on first successful fetch */
-        if(!window._brkHashRestored && location.hash){
-          window._brkHashRestored = true;
-          var shouldOpen = restoreFromHash();
-          if(BROKER.localisation){ setLoc(BROKER.localisation); startBroker(); }
-          render();
-          if(shouldOpen){ setTimeout(openModal, 200); }
-        } else { render(); }
+        /* If hash restore already opened the modal, just re-render with fresh data */
+        render();
+        if(window._brkHashPendingOpen){ window._brkHashPendingOpen=false; setTimeout(openModal, 150); }
       }catch(e){ onFail(e.message); }
     } else { onFail('HTTP '+xhr.status); }
   };
@@ -1961,7 +1956,26 @@ function fetchData(){
 /* ============================================================
    INIT
 ============================================================ */
-document.getElementById('openOverlay').style.display='flex';
+if(location.hash && (location.hash.indexOf('sel=')>=0 || location.hash.indexOf('open=1')>=0)){
+  /* Shared link : skip startup, restore selection from FALLBACK, show modal.
+     Live data.json will refresh cards in background via fetchData. */
+  document.getElementById('openOverlay').style.display='none';
+  document.getElementById('app').style.display='block';
+  var _shouldOpen = restoreFromHash();
+  if(BROKER.localisation){
+    setLoc(BROKER.localisation);
+    if(BROKER.postes_max) document.getElementById('openPostes').value = BROKER.postes_max;
+    if(BROKER.duree_mois) document.getElementById('openDuree').value = BROKER.duree_mois;
+    startBroker();
+  } else {
+    render();
+  }
+  if(_shouldOpen) { window._brkHashPendingOpen = true; setTimeout(openModal, 250); }
+  fetchData();
+} else {
+  document.getElementById('openOverlay').style.display='flex';
+  fetchData();
+}
 /* Also try updated_at */
 (function(){
   var x=new XMLHttpRequest();
