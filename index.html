@@ -80,7 +80,7 @@ body.dark .logo-tag{color:var(--or)}
 .cb-sep{width:1px;height:16px;background:var(--cf)}
 /* GRID */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(305px,1fr));gap:1px;background:var(--cf);margin:0 0 90px}
-.card{background:var(--blanc);padding:22px 26px;position:relative;overflow:hidden;transition:background .18s;cursor:pointer}
+.card{background:var(--blanc);padding:22px 26px;position:relative;overflow:hidden;transition:background .18s;cursor:pointer;display:flex;flex-direction:column}
 .card:hover{background:#fdfcf9}
 .card.sel{background:#faf7f0;outline:2px solid var(--or);outline-offset:-2px}
 .chk{position:absolute;top:10px;left:10px;width:17px;height:17px;border:1.5px solid var(--cf);border-radius:4px;background:var(--blanc);display:flex;align-items:center;justify-content:center;transition:all .18s;z-index:2;pointer-events:none}
@@ -103,7 +103,7 @@ body.dark .logo-tag{color:var(--or)}
 .chip{display:flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:50px;border:1px solid var(--cf);color:var(--encre);background:var(--creme)}
 .chip svg{width:9px;height:9px;fill:var(--or);flex-shrink:0}
 .chip.hl{background:var(--op);border-color:rgba(160,120,64,.28);color:var(--or2);font-weight:500}
-.pb{border-top:1px solid var(--cf);padding-top:12px}
+.pb{border-top:1px solid var(--cf);padding-top:12px;margin-top:auto}
 .pr{display:flex;align-items:baseline;gap:9px;margin-bottom:3px}
 .pm{font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:600;color:var(--encre);line-height:1}
 .pm sup{font-size:16px;font-weight:500;margin-right:2px;top:-.4em}
