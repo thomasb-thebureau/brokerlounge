@@ -425,6 +425,8 @@ body.dark .diff-badge{background:rgba(74,154,122,.14);color:#5cb88a;border-color
 .lang-toggle{width:auto;min-width:36px;padding:0 10px;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gris)}
 .dark-toggle:hover,.lang-toggle:hover{border-color:var(--or);background:var(--op)}
 .lang-toggle:hover{color:var(--or)}
+.sm-lang-toggle{background:rgba(245,239,229,.12);border-color:rgba(245,239,229,.28);color:rgba(245,239,229,.9)}
+.sm-lang-toggle:hover{background:rgba(245,239,229,.22);border-color:var(--or);color:var(--or)}
 /* ========== DARK MODE ========== */
 body.dark{--creme:#1a1a1a;--blanc:#222;--encre:#F5EFE5;--cf:rgba(255,255,255,.09);--gris:rgba(255,255,255,.60);--gc:rgba(255,255,255,.45);--or:#D4B870;--or2:#D4B870;--orAA:#D4B870;--op:rgba(212,184,112,.12);--vert:#4a9a7a;--vp:rgba(74,154,122,.12)}
 body.dark{background:#1a1a1a;color:#F5EFE5}
@@ -706,7 +708,10 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
         <div class="eyebrow" data-i18n="sel_eyebrow">Récapitulatif</div>
         <h2 data-i18n="sel_title">Sélection bureaux</h2>
       </div>
-      <button class="mclose" id="smcls" data-i18n-aria="close" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="lang-toggle sm-lang-toggle" id="smLangToggle" onclick="toggleLang()" aria-label="Switch language" title="FR / EN">FR</button>
+        <button class="mclose" id="smcls" data-i18n-aria="close" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
     </div>
     <div class="smodal-body">
       <!-- LEFT -->
@@ -867,7 +872,9 @@ function setLang(lang){
   LANG = lang;
   try { localStorage.setItem('brk_lang', lang); } catch(e){}
   document.documentElement.setAttribute('lang', lang);
-  var tog = document.getElementById('langToggle'); if(tog) tog.textContent = lang==='fr' ? 'FR' : 'EN';
+  var togLbl = lang==='fr' ? 'FR' : 'EN';
+  var tog = document.getElementById('langToggle'); if(tog) tog.textContent = togLbl;
+  var tog2 = document.getElementById('smLangToggle'); if(tog2) tog2.textContent = togLbl;
   applyI18n();
   var heroSub = document.getElementById('heroSub');
   if(heroSub) heroSub.textContent = t('hero_subtitle_a',{n:4});
