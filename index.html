@@ -270,7 +270,7 @@ body.dark .fdrawer-hdr{border-bottom-color:rgba(255,255,255,.08)}
 .fdrawer-section .sr{display:flex;flex-wrap:wrap;gap:4px;border:1px solid var(--cf);border-radius:50px;overflow:hidden;background:var(--creme)}
 .fdrawer-section .sb{flex:1;min-width:0;padding:8px 12px;font-size:12px;background:transparent;border:none;cursor:pointer;color:var(--gris);border-left:1px solid var(--cf)}
 .fdrawer-section .sb:first-child{border-left:0}
-.fdrawer-section .sb.on{background:var(--vert);color:#F5EFE5}
+.fdrawer-section .sb.on,.fdrawer-section .sc.on,.fdrawer-section .sc-all.on{background:var(--encre);color:var(--or);border-color:var(--encre)}
 .fdrawer-section .rw{display:flex;gap:8px;align-items:center}
 .fdrawer-section .ri{flex:1;padding:9px 12px;font-size:13px;min-height:40px;border-radius:50px;border:1px solid var(--cf);background:var(--creme);text-align:center;outline:none;font-family:'Plus Jakarta Sans',sans-serif;color:var(--encre)}
 .fdrawer-section .fsel{width:100%;padding:9px 28px 9px 12px;font-size:13px;min-height:40px}
@@ -279,7 +279,9 @@ body.dark .fdrawer-section .sb{color:rgba(255,255,255,.7);border-left-color:rgba
 .fdrawer-ftr{display:flex;gap:10px;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--cf);flex-shrink:0}
 body.dark .fdrawer-ftr{border-top-color:rgba(255,255,255,.08)}
 .fdrawer-ftr .bcnl{flex:0 0 auto}
-.fdrawer-ftr .btn-start{flex:1}
+.fdrawer-ftr .btn-start{flex:1;background:var(--or2);color:var(--blanc)}
+.fdrawer-ftr .btn-start:hover{background:var(--orAA)}
+.fdrawer-ftr .btn-start strong{color:var(--vert);font-weight:700;margin-left:4px}
 body.dark .sm-right{background:#2a2a2a;color:#F5EFE5;border-left-color:rgba(255,255,255,.08)}
 .comm-hdr{padding:18px 18px 14px;border-bottom:1px solid var(--cf)}
 .comm-eyebrow{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--orAA);font-weight:700;margin-bottom:4px}
@@ -1543,7 +1545,8 @@ function shareSelection(){
     if(lbl0){ var o=lbl0.textContent; lbl0.textContent='Aucun bureau sélectionné'; setTimeout(function(){lbl0.textContent=o;},1400); }
     return;
   }
-  var url = location.origin + location.pathname + '#' + encodeSelectionHash();
+  /* ?v=timestamp busts HTTP cache so the recipient always gets fresh HTML with the hash-restore logic */
+  var url = location.origin + location.pathname + '?v=' + Date.now() + '#' + encodeSelectionHash();
   var done = function(){
     var lbl = document.getElementById('shareLabel');
     if(!lbl) return; var prev = lbl.textContent;
@@ -1811,8 +1814,21 @@ function exportPDF(){
   h += '</footer>';
   h += '</div></body></html>';
 
-  var win = window.open('', '_blank', 'width=1200,height=800');
-  if(win){ win.document.write(h); win.document.close(); }
+  /* Use Blob URL (document.write in a popup is unreliable on mobile Safari/Chrome) */
+  var blob = new Blob([h], {type:'text/html;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if(isMobile){
+    /* Mobile : <a target=_blank> click is treated as user gesture ; window.open is blocked */
+    var a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  } else {
+    var win = window.open(url, '_blank');
+    if(!win){ window.location.href = url; }
+  }
+  /* Revoke after a delay so the new tab has time to load */
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
   return;
   /* === LEGACY CODE BELOW (deprecated) === */
   var engLabel = {mensuel:'Mensuel (3 mois min.)', '12m':'12 mois', '24m':'24 mois', '36m':'36 mois'}[ST.eng]||ST.eng;
