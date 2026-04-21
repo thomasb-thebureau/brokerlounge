@@ -526,7 +526,7 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
 <!-- TOP BAR -->
 <div class="top-bar">
   <div class="logo-wrap">
-    <a href="#" onclick="showOpenModal();return false;" style="display:flex;align-items:center;line-height:0" aria-label="Ouvrir la configuration de recherche">
+    <a href="#" onclick="resetApp();return false;" style="display:flex;align-items:center;line-height:0" aria-label="Reinitialiser et rafraichir" title="Reinitialiser la recherche et vider le cache">
       <img class="logo-main" src="./logo.svg" alt="The Bureau"/><img class="logo-main-dark" src="./logo-white.svg" alt="The Bureau"/>
     </a>
     <div class="logo-div"></div>
@@ -850,6 +850,29 @@ function showOpenModal(){
 }
 function closeOpenModal(){
   document.getElementById('openOverlay').style.display = 'none';
+}
+function resetApp(){
+  if(!confirm('Reinitialiser la recherche et recharger la derniere version ?')) return;
+  /* Vider la config et le dark mode conserves */
+  try {
+    ['brk_config'].forEach(function(k){ localStorage.removeItem(k); });
+    /* Purger les caches SW pour forcer une recharge fraiche */
+    if(window.caches && caches.keys){
+      caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){return caches.delete(k);})); }).finally(doReload);
+    } else {
+      doReload();
+    }
+  } catch(e){ doReload(); }
+  function doReload(){
+    /* Desinscrire le SW actif puis recharger sans cache */
+    if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
+      navigator.serviceWorker.getRegistrations().then(function(regs){
+        return Promise.all(regs.map(function(r){ return r.unregister(); }));
+      }).finally(function(){ window.location.href = location.origin + location.pathname + '?v=' + Date.now(); });
+    } else {
+      window.location.href = location.origin + location.pathname + '?v=' + Date.now();
+    }
+  }
 }
 function clearLoc(){
   _selectedLoc = null;
@@ -1612,6 +1635,9 @@ function restoreFromHash(){
     });
   }
   if(obj.sel){
+    /* Some refs may not yet exist in DATA (FALLBACK subset at this stage).
+       We store them in _pendingHashRefs and reconcile after fetchData loads data.json. */
+    window._pendingHashRefs = [];
     obj.sel.split(',').forEach(function(ref){
       if(!ref) return;
       var existing = DATA.find(function(b){ return b.ref===ref; });
@@ -1626,11 +1652,28 @@ function restoreFromHash(){
           addons:JSON.parse(JSON.stringify(addons)), isItin:true };
         SEL_ORDER.push(ref);
       }
+      else {
+        /* Not in FALLBACK, not an ITIN : queue for reconciliation once live data arrives */
+        window._pendingHashRefs.push(ref);
+      }
     });
   }
   /* Clear hash after restoring (avoid repeat on reload) */
   history.replaceState(null,'',location.pathname+location.search);
   return obj.open==='1' || !!obj.sel;
+}
+function reconcilePendingHashRefs(){
+  if(!window._pendingHashRefs || !window._pendingHashRefs.length) return false;
+  var resolved = 0;
+  var remaining = [];
+  window._pendingHashRefs.forEach(function(ref){
+    if(SEL[ref]) { resolved++; return; }
+    var existing = DATA.find(function(b){ return b.ref===ref; });
+    if(existing){ SEL[ref]=true; SEL_ORDER.push(ref); resolved++; }
+    else { remaining.push(ref); }
+  });
+  window._pendingHashRefs = remaining;
+  return resolved > 0;
 }
 
 /* ============================================================
@@ -2177,6 +2220,8 @@ function fetchData(){
         setStatus('live','Donn\u00e9es en direct');
         var lm=xhr.getResponseHeader?xhr.getResponseHeader('Last-Modified'):null;
         if(lm){ var dd=new Date(lm); if(!isNaN(dd)){ document.getElementById('dlabel').textContent='MAJ\u00a0'+dd.getDate().toString().padStart(2,'0')+'/'+(dd.getMonth()+1).toString().padStart(2,'0')+' - '+dd.getHours().toString().padStart(2,'0')+'h'+dd.getMinutes().toString().padStart(2,'0'); } }
+        /* Reconcile any shared refs that weren't in FALLBACK */
+        if(typeof reconcilePendingHashRefs==='function') reconcilePendingHashRefs();
         /* If hash restore already opened the modal, just re-render with fresh data */
         render();
         if(window._brkHashPendingOpen){ window._brkHashPendingOpen=false; setTimeout(openModal, 150); }
