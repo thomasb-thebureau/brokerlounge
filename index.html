@@ -1757,6 +1757,8 @@ function encodeSelectionHash(){
   if(tiers!=='0,1,2,3') parts.push('tiers='+tiers);
   if(BROKER.duree_mois) parts.push('duree='+BROKER.duree_mois);
   if(BROKER.localisation) parts.push('loc='+BROKER.localisation);
+  /* Langue : transmettre la langue du partageur (fr par defaut, inutile de l'envoyer) */
+  if(LANG && LANG!=='fr') parts.push('lang='+LANG);
   /* Option mode : serialiser OPT_MODE + OPTIONS pour que le destinataire retrouve ses options */
   if(OPT_MODE) parts.push('optmode=1');
   if(OPTIONS && OPTIONS.length){
@@ -1807,6 +1809,7 @@ function restoreFromHash(){
   if(obj.loc){ BROKER.localisation = obj.loc; }
   if(obj.duree){ BROKER.duree_mois = parseInt(obj.duree)||null; }
   if(obj.eng){ ST.eng = obj.eng; }
+  if(obj.lang && (obj.lang==='en' || obj.lang==='fr')) setLang(obj.lang);
   if(obj.tiers){
     TIER_SEL = [false,false,false,false];
     obj.tiers.split(',').forEach(function(i){ var n=parseInt(i); if(n>=0&&n<4) TIER_SEL[n]=true; });
