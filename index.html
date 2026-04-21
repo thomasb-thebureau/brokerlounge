@@ -273,15 +273,16 @@ body.dark .fdrawer-hdr{border-bottom-color:rgba(255,255,255,.08)}
 .fdrawer-section{display:flex;flex-direction:column;gap:8px}
 .fdrawer-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gris);font-weight:600}
 .fdrawer-section .site-chips{display:flex;gap:6px;flex-wrap:wrap}
-.fdrawer-section .sr{display:flex;flex-wrap:wrap;gap:4px;border:1px solid var(--cf);border-radius:50px;overflow:hidden;background:var(--creme)}
-.fdrawer-section .sb{flex:1;min-width:0;padding:8px 12px;font-size:12px;background:transparent;border:none;cursor:pointer;color:var(--gris);border-left:1px solid var(--cf)}
-.fdrawer-section .sb:first-child{border-left:0}
+.fdrawer-section .sr{display:flex;flex-wrap:wrap;gap:6px;background:transparent;border:none;border-radius:0;overflow:visible}
+.fdrawer-section .sb{flex:1 1 auto;min-width:0;padding:8px 12px;font-size:12px;line-height:1.2;background:var(--creme);border:1px solid var(--cf);border-radius:50px;cursor:pointer;color:var(--gris);text-align:center;white-space:nowrap}
+.fdrawer-section .sb small{opacity:.75;margin-left:3px}
+.fdrawer-section .sb.on small{opacity:1}
 .fdrawer-section .sb.on,.fdrawer-section .sc.on,.fdrawer-section .sc-all.on{background:var(--encre);color:var(--or);border-color:var(--encre)}
 .fdrawer-section .rw{display:flex;gap:8px;align-items:center}
 .fdrawer-section .ri{flex:1;padding:9px 12px;font-size:13px;min-height:40px;border-radius:50px;border:1px solid var(--cf);background:var(--creme);text-align:center;outline:none;font-family:'Plus Jakarta Sans',sans-serif;color:var(--encre)}
 .fdrawer-section .fsel{width:100%;padding:9px 28px 9px 12px;font-size:13px;min-height:40px}
-body.dark .fdrawer-section .ri,body.dark .fdrawer-section .fsel,body.dark .fdrawer-section .sr{background:#2a2a2a;color:#F5EFE5;border-color:rgba(255,255,255,.12)}
-body.dark .fdrawer-section .sb{color:rgba(255,255,255,.7);border-left-color:rgba(255,255,255,.08)}
+body.dark .fdrawer-section .ri,body.dark .fdrawer-section .fsel{background:#2a2a2a;color:#F5EFE5;border-color:rgba(255,255,255,.12)}
+body.dark .fdrawer-section .sb{background:#2a2a2a;color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.12)}
 .fdrawer-ftr{display:flex;gap:10px;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--cf);flex-shrink:0}
 body.dark .fdrawer-ftr{border-top-color:rgba(255,255,255,.08)}
 .fdrawer-ftr .bcnl{flex:0 0 auto}
