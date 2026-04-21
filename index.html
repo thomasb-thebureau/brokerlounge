@@ -648,7 +648,7 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
 <div id="tbSentinel" style="height:1px"></div>
 <div class="tb">
   <div class="rc"><strong id="cnt">-</strong> <span id="cntLbl">bureau disponible</span><span id="ps" style="display:none"></span><span id="ps2" style="display:none"></span></div>
-  <span class="hint">Cliquer sur une carte pour sélectionner</span>
+  <span class="hint" data-i18n="hint_click">Cliquer sur une carte pour sélectionner</span>
   <button class="filter-fab" id="filterFab" onclick="openFilterDrawer()" aria-label="Ouvrir les filtres">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
     Filtres
@@ -954,6 +954,12 @@ function cleanDesc(desc){
   if(!desc) return '';
   return desc.replace(/^[A-Z]\d{3}[^:\u2013\u2014-]*[::\u2013\u2014]?\s*[^-]*-\s*[\d\s\u202f]+\u20ac[^\s]*\s*(H\.T\.?\/mois\s*)?/i,'').trim()||desc;
 }
+/* Retourne la description dans la langue active (fallback sur FR si descEN absent) */
+function getDesc(b){
+  if(!b) return '';
+  if(LANG==='en' && b.descEN) return b.descEN;
+  return b.desc || '';
+}
 
 /* ============================================================
    OPENING MODAL
@@ -1098,7 +1104,7 @@ function makeCard(b){
       '</div>'+
       '<div class="'+dbCls+'"><span class="ddot"></span>'+dbTxt+'</div>'+
     '</div>'+
-    '<p class="cdesc">'+esc(cleanDesc(b.desc))+'</p>'+
+    '<p class="cdesc">'+esc(cleanDesc(getDesc(b)))+'</p>'+
     '<div class="chips">'+
       '<span class="chip'+(b.plateau?' hl':'')+'">'+etLbl(b.etage)+(b.surface?'\u00a0\u00b7\u00a0'+(b.surface%1===0?b.surface:b.surface.toLocaleString('fr-FR'))+'\u00a0m\u00b2':'')+'\u00a0\u00b7\u00a0'+b.cap+' '+(LANG==='en'?(b.cap>1?'desks':'desk'):(b.cap>1?'postes':'poste'))+'</span>'+
       '<span class="chip"><svg viewBox="0 0 24 24" width="9" height="9" fill="var(--or)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>'+t('card_access_24_7')+'</span>'+
@@ -1474,9 +1480,13 @@ function makeModalRow(b, d){
   row.className='mrow'; row.dataset.ref=b.ref;
   var info = document.createElement('div');
   info.style.cssText='min-width:0;flex:1';
-  var desc = cleanDesc(b.desc||'');
+  var desc = cleanDesc(getDesc(b));
+  var dispoLbl = b.dispo==='immediate'
+    ? (LANG==='en'?'Available now':'Dispo imm\u00e9diate')
+    : (LANG==='en'?'Available from ':'Dispo le ')+dtLbl(b.date);
+  var postesLbl = LANG==='en'?(b.cap>1?'desks':'desk'):(b.cap>1?'postes':'poste');
   info.innerHTML='<div class="mref">'+esc(b.ref)+' \u2014 '+esc(b.label)+'</div>'+
-    '<div class="mname">'+etLbl(b.etage)+' \u2014 '+b.cap+' poste'+(b.cap>1?'s':'')+(b.surface?' \u2014 '+b.surface.toLocaleString('fr-FR')+'\u00a0m\u00b2':'')+' \u2014 '+(b.dispo==='immediate'?'Dispo imm\u00e9diate':'Dispo le '+dtLbl(b.date))+'</div>'+
+    '<div class="mname">'+etLbl(b.etage)+' \u2014 '+b.cap+' '+postesLbl+(b.surface?' \u2014 '+b.surface.toLocaleString('fr-FR')+'\u00a0m\u00b2':'')+' \u2014 '+dispoLbl+'</div>'+
     (desc?'<div class="mdesc">'+esc(desc)+'</div>':'');
   var right = document.createElement('div');
   right.style.cssText='display:flex;align-items:center;gap:4px';
@@ -1495,16 +1505,19 @@ function renderTiersTable(parent, selData){
   if(selData.length===0) return;
   var baseTotal = selData.reduce(function(s,b){ return s+b.prix; },0);
   var tSect = document.createElement('div');
-  tSect.className='sm-sect'; tSect.style.marginTop='18px'; tSect.textContent='Paliers d\u2019engagement';
+  tSect.className='sm-sect'; tSect.style.marginTop='18px'; tSect.textContent = LANG==='en' ? 'Term tiers' : 'Paliers d\u2019engagement';
   parent.appendChild(tSect);
   var tbl = document.createElement('table');
   tbl.className='tiers-table';
   tbl.style.cssText='border:1px solid var(--cf);border-radius:3px;overflow:hidden';
+  var monthlyLbl = LANG==='en' ? 'Monthly (3-month minimum)' : 'Mensuel (3 mois minimum)';
+  var monthsLbl = LANG==='en' ? 'months' : 'mois';
+  var yearAbbr  = LANG==='en' ? 'yr'    : 'an';
   var paliers = [
-    {label:'Mensuel (3 mois minimum)',d:0,eng:'mensuel',idx:0},
-    {label:'12 mois',d:0.05,eng:'12m',idx:1},
-    {label:'24 mois',d:0.10,eng:'24m',idx:2},
-    {label:'36 mois',d:0.15,eng:'36m',idx:3}
+    {label:monthlyLbl,d:0,eng:'mensuel',idx:0},
+    {label:'12 '+monthsLbl,d:0.05,eng:'12m',idx:1},
+    {label:'24 '+monthsLbl,d:0.10,eng:'24m',idx:2},
+    {label:'36 '+monthsLbl,d:0.15,eng:'36m',idx:3}
   ].filter(function(p){ return TIER_SEL[p.idx]; });
   if(paliers.length===0){ parent.appendChild(tbl); return; }
   paliers.forEach(function(p,pi){
@@ -1512,9 +1525,9 @@ function renderTiersTable(parent, selData){
     var save = Math.round((baseTotal-tot)*12);
     var tr = document.createElement('tr');
     tr.className = p.d===0?'ref-row':'disc-row';
-    var saveChip = p.d>0&&save>0?'<span class="tier-save">\u2713 '+fmt(save)+'\u00a0\u20ac\u2009/\u00a0an</span>':'';
+    var saveChip = p.d>0&&save>0?'<span class="tier-save">\u2713 '+fmt(save)+'\u00a0\u20ac\u2009/\u00a0'+yearAbbr+'</span>':'';
     var disc_pct = p.d>0?' <span class="echip">-'+Math.round(p.d*100)+'%</span>':'';
-    tr.innerHTML='<td>'+p.label+disc_pct+saveChip+'</td><td style="text-align:right;font-weight:'+(p.d>0?600:400)+';font-family:\'Plus Jakarta Sans\',sans-serif;font-size:'+(p.d>0?18:16)+'px;white-space:nowrap">'+fmt(tot)+'\u00a0\u20ac <span style="font-size:10px;font-weight:300;font-family:Plus Jakarta Sans,sans-serif;color:var(--gc)">H.T./mois</span></td>';
+    tr.innerHTML='<td>'+p.label+disc_pct+saveChip+'</td><td style="text-align:right;font-weight:'+(p.d>0?600:400)+';font-family:\'Plus Jakarta Sans\',sans-serif;font-size:'+(p.d>0?18:16)+'px;white-space:nowrap">'+fmt(tot)+'\u00a0\u20ac <span style="font-size:10px;font-weight:300;font-family:Plus Jakarta Sans,sans-serif;color:var(--gc)">'+t('sel_ht_month')+'</span></td>';
     tbl.appendChild(tr);
   });
   parent.appendChild(tbl);
@@ -1629,14 +1642,28 @@ function updateCommission(){
     row.innerHTML='<span class="comm-row-label">'+label+'</span><span class="comm-row-val">'+val+'</span>';
     body.appendChild(row);
   }
-  addRow('Durée retenue', duree ? moisCalc+' mois'+(plafonne?' <span style="font-size:9px;color:var(--gris);font-weight:500">(plafonn\u00e9e)</span>':'') : '12 mois <span style="font-size:9px;color:var(--gris);font-weight:500">(défaut)</span>');
-  addRow('Taux', '10% du CA HT');
+  var lblDuree = LANG==='en' ? 'Term applied' : 'Durée retenue';
+  var lblTaux  = LANG==='en' ? 'Rate' : 'Taux';
+  var lblMois  = LANG==='en' ? 'months' : 'mois';
+  var lblCap   = LANG==='en' ? '(capped)' : '(plafonn\u00e9e)';
+  var lblDef   = LANG==='en' ? '(default)' : '(d\u00e9faut)';
+  var lblRate  = LANG==='en' ? '10% of first-year revenue excl. VAT' : '10% du CA HT';
+  var lblDetail= LANG==='en' ? 'Per office' : 'D\u00e9tail par bureau';
+  var lblEmpty = LANG==='en' ? 'No office selected' : 'Aucun bureau s\u00e9lectionn\u00e9';
+  var lblEst   = LANG==='en' ? 'Estimated commission' : 'Commission estim\u00e9e';
+  var lblHT    = LANG==='en' ? 'excl. VAT \u2014 10% \u00d7 ' : 'H.T. \u2014 10% \u00d7 ';
+  var lblOptPh = LANG==='en' ? 'Assign offices to options to compute commission.' : 'Affectez des bureaux aux options pour calculer la commission.';
+  var lblNote  = LANG==='en' ? 'Non-binding estimate. Commission subject to the terms of your mandate.' : 'Estimation non contractuelle. Commission verifiable selon les conditions de votre mandat.';
+  var lblPeople= LANG==='en' ? 'p.' : 'p.';
+
+  addRow(lblDuree, duree ? moisCalc+' '+lblMois+(plafonne?' <span style="font-size:9px;color:var(--gris);font-weight:500">'+lblCap+'</span>':'') : '12 '+lblMois+' <span style="font-size:9px;color:var(--gris);font-weight:500">'+lblDef+'</span>');
+  addRow(lblTaux, lblRate);
 
   if(!OPT_MODE){
     /* Global commission */
     var commBlock=document.createElement('div');
     commBlock.className='comm-block';
-    commBlock.innerHTML='<div class="comm-block-title">D\u00e9tail par bureau</div>';
+    commBlock.innerHTML='<div class="comm-block-title">'+lblDetail+'</div>';
     var tot=0;
     selData.forEach(function(b){
       var monthly=b.prix*(1-d);
@@ -1644,18 +1671,18 @@ function updateCommission(){
       tot+=comm;
       var line=document.createElement('div');
       line.className='comm-line';
-      line.innerHTML='<span class="comm-line-ref">'+esc(b.ref)+' \u2014 '+b.cap+' p.</span><span class="comm-line-amt">'+fmt(comm)+'\u00a0\u20ac</span>';
+      line.innerHTML='<span class="comm-line-ref">'+esc(b.ref)+' \u2014 '+b.cap+' '+lblPeople+'</span><span class="comm-line-amt">'+fmt(comm)+'\u00a0\u20ac</span>';
       commBlock.appendChild(line);
     });
-    if(selData.length===0) commBlock.innerHTML+='<div style="font-size:11px;color:rgba(244,239,230,.3);padding:8px 0">Aucun bureau s\u00e9lectionn\u00e9</div>';
+    if(selData.length===0) commBlock.innerHTML+='<div style="font-size:11px;color:rgba(244,239,230,.3);padding:8px 0">'+lblEmpty+'</div>';
     body.appendChild(commBlock);
     /* Total box */
     if(selData.length>0){
       var totBox=document.createElement('div');
       totBox.className='comm-total-box';
-      totBox.innerHTML='<div class="comm-total-label">Commission estim\u00e9e</div>'+
+      totBox.innerHTML='<div class="comm-total-label">'+lblEst+'</div>'+
         '<div class="comm-total-amt">'+fmt(tot)+'\u00a0\u20ac</div>'+
-        '<div class="comm-total-sub">H.T. \u2014 10% \u00d7 '+moisCalc+' mois</div>';
+        '<div class="comm-total-sub">'+lblHT+moisCalc+' '+lblMois+'</div>';
       body.appendChild(totBox);
     }
   } else {
@@ -1675,21 +1702,21 @@ function updateCommission(){
           var comm=monthly*moisCalc*0.10;
           var line=document.createElement('div');
           line.className='comm-line';
-          line.innerHTML='<span class="comm-line-ref">'+esc(b.ref)+' \u2014 '+b.cap+' p.</span><span class="comm-line-amt">'+fmt(comm)+'\u00a0\u20ac</span>';
+          line.innerHTML='<span class="comm-line-ref">'+esc(b.ref)+' \u2014 '+b.cap+' '+lblPeople+'</span><span class="comm-line-amt">'+fmt(comm)+'\u00a0\u20ac</span>';
           block.appendChild(line);
         });
         body.appendChild(block);
         var optTotBox=document.createElement('div');
         optTotBox.className='comm-total-box';
-        optTotBox.innerHTML='<div class="comm-total-label">Commission estim\u00e9e \u00b7 '+esc(opt.label)+'</div>'+
+        optTotBox.innerHTML='<div class="comm-total-label">'+lblEst+' \u00b7 '+esc(opt.label)+'</div>'+
           '<div class="comm-total-amt">'+fmt(totOpt)+'\u00a0\u20ac</div>'+
-          '<div class="comm-total-sub">H.T. \u2014 10% \u00d7 '+moisCalc+' mois</div>';
+          '<div class="comm-total-sub">'+lblHT+moisCalc+' '+lblMois+'</div>';
         body.appendChild(optTotBox);
       });
     } else {
       var ph=document.createElement('div');
       ph.style.cssText='font-size:11px;color:rgba(244,239,230,.3);padding-top:12px';
-      ph.textContent='Affectez des bureaux aux options pour calculer la commission.';
+      ph.textContent=lblOptPh;
       body.appendChild(ph);
     }
   }
@@ -1697,7 +1724,7 @@ function updateCommission(){
   /* Note */
   var note=document.createElement('div');
   note.className='comm-note';
-  note.textContent='Estimation non contractuelle. Commission verifiable selon les conditions de votre mandat.';
+  note.textContent=lblNote;
   body.appendChild(note);
 
   /* Mobile toggle amount : grand total across modes */
@@ -1852,18 +1879,28 @@ function exportCSV(){
   var selData = getSelData();
   if(selData.length===0) return;
   var activeTiers = TIERS.filter(function(_,i){ return TIER_SEL[i]; });
-  var etLblFn = function(e){ return e===0?'RDC':e+'e'; };
-  var header = ['Ref','Site','Adresse','Etage','Surface (m²)','Postes','Disponibilite','Date liberation','Description'];
-  activeTiers.forEach(function(t){ header.push('Prix '+t.label+' (€/mois HT)'); header.push('Economie '+t.label+' (€/an)'); });
+  var etLblFn = function(e){
+    if(LANG==='en'){ if(e===0) return 'Ground'; if(e===1) return '1st'; if(e===2) return '2nd'; if(e===3) return '3rd'; return e+'th'; }
+    return e===0?'RDC':e+'e';
+  };
+  var header = LANG==='en'
+    ? ['Ref','Site','Address','Floor','Surface (sqm)','Desks','Availability','Release date','Description']
+    : ['Ref','Site','Adresse','Etage','Surface (m\u00b2)','Postes','Disponibilite','Date liberation','Description'];
+  var tierMap = {'3m':t('pdf_tier_monthly'),'12m':t('pdf_tier_12'),'24m':t('pdf_tier_24'),'36m':t('pdf_tier_36')};
+  var priceCol = LANG==='en' ? 'Price %l (\u20ac/month excl. VAT)' : 'Prix %l (\u20ac/mois HT)';
+  var savCol   = LANG==='en' ? 'Savings %l (\u20ac/year)'          : 'Economie %l (\u20ac/an)';
+  activeTiers.forEach(function(tr){ var lbl = tierMap[tr.key]||tr.label; header.push(priceCol.replace('%l', lbl)); header.push(savCol.replace('%l', lbl)); });
   var rows = [header];
+  var dispoImm = LANG==='en'?'Immediate':'Immediate';
+  var dispoFut = LANG==='en'?'Upcoming':'A venir';
   selData.forEach(function(b){
     var r = [
       b.ref, b.label||'', b.adresse||'', etLblFn(b.etage),
       b.surface!=null?String(b.surface).replace('.',','):'',
       b.cap,
-      b.dispo==='immediate'?'Immediate':(b.dispo==='future'?'A venir':b.dispo),
+      b.dispo==='immediate'?dispoImm:(b.dispo==='future'?dispoFut:b.dispo),
       b.date||'',
-      cleanDesc(b.desc||'')
+      cleanDesc(getDesc(b))
     ];
     activeTiers.forEach(function(t){
       var price = Math.round(b.prix*(1-t.d));
@@ -2001,7 +2038,7 @@ function exportPDF(){
       out += '<td class="num">'+(b.surface!=null?b.surface.toLocaleString('fr-FR'):'—')+'</td>';
       out += '<td class="ctr">'+b.cap+'</td>';
       out += '<td>'+dispoStr(b)+'</td>';
-      out += '<td style="font-size:8.5px;color:'+GR+';line-height:1.45">'+esc(cleanDesc(b.desc||''))+'</td>';
+      out += '<td style="font-size:8.5px;color:'+GR+';line-height:1.45">'+esc(cleanDesc(getDesc(b)))+'</td>';
       activeTiers.forEach(function(t){
         out += '<td class="num price">'+fmtEur(Math.round(b.prix*(1-t.d)))+'</td>';
       });
