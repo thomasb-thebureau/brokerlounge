@@ -647,7 +647,7 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
 <!-- TOOLBAR -->
 <div id="tbSentinel" style="height:1px"></div>
 <div class="tb">
-  <div class="rc"><strong id="cnt">-</strong> bureau<span id="ps"></span> disponible<span id="ps2"></span></div>
+  <div class="rc"><strong id="cnt">-</strong> <span id="cntLbl">bureau disponible</span><span id="ps" style="display:none"></span><span id="ps2" style="display:none"></span></div>
   <span class="hint">Cliquer sur une carte pour sélectionner</span>
   <button class="filter-fab" id="filterFab" onclick="openFilterDrawer()" aria-label="Ouvrir les filtres">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
@@ -675,7 +675,7 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
 <!-- GRID -->
 <div class="grid" id="grid" role="main" tabindex="-1"><a id="main" tabindex="-1"></a>
   <div class="empty" id="empty">
-    <h3>Aucun bureau ne correspond à vos critères.</h3>
+    <h3 id="emptyTitle">Aucun bureau ne correspond à vos critères.</h3>
     <p>Modifiez les filtres ou <a href="#" id="emptyRst" style="color:var(--or2)">réinitialisez</a>.</p>
   </div>
 </div>
@@ -684,16 +684,16 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
 <div class="selbar" id="selbar">
   <div class="sb-left">
     <div>
-      <div class="sel-cnt"><strong id="scnt">0</strong> bureau<span id="sps"></span> sélectionné<span id="sps2"></span></div>
+      <div class="sel-cnt" id="selCnt"><strong id="scnt">0</strong> <span id="selCntLbl">bureau sélectionné</span></div>
       <div class="sel-tot" id="stot"></div>
     </div>
     <div class="sel-chips" id="schips"></div>
-    <button class="sel-clr" id="sclr">Tout désélectionner</button>
+    <button class="sel-clr" id="sclr" data-i18n="sel_clr_all">Tout désélectionner</button>
   </div>
   <div>
     <button class="btn-sel" id="bsel">
       <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      Voir la sélection
+      <span data-i18n="sel_view">Voir la sélection</span>
     </button>
   </div>
 </div>
@@ -703,10 +703,10 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
   <div class="smodal">
     <div class="smodal-hdr">
       <div>
-        <div class="eyebrow">Récapitulatif</div>
-        <h2>Sélection bureaux</h2>
+        <div class="eyebrow" data-i18n="sel_eyebrow">Récapitulatif</div>
+        <h2 data-i18n="sel_title">Sélection bureaux</h2>
       </div>
-      <button class="mclose" id="smcls" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <button class="mclose" id="smcls" data-i18n-aria="close" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="smodal-body">
       <!-- LEFT -->
@@ -716,13 +716,13 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
       <!-- RIGHT: commission panel -->
       <div class="sm-right mobile-closed" id="commPanel">
         <button type="button" class="comm-mobile-toggle" id="commToggle" aria-expanded="false" aria-controls="commBody">
-          <span>Commission <span class="cmt-amt" id="cmtAmt">—</span></span>
+          <span><span data-i18n="sel_comm_lbl_short">Commission</span> <span class="cmt-amt" id="cmtAmt">—</span></span>
           <svg class="cmt-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
         </button>
         <div class="comm-hdr">
-          <div class="comm-eyebrow">Estimation</div>
-          <div class="comm-title">Commission</div>
-          <div class="comm-sub">10 % du CA HT première année</div>
+          <div class="comm-eyebrow" data-i18n="sel_comm_eyebrow">Estimation</div>
+          <div class="comm-title" data-i18n="sel_comm_lbl_short">Commission</div>
+          <div class="comm-sub" data-i18n="sel_comm_sub">10 % du CA HT première année</div>
         </div>
         <div class="comm-body" id="commBody">
           <!-- filled by JS -->
@@ -730,19 +730,19 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
       </div>
     </div>
     <div class="smodal-ftr">
-      <button class="bcnl" id="smcnl">Fermer</button>
+      <button class="bcnl" id="smcnl" data-i18n="close">Fermer</button>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="btn-csv" id="btnShare" onclick="shareSelection()" title="Copier un lien de la sélection">
+        <button class="btn-csv" id="btnShare" onclick="shareSelection()" data-i18n-title="sel_actions_share_title" title="Copier un lien de la sélection">
           <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          <span id="shareLabel">Partager</span>
+          <span id="shareLabel" data-i18n="sel_actions_share">Partager</span>
         </button>
         <button class="btn-csv" id="btnCsv" onclick="exportCSV()">
           <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M3 15v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"/></svg>
-          CSV
+          <span data-i18n="sel_actions_csv">CSV</span>
         </button>
         <button class="btn-pdf" id="btnPdf" onclick="exportPDF()">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          PDF
+          <span data-i18n="sel_actions_pdf">PDF</span>
         </button>
       </div>
     </div>
@@ -794,9 +794,10 @@ var I18N = {
     /* Modal */
     modal_title:'Votre recherche', modal_subtitle:'Affinez la localisation, la taille et la durée. Tous les champs sont optionnels.', modal_loc:'Localisation', modal_loc_clear:'↺ Effacer la localisation', modal_postes:'Postes (jusqu\'à)', modal_postes_sub:'Filtre postes max sur la grille', modal_duree:'Durée souhaitée (mois)', modal_duree_sub:'Détermine la remise d\'engagement', modal_postes_ph:'Ex: 10', modal_duree_ph:'Ex: 24', p2_title:'Paris 2e', p2_sub:'TB III & TB IV', p8_title:'Paris 8e', p8_sub:'TB I & TB II',
     /* Selection */
-    sel_title:'Sélection bureaux', sel_eyebrow:'RÉCAPITULATIF', sel_empty:'Aucun bureau sélectionné', sel_empty_sub:'Cliquez sur les cartes pour constituer votre sélection.', sel_count_one:'%n bureau sélectionné', sel_count_n:'%n bureaux sélectionnés', sel_actions_pdf:'PDF', sel_actions_csv:'CSV', sel_actions_share:'Partager', sel_actions_share_copied:'✓ Lien copié', sel_tiers_lbl:'Durée & remise', sel_comm_lbl:'COMMISSION ESTIMÉE', sel_comm_note:'Estimation non contractuelle. Commission vérifiable selon les conditions de votre mandat.',
+    sel_title:'Sélection bureaux', sel_eyebrow:'RÉCAPITULATIF', sel_empty:'Aucun bureau sélectionné', sel_empty_sub:'Cliquez sur les cartes pour constituer votre sélection.', sel_count_one:'%n bureau sélectionné', sel_count_n:'%n bureaux sélectionnés', sel_actions_pdf:'PDF', sel_actions_csv:'CSV', sel_actions_share:'Partager', sel_actions_share_copied:'✓ Lien copié', sel_actions_share_title:'Copier un lien de la sélection', sel_tiers_lbl:'Durée & remise', sel_comm_lbl:'COMMISSION ESTIMÉE', sel_comm_lbl_short:'Commission', sel_comm_eyebrow:'Estimation', sel_comm_sub:'10 % du CA HT première année', sel_comm_note:'Estimation non contractuelle. Commission vérifiable selon les conditions de votre mandat.', opt_mode_on:'- Mode options', opt_mode_off:'+ Mode options', opt_label_prefix:'Option',
     /* Misc */
     reset_confirm:'Reinitialiser la recherche et recharger la dernière version ?', hint_click:'Cliquer sur une carte pour sélectionner', pdf_gen:'Génération…',
+    sel_clr_all:'Tout désélectionner', sel_view:'Voir la sélection', empty_grid:'Aucun bureau ne correspond à vos critères.', bureaux_count_one:'%n bureau disponible', bureaux_count_n:'%n bureaux disponibles', sel_total_from:'Total à partir de', sel_ht_month:'H.T./mois', pdf_footer_pluriel_office:'bureaux', pdf_footer_sing_office:'bureau',
     /* PDF */
     pdf_title:'Sélection — The Bureau Broker Lounge', pdf_subtitle:'Sélection personnalisée · données en temps réel', pdf_cols_ref:'Réf.', pdf_cols_site:'Site', pdf_cols_etage:'Étage', pdf_cols_m2:'m²', pdf_cols_postes:'Postes', pdf_cols_dispo:'Dispo.', pdf_cols_desc:'Description', pdf_tier_monthly:'3 mois (Mensuel)', pdf_tier_12:'12 mois', pdf_tier_24:'24 mois', pdf_tier_36:'36 mois', pdf_total:'TOTAL H.T./mois', pdf_services:'Services inclus', pdf_conditions:'Conditions', pdf_footer_role:'Directeur Commercial', pdf_footer_addr:'The Bureau Paris',
     services:[
@@ -827,8 +828,9 @@ var I18N = {
     filters:'Filters', min:'min', max:'max', view:'View', reset:'Reset', apply:'Apply', close:'Close', cancel:'Cancel', ref_placeholder:'e.g. C113',
     card_dispo_now:'AVAILABLE', card_dispo_on:'FROM %d', card_etage_rdc:'Ground', card_etage_n:'%n floor', card_access_24_7:'24/7 access', card_large:'Large space', card_nb_people:'Up to %n people/desks.', card_postes:'%n desks', card_surface:'%n sqm', card_month:'excl. VAT / month', card_ref_price:'reference rate', card_engagement:'%dm term', card_economy_y:'Savings: %v / year',
     modal_title:'Your search', modal_subtitle:'Refine location, size and term. All fields are optional.', modal_loc:'Location', modal_loc_clear:'↺ Clear location', modal_postes:'Desks (up to)', modal_postes_sub:'Max desks filter on the grid', modal_duree:'Desired term (months)', modal_duree_sub:'Sets the term discount', modal_postes_ph:'e.g. 10', modal_duree_ph:'e.g. 24', p2_title:'Paris 2nd', p2_sub:'TB III & TB IV', p8_title:'Paris 8th', p8_sub:'TB I & TB II',
-    sel_title:'Office selection', sel_eyebrow:'SUMMARY', sel_empty:'No office selected', sel_empty_sub:'Click the cards to build your selection.', sel_count_one:'%n office selected', sel_count_n:'%n offices selected', sel_actions_pdf:'PDF', sel_actions_csv:'CSV', sel_actions_share:'Share', sel_actions_share_copied:'✓ Link copied', sel_tiers_lbl:'Term & discount', sel_comm_lbl:'ESTIMATED COMMISSION', sel_comm_note:'Non-binding estimate. Commission subject to the terms of your mandate.',
+    sel_title:'Office selection', sel_eyebrow:'SUMMARY', sel_empty:'No office selected', sel_empty_sub:'Click the cards to build your selection.', sel_count_one:'%n office selected', sel_count_n:'%n offices selected', sel_actions_pdf:'PDF', sel_actions_csv:'CSV', sel_actions_share:'Share', sel_actions_share_copied:'✓ Link copied', sel_actions_share_title:'Copy selection link', sel_tiers_lbl:'Term & discount', sel_comm_lbl:'ESTIMATED COMMISSION', sel_comm_lbl_short:'Commission', sel_comm_eyebrow:'Estimate', sel_comm_sub:'10% of first-year revenue excl. VAT', sel_comm_note:'Non-binding estimate. Commission subject to the terms of your mandate.', opt_mode_on:'- Option mode', opt_mode_off:'+ Option mode', opt_label_prefix:'Option',
     reset_confirm:'Reset search and load the latest version?', hint_click:'Click a card to select', pdf_gen:'Generating…',
+    sel_clr_all:'Clear all', sel_view:'View selection', empty_grid:'No office matches your criteria.', bureaux_count_one:'%n office available', bureaux_count_n:'%n offices available', sel_total_from:'Total from', sel_ht_month:'excl. VAT / month', pdf_footer_pluriel_office:'offices', pdf_footer_sing_office:'office',
     pdf_title:'Selection — The Bureau Broker Lounge', pdf_subtitle:'Tailored selection · real-time data', pdf_cols_ref:'Ref.', pdf_cols_site:'Site', pdf_cols_etage:'Floor', pdf_cols_m2:'sqm', pdf_cols_postes:'Desks', pdf_cols_dispo:'Avail.', pdf_cols_desc:'Description', pdf_tier_monthly:'3 months (Monthly)', pdf_tier_12:'12 months', pdf_tier_24:'24 months', pdf_tier_36:'36 months', pdf_total:'TOTAL excl. VAT / month', pdf_services:'Included services', pdf_conditions:'Terms', pdf_footer_role:'Sales Director', pdf_footer_addr:'The Bureau Paris',
     services:[
       '24/7 access to the chosen district, and weekdays 8am–7pm in other The Bureau spaces on badge presentation.',
@@ -1286,8 +1288,12 @@ function render(){
     grid.appendChild(frag);
   }
   document.getElementById('cnt').textContent = filtered.length;
-  document.getElementById('ps').textContent = filtered.length>1?'x':'';
-  document.getElementById('ps2').textContent = filtered.length>1?'s':'';
+  var cntLbl = document.getElementById('cntLbl');
+  if(cntLbl){
+    if(LANG==='en') cntLbl.textContent = filtered.length>1 ? 'offices available' : 'office available';
+    else cntLbl.textContent = filtered.length>1 ? 'bureaux disponibles' : 'bureau disponible';
+  }
+  var emptyT = document.getElementById('emptyTitle'); if(emptyT) emptyT.textContent = t('empty_grid');
   updateSelBar();
 }
 
@@ -1303,9 +1309,12 @@ function updateSelBar(){
   var selData = DATA.filter(function(b){ return !!SEL[b.ref]; });
   var tot = selData.reduce(function(s,b){ return s+b.prix*(1-d); },0);
   document.getElementById('scnt').textContent = refs.length;
-  document.getElementById('sps').textContent = refs.length>1?'x':'';
-  document.getElementById('sps2').textContent = refs.length>1?'s':'';
-  document.getElementById('stot').textContent = fmt(tot)+' \u20ac H.T./mois';
+  var selCntLbl = document.getElementById('selCntLbl');
+  if(selCntLbl){
+    if(LANG==='en') selCntLbl.textContent = refs.length>1 ? 'offices selected' : 'office selected';
+    else selCntLbl.textContent = refs.length>1 ? 'bureaux sélectionnés' : 'bureau sélectionné';
+  }
+  document.getElementById('stot').textContent = fmt(tot)+' \u20ac '+t('sel_ht_month');
   var chips = document.getElementById('schips');
   chips.innerHTML='';
   selData.slice(0,5).forEach(function(b){
@@ -1344,14 +1353,14 @@ function toggleOptMode(){
   OPT_MODE=!OPT_MODE;
   var btn=document.getElementById('optModeBtn');
   btn.classList.toggle('on',OPT_MODE);
-  btn.textContent = OPT_MODE ? '- Mode options' : '+ Mode options';
+  btn.textContent = OPT_MODE ? t('opt_mode_on') : t('opt_mode_off');
   if(OPT_MODE&&OPTIONS.length===0) addOption();
   renderModal();
 }
 
 function addOption(){
   OPT_COUNTER++;
-  OPTIONS.push({id:'opt'+OPT_COUNTER, label:'Option '+OPT_COUNTER, refs:[]});
+  OPTIONS.push({id:'opt'+OPT_COUNTER, label:t('opt_label_prefix')+' '+OPT_COUNTER, refs:[]});
   renderModal();
 }
 function removeOption(id){
@@ -1369,14 +1378,20 @@ function renderModal(){
   /* --- Sort controls + options toggle --- */
   var sortDiv = document.createElement('div');
   sortDiv.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px';
+  var sortLbl = LANG==='en' ? 'Selected offices' : 'Bureaux sélectionnés';
+  var mManual = LANG==='en'?'Manual':'Manuel';
+  var mRef = LANG==='en'?'Ref.':'Réf.';
+  var mSize = LANG==='en'?'Size':'Taille';
+  var mPrice = LANG==='en'?'Price':'Prix';
+  var optLbl = (OPT_MODE?'✓ ':'+ ')+(LANG==='en'?'Option mode':'Mode options');
   sortDiv.innerHTML=
-    '<div class="sm-sect" style="margin:0">Bureaux sélectionnés</div>'+
+    '<div class="sm-sect" style="margin:0">'+sortLbl+'</div>'+
     '<div class="msort-btns" style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+
-      '<button class="msb'+(MODAL_SORT==='custom'?' on':'')+'" data-sort="custom">Manuel</button>'+
-      '<button class="msb'+(MODAL_SORT==='nom'?' on':'')+'" data-sort="nom">Réf.</button>'+
-      '<button class="msb'+(MODAL_SORT==='surface'?' on':'')+'" data-sort="surface">Taille</button>'+
-      '<button class="msb'+(MODAL_SORT==='prix'?' on':'')+'" data-sort="prix">Prix</button>'+
-      '<button id="optModeBtn" class="msb'+(OPT_MODE?' on':'')+'" style="margin-left:6px" onclick="toggleOptMode()">'+(OPT_MODE?'✓ ':'+ ')+'Mode options</button>'+
+      '<button class="msb'+(MODAL_SORT==='custom'?' on':'')+'" data-sort="custom">'+mManual+'</button>'+
+      '<button class="msb'+(MODAL_SORT==='nom'?' on':'')+'" data-sort="nom">'+mRef+'</button>'+
+      '<button class="msb'+(MODAL_SORT==='surface'?' on':'')+'" data-sort="surface">'+mSize+'</button>'+
+      '<button class="msb'+(MODAL_SORT==='prix'?' on':'')+'" data-sort="prix">'+mPrice+'</button>'+
+      '<button id="optModeBtn" class="msb'+(OPT_MODE?' on':'')+'" style="margin-left:6px" onclick="toggleOptMode()">'+optLbl+'</button>'+
     '</div>';
   sortDiv.querySelectorAll('.msb[data-sort]').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -1388,12 +1403,14 @@ function renderModal(){
   /* --- Tier picker : 3 / 12 / 24 / 36 mois --- */
   var tierWrap = document.createElement('div');
   tierWrap.className='tier-picker';
+  var tierTitle = LANG==='en' ? 'Terms' : 'Durées';
+  var mois = LANG==='en' ? 'months' : 'mois';
   tierWrap.innerHTML =
-    '<span class="sm-sect" style="margin:0 8px 0 0">Durées</span>'+
-    '<label><input type="checkbox" data-tier="0" '+(TIER_SEL[0]?'checked':'')+'> 3 mois</label>'+
-    '<label><input type="checkbox" data-tier="1" '+(TIER_SEL[1]?'checked':'')+'> 12 mois</label>'+
-    '<label><input type="checkbox" data-tier="2" '+(TIER_SEL[2]?'checked':'')+'> 24 mois</label>'+
-    '<label><input type="checkbox" data-tier="3" '+(TIER_SEL[3]?'checked':'')+'> 36 mois</label>';
+    '<span class="sm-sect" style="margin:0 8px 0 0">'+tierTitle+'</span>'+
+    '<label><input type="checkbox" data-tier="0" '+(TIER_SEL[0]?'checked':'')+'> 3 '+mois+'</label>'+
+    '<label><input type="checkbox" data-tier="1" '+(TIER_SEL[1]?'checked':'')+'> 12 '+mois+'</label>'+
+    '<label><input type="checkbox" data-tier="2" '+(TIER_SEL[2]?'checked':'')+'> 24 '+mois+'</label>'+
+    '<label><input type="checkbox" data-tier="3" '+(TIER_SEL[3]?'checked':'')+'> 36 '+mois+'</label>';
   tierWrap.querySelectorAll('input[data-tier]').forEach(function(c){
     c.addEventListener('change', function(){
       TIER_SEL[parseInt(this.dataset.tier)] = this.checked;
@@ -1735,7 +1752,7 @@ function shareSelection(){
   var refs = Object.keys(SEL);
   if(refs.length===0){
     var lbl0 = document.getElementById('shareLabel');
-    if(lbl0){ var o=lbl0.textContent; lbl0.textContent='Aucun bureau sélectionné'; setTimeout(function(){lbl0.textContent=o;},1400); }
+    if(lbl0){ var o=lbl0.textContent; lbl0.textContent=t('sel_empty'); setTimeout(function(){lbl0.textContent=o;},1400); }
     return;
   }
   /* ?v=timestamp busts HTTP cache so the recipient always gets fresh HTML with the hash-restore logic */
@@ -1743,14 +1760,15 @@ function shareSelection(){
   var done = function(){
     var lbl = document.getElementById('shareLabel');
     if(!lbl) return; var prev = lbl.textContent;
-    lbl.textContent = '✓ Lien copié';
+    lbl.textContent = t('sel_actions_share_copied');
     setTimeout(function(){ lbl.textContent = prev; }, 1800);
   };
+  var copyPrompt = LANG==='en' ? 'Copy the link:' : 'Copiez le lien :';
   if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(url).then(done).catch(function(){ prompt('Copiez le lien :', url); });
+    navigator.clipboard.writeText(url).then(done).catch(function(){ prompt(copyPrompt, url); });
   } else {
     var ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select();
-    try{ document.execCommand('copy'); done(); } catch(e){ prompt('Copiez le lien :', url); }
+    try{ document.execCommand('copy'); done(); } catch(e){ prompt(copyPrompt, url); }
     document.body.removeChild(ta);
   }
 }
@@ -1879,31 +1897,22 @@ function exportPDF(){
   var OR='#B09438', OR2='#7A6015', JADE='#1E4035', INK='#0F0F0F', CR='#F5EFE5', GR='#5a5248', LIGHT='#faf8f4';
   var GFONTS='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap';
   var today = new Date();
-  var dateFr = today.getDate().toString().padStart(2,'0')+'/'+(today.getMonth()+1).toString().padStart(2,'0')+'/'+today.getFullYear();
+  var dateStr = (LANG==='en')
+    ? (today.getMonth()+1).toString().padStart(2,'0')+'/'+today.getDate().toString().padStart(2,'0')+'/'+today.getFullYear()
+    : today.getDate().toString().padStart(2,'0')+'/'+(today.getMonth()+1).toString().padStart(2,'0')+'/'+today.getFullYear();
   var fmtEur = function(n){ return fmt(n)+'\u00a0\u20ac'; };
-  var etStr = function(e){ return e===0?'RDC':e===1?'1er':e+'e'; };
-  var dispoStr = function(b){ return b.dispo==='immediate'?'Immédiate':('A partir du '+dtLbl(b.date)); };
+  var etStr = function(e){
+    if(LANG==='en'){ if(e===0) return 'Ground'; if(e===1) return '1st'; if(e===2) return '2nd'; if(e===3) return '3rd'; return e+'th'; }
+    return e===0?'RDC':e===1?'1er':e+'e';
+  };
+  var dispoStr = function(b){
+    if(b.dispo==='immediate') return LANG==='en' ? 'Immediate' : 'Immédiate';
+    return (LANG==='en' ? 'From ' : 'À partir du ') + dtLbl(b.date);
+  };
 
-  /* Services & conditions */
-  var services = [
-    'Accès 24h/24 et 7j/7 dans l\u2019arrondissement choisi, et du lundi au vendredi de 8h \u00e0 19h aux autres espaces The Bureau.',
-    'Accès à l\u2019ensemble des espaces communs\u00a0: coworking, espace restauration, patio, douches, salle de sport, cabines téléphoniques.',
-    'Domiciliation et rangement tiroir inclus.',
-    'Téléphone fixe, communications France et monde incluses (fixe et portable).',
-    'Forfait impression : 200 copies N&B et 25 couleurs par mois et par personne.',
-    'Accès illimité aux tisaneries\u00a0: café, thé, eau filtrée et fruits frais à discrétion.',
-    'Programmation événementielle\u00a0: soirées, vernissages, partenariats et apéritivo du jeudi.',
-    'Mobilier\u00a0: bureau, chaise et caisson.',
-    'Conciergerie\u00a0: accueil clients, courrier, taxis, réservations de salles.',
-    'Global Collective\u00a0: 2 jours/mois dans les espaces partenaires (globalcollective.co).',
-    'All-inclus\u00a0: électricité, ménage, charges, climatisation, chauffage.'
-  ];
-  var conditions = [
-    '3 mois d\u2019engagement minimum puis contrat renouvelé au mois le mois jusqu\u2019au préavis.',
-    'Dépôt de garantie : 2 mois d\u2019abonnement H.T. (précisé dans le contrat).',
-    'Frais d\u2019installation : 100\u00a0€ H.T. par poste capacitaire.',
-    'Préavis de départ : un mois plus le mois en cours.'
-  ];
+  /* Services & conditions (langue) */
+  var services = t('services');
+  var conditions = t('conditions');
 
   /* Totals per tier */
   var totals = {};
@@ -1916,7 +1925,7 @@ function exportPDF(){
   var chevronsUrl = logoOrigin + '/chevrons.svg';
   var IVORY='#F5EFE5';
 
-  var h = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Sélection — The Bureau Broker Lounge</title>';
+  var h = '<!DOCTYPE html><html lang="'+LANG+'"><head><meta charset="UTF-8"><title>'+t('pdf_title')+'</title>';
   /* Viewport fixe (largeur A4 landscape ~1123px) + text-size-adjust desactive => rendu mobile identique PC */
   h += '<meta name="viewport" content="width=1200,initial-scale=1"/>';
   h += '<link href="'+GFONTS+'" rel="stylesheet"/>';
@@ -1963,14 +1972,22 @@ function exportPDF(){
   h += 'footer.ft .ft-r{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,239,229,.75);text-align:right;line-height:1.6}';
   h += 'footer.ft .ft-r strong{color:'+OR+';font-weight:600}';
   h += '</style></head><body>';
-  h += '<button class="btn-print no-print" onclick="window.print()">Imprimer / PDF</button>';
+  h += '<button class="btn-print no-print" onclick="window.print()">'+(LANG==='en'?'Print / PDF':'Imprimer / PDF')+'</button>';
   h += '<div class="page">';
 
   /* HEADER with logo */
   h += '<header class="hd">';
   h += '<img class="hd-logo" src="'+logoUrl+'" alt="The Bureau"/>';
-  h += '<div class="hd-mid"><div class="eyebrow">Broker Lounge — Proposition</div><h1>Sélection <em>bureaux</em></h1></div>';
-  h += '<div class="hd-r"><strong>'+dateFr+'</strong><br>'+selData.length+' bureau'+(selData.length>1?'x':'')+'<div class="tiers-inline">'+activeTiers.map(function(t){ return t.label; }).join(' · ')+'</div></div>';
+  var propWord = LANG==='en' ? 'Proposal' : 'Proposition';
+  var hdrTitleA = LANG==='en' ? 'Office' : 'Sélection';
+  var hdrTitleB = LANG==='en' ? 'selection' : 'bureaux';
+  h += '<div class="hd-mid"><div class="eyebrow">Broker Lounge — '+propWord+'</div><h1>'+hdrTitleA+' <em>'+hdrTitleB+'</em></h1></div>';
+  var nbLbl = LANG==='en' ? (selData.length>1?'offices':'office') : ('bureau'+(selData.length>1?'x':''));
+  var tiersLbl = activeTiers.map(function(tr){
+    var map={'3m':t('pdf_tier_monthly'),'12m':t('pdf_tier_12'),'24m':t('pdf_tier_24'),'36m':t('pdf_tier_36')};
+    return map[tr.key]||tr.label;
+  }).join(' · ');
+  h += '<div class="hd-r"><strong>'+dateStr+'</strong><br>'+selData.length+' '+nbLbl+'<div class="tiers-inline">'+tiersLbl+'</div></div>';
   h += '</header>';
   h += '<main class="body">';
 
@@ -1994,8 +2011,9 @@ function exportPDF(){
   }
   function tableHeader(){
     var th = '<thead><tr>';
-    th += '<th class="ctr" style="width:54px">Réf.</th><th style="width:140px">Site</th><th class="ctr" style="width:44px">Étage</th><th class="num" style="width:40px">m²</th><th class="ctr" style="width:44px">Postes</th><th style="width:96px">Dispo.</th><th>Description</th>';
-    activeTiers.forEach(function(t){ th += '<th class="num">'+t.label+(t.d>0?' <span style="color:'+OR+';font-weight:500">-'+Math.round(t.d*100)+'%</span>':'')+'</th>'; });
+    th += '<th class="ctr" style="width:54px">'+t('pdf_cols_ref')+'</th><th style="width:140px">'+t('pdf_cols_site')+'</th><th class="ctr" style="width:44px">'+t('pdf_cols_etage')+'</th><th class="num" style="width:40px">'+t('pdf_cols_m2')+'</th><th class="ctr" style="width:44px">'+t('pdf_cols_postes')+'</th><th style="width:96px">'+t('pdf_cols_dispo')+'</th><th>'+t('pdf_cols_desc')+'</th>';
+    var tierMap = {'3m':t('pdf_tier_monthly'),'12m':t('pdf_tier_12'),'24m':t('pdf_tier_24'),'36m':t('pdf_tier_36')};
+    activeTiers.forEach(function(tr){ th += '<th class="num">'+(tierMap[tr.key]||tr.label)+(tr.d>0?' <span style="color:'+OR+';font-weight:500">-'+Math.round(tr.d*100)+'%</span>':'')+'</th>'; });
     th += '</tr></thead>';
     return th;
   }
@@ -2008,12 +2026,14 @@ function exportPDF(){
       if(optBureaux.length===0) return;
       var optTotals = {};
       activeTiers.forEach(function(t){ optTotals[t.key] = optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-t.d)); },0); });
-      h += '<div style="background:'+OR2+';color:#fff;padding:8px 14px;border-radius:4px 4px 0 0;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-top:8px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)">'+esc(opt.label)+' \u2014 '+optBureaux.length+' bureau'+(optBureaux.length>1?'x':'')+'</div>';
+      var optNbLbl = LANG==='en' ? (optBureaux.length>1?'offices':'office') : ('bureau'+(optBureaux.length>1?'x':''));
+      h += '<div style="background:'+OR2+';color:#fff;padding:8px 14px;border-radius:4px 4px 0 0;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-top:8px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)">'+esc(opt.label)+' \u2014 '+optBureaux.length+' '+optNbLbl+'</div>';
       h += '<table class="grid" style="margin-top:0;border-radius:0 0 4px 4px">';
       h += tableHeader();
       h += '<tbody>'+tableRows(optBureaux);
-      h += '<tr class="totrow"><td colspan="7" style="text-align:right;text-transform:uppercase;font-size:9px;letter-spacing:.12em;color:'+GR+'">Total '+esc(opt.label)+' H.T.</td>';
-      activeTiers.forEach(function(t){ h += '<td class="num">'+fmtEur(optTotals[t.key])+'</td>'; });
+      var totOptLbl = (LANG==='en'?'Total ':'Total ')+esc(opt.label)+(LANG==='en'?' excl. VAT':' H.T.');
+      h += '<tr class="totrow"><td colspan="7" style="text-align:right;text-transform:uppercase;font-size:9px;letter-spacing:.12em;color:'+GR+'">'+totOptLbl+'</td>';
+      activeTiers.forEach(function(tr){ h += '<td class="num">'+fmtEur(optTotals[tr.key])+'</td>'; });
       h += '</tr></tbody></table>';
     });
   } else {
@@ -2021,17 +2041,17 @@ function exportPDF(){
     h += '<table class="grid">';
     h += tableHeader();
     h += '<tbody>'+tableRows(selData);
-    h += '<tr class="totrow"><td colspan="7" style="text-align:right;text-transform:uppercase;font-size:9px;letter-spacing:.12em;color:'+GR+'">Total mensuel H.T.</td>';
-    activeTiers.forEach(function(t){ h += '<td class="num">'+fmtEur(totals[t.key])+'</td>'; });
+    h += '<tr class="totrow"><td colspan="7" style="text-align:right;text-transform:uppercase;font-size:9px;letter-spacing:.12em;color:'+GR+'">'+t('pdf_total')+'</td>';
+    activeTiers.forEach(function(tr){ h += '<td class="num">'+fmtEur(totals[tr.key])+'</td>'; });
     h += '</tr></tbody></table>';
   }
 
   /* BOTTOM: services + conditions */
   h += '<div class="bottom">';
-  h += '<div class="box"><h3>Tout inclus — tarifs H.T.</h3><ul>';
+  h += '<div class="box"><h3>'+t('pdf_services')+'</h3><ul>';
   services.forEach(function(s){ h += '<li>'+s+'</li>'; });
   h += '</ul></div>';
-  h += '<div class="box cond"><h3>Conditions contractuelles</h3><ul>';
+  h += '<div class="box cond"><h3>'+t('pdf_conditions')+'</h3><ul>';
   conditions.forEach(function(s){ h += '<li>'+s+'</li>'; });
   h += '</ul></div>';
   h += '</div>';
@@ -2040,9 +2060,9 @@ function exportPDF(){
   /* FOOTER jade */
   h += '<footer class="ft">';
   h += '<div class="ft-l"><img class="ft-chev" src="'+chevronsUrl+'" alt=""/>';
-  h += '<div><strong>Thomas Bougeard</strong> · Directeur Commercial<br>+33 6 59 23 15 92 · <a href="mailto:thomasb@thebureau.paris">thomasb@thebureau.paris</a> · <a href="https://www.thebureau.paris">thebureau.paris</a></div>';
+  h += '<div><strong>Thomas Bougeard</strong> · '+t('pdf_footer_role')+'<br>+33 6 59 23 15 92 · <a href="mailto:thomasb@thebureau.paris">thomasb@thebureau.paris</a> · <a href="https://www.thebureau.paris">thebureau.paris</a></div>';
   h += '</div>';
-  h += '<div class="ft-r">The Bureau Paris<br><strong>75002 · 75008</strong></div>';
+  h += '<div class="ft-r">'+t('pdf_footer_addr')+'<br><strong>75002 · 75008</strong></div>';
   h += '</footer>';
   h += '</div></body></html>';
 
