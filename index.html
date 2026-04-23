@@ -81,10 +81,23 @@ body.dark .logo-tag{color:var(--or)}
 .cb-sep{width:1px;height:16px;background:var(--cf)}
 /* GRID */
 /* LIST VIEW — une carte par ligne, delimitations marquees */
-.grid{display:flex;flex-direction:column;gap:6px;background:transparent;margin:0 0 90px;padding:0 24px}
-.card{background:var(--blanc);padding:16px 24px 16px 44px;position:relative;overflow:hidden;transition:all .18s;cursor:pointer;display:grid;grid-template-columns:minmax(0,2.6fr) 90px minmax(160px,auto) minmax(170px,auto);gap:22px;align-items:center;border:1px solid var(--cf);border-radius:6px;box-shadow:0 1px 0 rgba(15,15,15,.02)}
+.grid{margin:0 0 90px;padding:0 24px}
+.grid.list-view{display:flex;flex-direction:column;gap:6px;background:transparent}
+.grid.grid-view{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;background:transparent}
+.card{background:var(--blanc);position:relative;overflow:hidden;transition:all .18s;cursor:pointer;border:1px solid var(--cf);border-radius:6px;box-shadow:0 1px 0 rgba(15,15,15,.02)}
 .card:hover{background:#fdfcf9;border-color:rgba(176,148,56,.45);box-shadow:0 2px 8px rgba(15,15,15,.06)}
 .card.sel{background:#faf7f0;border-color:var(--or);box-shadow:0 0 0 1px var(--or)}
+/* list-view layout : 4 colonnes horizontales */
+.list-view .card{padding:16px 24px 16px 44px;display:grid;grid-template-columns:minmax(0,2.6fr) 90px minmax(160px,auto) minmax(170px,auto);gap:22px;align-items:center}
+/* grid-view layout : card verticale (colonne) */
+.grid-view .card{padding:22px 22px 22px 42px;display:flex;flex-direction:column;gap:12px}
+.grid-view .card-details{order:1}
+.grid-view .card-postes{order:2;flex-direction:row;gap:8px;border:none;padding:0;justify-content:flex-start}
+.grid-view .card-postes .cp-n{font-size:22px}
+.grid-view .card .db{order:3;align-self:flex-start}
+.grid-view .card-price{order:4;align-items:flex-start;border-top:1px solid var(--cf);padding-top:12px;margin-top:auto;text-align:left;align-self:stretch}
+.grid-view .card-price .pr{justify-content:flex-start}
+body.dark .grid-view .card-price{border-top-color:rgba(255,255,255,.08)}
 /* Postes : mise en avant jade gras */
 .card-postes{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-left:1px solid var(--cf);border-right:1px solid var(--cf);padding:2px 6px}
 .card-postes .cp-n{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;color:var(--vert);font-size:26px;line-height:1}
@@ -93,6 +106,14 @@ body.dark .card-postes{border-left-color:rgba(255,255,255,.08);border-right-colo
 body.dark .card-postes .cp-n{color:#5cb88a}
 .card-details{min-width:0}
 .card-price{display:flex;flex-direction:column;align-items:flex-end;gap:3px;text-align:right}
+/* View mode toggle */
+.view-toggle{display:inline-flex;border:1px solid var(--cf);border-radius:50px;overflow:hidden;background:var(--blanc);margin-left:auto}
+.view-toggle button{background:transparent;border:none;padding:6px 10px;cursor:pointer;color:var(--gris);transition:all .18s;display:flex;align-items:center;gap:6px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.view-toggle button:hover{color:var(--encre)}
+.view-toggle button.on{background:var(--vert);color:#F5EFE5}
+.view-toggle button.on svg{stroke:#F5EFE5}
+.view-toggle svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2}
+body.dark .view-toggle{background:#1a1a1a;border-color:rgba(255,255,255,.1)}
 .chk{position:absolute;top:50%;transform:translateY(-50%);left:14px;width:18px;height:18px;border:1.5px solid var(--cf);border-radius:4px;background:var(--blanc);display:flex;align-items:center;justify-content:center;transition:all .18s;z-index:2;pointer-events:none}
 .card:hover .chk{border-color:var(--or)}
 .card.sel .chk{background:var(--or2);border-color:var(--or2)}
@@ -147,6 +168,7 @@ body.dark .sav svg{fill:#5cb88a!important}
 .psub{font-size:11px;color:var(--gris);letter-spacing:.04em;margin-bottom:6px}
 .echip{display:inline-block;margin-left:5px;background:rgba(74,122,85,.1);color:var(--vert);border:1px solid rgba(74,122,85,.2);border-radius:50px;padding:1px 7px;font-size:10px;font-weight:500}
 .building-sep{background:var(--vert);padding:10px 24px;display:flex;align-items:center;gap:12px;border-radius:4px;margin-top:6px}
+.grid-view .building-sep,.grid-view .empty{grid-column:1/-1}
 .building-sep-title{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#D4B870;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600}
 .building-sep-addr{font-size:10px;color:rgba(245,239,229,.7);letter-spacing:.06em}
 .building-sep-line{flex:1;height:1px;background:rgba(245,239,229,.15)}
@@ -383,14 +405,17 @@ body.dark footer{background:#112820}
   .fdrawer-overlay.on{display:flex!important}
   .tb{padding:8px 12px}
   .grid{padding:0 14px;margin-bottom:80px}
-  .card{grid-template-columns:1fr auto;grid-template-areas:'details details' 'postes price' 'dispo dispo';gap:10px;padding:14px 14px 14px 42px}
-  .card-details{grid-area:details}
-  .card-postes{grid-area:postes;flex-direction:row;gap:6px;border:none;padding:0}
-  .card-postes .cp-n{font-size:22px}
-  .card-postes .cp-l{font-size:10px}
-  .card .db{grid-area:dispo;justify-content:flex-start!important}
-  .card-price{grid-area:price}
-  .card-price .pm{font-size:22px}
+  .grid.grid-view{grid-template-columns:1fr;gap:8px}
+  .list-view .card{grid-template-columns:1fr auto;grid-template-areas:'details details' 'postes price' 'dispo dispo';gap:10px;padding:14px 14px 14px 42px}
+  .list-view .card-details{grid-area:details}
+  .list-view .card-postes{grid-area:postes;flex-direction:row;gap:6px;border:none;padding:0}
+  .list-view .card-postes .cp-n{font-size:22px}
+  .list-view .card-postes .cp-l{font-size:10px}
+  .list-view .card .db{grid-area:dispo;justify-content:flex-start!important}
+  .list-view .card-price{grid-area:price}
+  .list-view .card-price .pm{font-size:22px}
+  .grid-view .card{padding:18px 18px 18px 40px}
+  .view-toggle button{padding:5px 8px}
   .selbar{padding:10px 14px}
   .smoverlay{align-items:flex-end;padding:0}
   .smodal{max-width:100%;border-radius:12px 12px 0 0;max-height:95vh;flex-direction:column}
@@ -667,6 +692,10 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
 <div class="tb">
   <div class="rc"><strong id="cnt">-</strong> <span id="cntLbl">bureau disponible</span><span id="ps" style="display:none"></span><span id="ps2" style="display:none"></span></div>
   <span class="hint" data-i18n="hint_click">Cliquer sur une carte pour sélectionner</span>
+  <div class="view-toggle" id="viewToggle" role="group" aria-label="Mode d'affichage">
+    <button type="button" id="vtList" onclick="setViewMode('list')" title="Liste" aria-label="Affichage liste"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg></button>
+    <button type="button" id="vtGrid" onclick="setViewMode('grid')" title="Grille" aria-label="Affichage grille"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+  </div>
   <button class="filter-fab" id="filterFab" onclick="openFilterDrawer()" aria-label="Ouvrir les filtres">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
     Filtres
@@ -898,6 +927,23 @@ function setLang(lang){
   if(typeof render==='function') render();
 }
 function toggleLang(){ setLang(LANG==='fr' ? 'en' : 'fr'); }
+
+/* ============================================================
+   VIEW MODE (liste / grille) — persistance localStorage
+============================================================ */
+var VIEW_MODE = (function(){
+  try { return localStorage.getItem('brk_view') || 'list'; } catch(e){ return 'list'; }
+})();
+function setViewMode(mode){
+  if(mode!=='list' && mode!=='grid') mode='list';
+  VIEW_MODE = mode;
+  try { localStorage.setItem('brk_view', mode); } catch(e){}
+  var grid = document.getElementById('grid');
+  if(grid){ grid.classList.toggle('list-view', mode==='list'); grid.classList.toggle('grid-view', mode==='grid'); }
+  var bL = document.getElementById('vtList'); var bG = document.getElementById('vtGrid');
+  if(bL) bL.classList.toggle('on', mode==='list');
+  if(bG) bG.classList.toggle('on', mode==='grid');
+}
 function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(function(el){
     var vars = null;
@@ -2480,6 +2526,9 @@ function fetchData(){
 ============================================================ */
 /* Appliquer la langue sauvegardee des le demarrage */
 setLang(LANG);
+
+/* Appliquer le mode d'affichage (liste / grille) sauvegarde */
+setViewMode(VIEW_MODE);
 
 /* Restore saved config (silent — no forced modal on load) */
 try {
