@@ -72,7 +72,7 @@ body.dark .logo-tag{color:var(--or)}
 .tb{padding:11px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .rc{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:400}
 .rc strong{color:var(--orAA);font-size:20px;margin-right:5px}
-.hint{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris)}
+.hint{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris);margin-left:auto;line-height:1;display:inline-flex;align-items:center}
 /* CONFIG BANNER */
 .config-banner{background:rgba(201,169,110,.08);border-bottom:1px solid rgba(201,169,110,.15);padding:8px 48px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .cb-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gris)}
@@ -90,14 +90,21 @@ body.dark .logo-tag{color:var(--or)}
 /* list-view layout : 4 colonnes horizontales */
 .list-view .card{padding:16px 24px 16px 44px;display:grid;grid-template-columns:minmax(0,2.6fr) 90px minmax(160px,auto) minmax(170px,auto);gap:22px;align-items:center}
 /* grid-view layout : card verticale (colonne) */
-.grid-view .card{padding:22px 22px 22px 42px;display:flex;flex-direction:column;gap:12px}
+.grid-view .card{padding:22px 22px 22px 42px;display:flex;flex-direction:column;gap:12px;position:relative}
 .grid-view .card-details{order:1}
-.grid-view .card-postes{order:2;flex-direction:row;gap:8px;border:none;padding:0;justify-content:flex-start}
-.grid-view .card-postes .cp-n{font-size:22px}
-.grid-view .card .db{order:3;align-self:flex-start}
-.grid-view .card-price{order:4;align-items:flex-start;border-top:1px solid var(--cf);padding-top:12px;margin-top:auto;text-align:left;align-self:stretch}
+/* Postes : bulle jade flottante en haut a droite, a cote de la ref */
+.grid-view .card-postes{order:0;position:absolute;top:18px;right:18px;flex-direction:row;align-items:center;gap:5px;background:var(--vert);color:#F5EFE5;padding:5px 12px;border-radius:50px;border:none}
+.grid-view .card-postes .cp-n{color:#F5EFE5;font-size:15px;font-weight:700}
+.grid-view .card-postes .cp-l{color:rgba(245,239,229,.7);font-size:9px;font-weight:600}
+body.dark .grid-view .card-postes{background:#4a9a7a}
+body.dark .grid-view .card-postes .cp-n{color:#F5EFE5}
+body.dark .grid-view .card-postes .cp-l{color:rgba(245,239,229,.75)}
+.grid-view .card .db{order:2;align-self:flex-start}
+.grid-view .card-price{order:3;align-items:flex-start;border-top:1px solid var(--cf);padding-top:12px;margin-top:auto;text-align:left;align-self:stretch}
 .grid-view .card-price .pr{justify-content:flex-start}
 body.dark .grid-view .card-price{border-top-color:rgba(255,255,255,.08)}
+/* Reserver espace pour la bulle dans .ctop (eviter chevauchement avec la date dispo) */
+.grid-view .ctop{padding-right:90px}
 /* Postes : mise en avant jade gras */
 .card-postes{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-left:1px solid var(--cf);border-right:1px solid var(--cf);padding:2px 6px}
 .card-postes .cp-n{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;color:var(--vert);font-size:26px;line-height:1}
@@ -107,7 +114,7 @@ body.dark .card-postes .cp-n{color:#5cb88a}
 .card-details{min-width:0}
 .card-price{display:flex;flex-direction:column;align-items:flex-end;gap:3px;text-align:right}
 /* View mode toggle */
-.view-toggle{display:inline-flex;border:1px solid var(--cf);border-radius:50px;overflow:hidden;background:var(--blanc);margin-left:auto}
+.view-toggle{display:inline-flex;border:1px solid var(--cf);border-radius:50px;overflow:hidden;background:var(--blanc);align-items:center}
 .view-toggle button{background:transparent;border:none;padding:6px 10px;cursor:pointer;color:var(--gris);transition:all .18s;display:flex;align-items:center;gap:6px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
 .view-toggle button:hover{color:var(--encre)}
 .view-toggle button.on{background:var(--vert);color:#F5EFE5}
