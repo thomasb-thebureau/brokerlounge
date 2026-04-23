@@ -939,10 +939,10 @@ function toggleLang(){ setLang(LANG==='fr' ? 'en' : 'fr'); }
    VIEW MODE (liste / grille) — persistance localStorage
 ============================================================ */
 var VIEW_MODE = (function(){
-  try { return localStorage.getItem('brk_view') || 'list'; } catch(e){ return 'list'; }
+  try { return localStorage.getItem('brk_view') || 'grid'; } catch(e){ return 'grid'; }
 })();
 function setViewMode(mode){
-  if(mode!=='list' && mode!=='grid') mode='list';
+  if(mode!=='list' && mode!=='grid') mode='grid';
   VIEW_MODE = mode;
   try { localStorage.setItem('brk_view', mode); } catch(e){}
   var grid = document.getElementById('grid');
