@@ -411,18 +411,22 @@ body.dark footer{background:#112820}
   .filter-fab{display:inline-flex!important;align-items:center;gap:6px;background:var(--vert);color:#F5EFE5;border:none;border-radius:50px;padding:7px 14px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-left:auto}
   .fdrawer-overlay.on{display:flex!important}
   .tb{padding:8px 12px}
-  .grid{padding:0 14px;margin-bottom:80px}
-  .grid.grid-view{grid-template-columns:1fr;gap:8px}
-  .list-view .card{grid-template-columns:1fr auto;grid-template-areas:'details details' 'postes price' 'dispo dispo';gap:10px;padding:14px 14px 14px 42px}
-  .list-view .card-details{grid-area:details}
-  .list-view .card-postes{grid-area:postes;flex-direction:row;gap:6px;border:none;padding:0}
-  .list-view .card-postes .cp-n{font-size:22px}
-  .list-view .card-postes .cp-l{font-size:10px}
-  .list-view .card .db{grid-area:dispo;justify-content:flex-start!important}
-  .list-view .card-price{grid-area:price}
-  .list-view .card-price .pm{font-size:22px}
-  .grid-view .card{padding:18px 18px 18px 40px}
-  .view-toggle button{padding:5px 8px}
+  /* Mobile : uniquement le mode grille (toggle masque, list-view force en grid) */
+  .view-toggle{display:none!important}
+  .grid{padding:0 14px;margin-bottom:80px;display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
+  .card{padding:18px 18px 18px 40px!important;display:flex!important;flex-direction:column!important;gap:12px!important;grid-template-columns:none!important;grid-template-areas:none!important;position:relative!important}
+  .card-details{order:1!important;grid-area:auto!important}
+  .card-postes{order:0!important;grid-area:auto!important;position:absolute!important;top:14px;right:14px;flex-direction:row!important;align-items:center;justify-content:center;gap:6px;background:var(--vert);color:#F5EFE5;padding:6px 14px;border-radius:50px;border:none;line-height:1}
+  .card-postes .cp-n{color:var(--or);font-size:16px;font-weight:800;line-height:1;display:flex;align-items:center}
+  .card-postes .cp-l{color:rgba(245,239,229,.75);font-size:9px;font-weight:600;letter-spacing:.14em;line-height:1;display:flex;align-items:center}
+  body.dark .card-postes{background:#4a9a7a}
+  body.dark .card-postes .cp-n{color:#D4B870}
+  .card .db{order:2!important;align-self:flex-start;grid-area:auto!important;justify-content:flex-start!important}
+  .card-price{order:3!important;align-items:flex-start;border-top:1px solid var(--cf);padding-top:12px;margin-top:auto;text-align:left;align-self:stretch;grid-area:auto!important}
+  .card-price .pr{justify-content:flex-start}
+  .card-price .pm{font-size:22px}
+  body.dark .card-price{border-top-color:rgba(255,255,255,.08)}
+  .ctop{padding-right:90px}
   .selbar{padding:10px 14px}
   .smoverlay{align-items:flex-end;padding:0}
   .smodal{max-width:100%;border-radius:12px 12px 0 0;max-height:95vh;flex-direction:column}
