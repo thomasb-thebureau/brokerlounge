@@ -80,16 +80,25 @@ body.dark .logo-tag{color:var(--or)}
 .cb-val{font-size:11px;font-weight:600;color:var(--orAA)}
 .cb-sep{width:1px;height:16px;background:var(--cf)}
 /* GRID */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(305px,1fr));gap:1px;background:var(--cf);margin:0 0 90px}
-.card{background:var(--blanc);padding:22px 26px;position:relative;overflow:hidden;transition:background .18s;cursor:pointer;display:flex;flex-direction:column}
-.card:hover{background:#fdfcf9}
-.card.sel{background:#faf7f0;outline:2px solid var(--or);outline-offset:-2px}
-.chk{position:absolute;top:10px;left:10px;width:17px;height:17px;border:1.5px solid var(--cf);border-radius:4px;background:var(--blanc);display:flex;align-items:center;justify-content:center;transition:all .18s;z-index:2;pointer-events:none}
+/* LIST VIEW — une carte par ligne, delimitations marquees */
+.grid{display:flex;flex-direction:column;gap:6px;background:transparent;margin:0 0 90px;padding:0 24px}
+.card{background:var(--blanc);padding:16px 24px 16px 44px;position:relative;overflow:hidden;transition:all .18s;cursor:pointer;display:grid;grid-template-columns:minmax(0,2.6fr) 90px minmax(160px,auto) minmax(170px,auto);gap:22px;align-items:center;border:1px solid var(--cf);border-radius:6px;box-shadow:0 1px 0 rgba(15,15,15,.02)}
+.card:hover{background:#fdfcf9;border-color:rgba(176,148,56,.45);box-shadow:0 2px 8px rgba(15,15,15,.06)}
+.card.sel{background:#faf7f0;border-color:var(--or);box-shadow:0 0 0 1px var(--or)}
+/* Postes : mise en avant jade gras */
+.card-postes{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-left:1px solid var(--cf);border-right:1px solid var(--cf);padding:2px 6px}
+.card-postes .cp-n{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;color:var(--vert);font-size:26px;line-height:1}
+.card-postes .cp-l{font-size:9px;color:var(--gris);letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+body.dark .card-postes{border-left-color:rgba(255,255,255,.08);border-right-color:rgba(255,255,255,.08)}
+body.dark .card-postes .cp-n{color:#5cb88a}
+.card-details{min-width:0}
+.card-price{display:flex;flex-direction:column;align-items:flex-end;gap:3px;text-align:right}
+.chk{position:absolute;top:50%;transform:translateY(-50%);left:14px;width:18px;height:18px;border:1.5px solid var(--cf);border-radius:4px;background:var(--blanc);display:flex;align-items:center;justify-content:center;transition:all .18s;z-index:2;pointer-events:none}
 .card:hover .chk{border-color:var(--or)}
 .card.sel .chk{background:var(--or2);border-color:var(--or2)}
 .chk svg{display:none;width:9px;height:9px;fill:none;stroke:#fff;stroke-width:2.5}
 .card.sel .chk svg{display:block}
-.ctop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:9px;padding-left:24px}
+.ctop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;padding-left:0;gap:12px}
 .cref{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--orAA);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif}
 .csite{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);margin-top:2px}
 .db{display:flex;align-items:center;gap:4px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
@@ -99,14 +108,14 @@ body.dark .logo-tag{color:var(--or)}
 .imm .ddot{background:var(--vert);animation:pulse 2s infinite}
 .fut .ddot{background:var(--ambre)}
 .ctit{font-size:11px;font-weight:300;color:var(--gris);line-height:1.4;margin-bottom:3px;padding-left:24px;letter-spacing:.04em}
-.cdesc{font-size:12px;color:var(--gris);line-height:1.6;margin-bottom:12px}
-.chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:13px}
+.cdesc{font-size:12px;color:var(--gris);line-height:1.55;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:0}
 .chip{display:flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:50px;border:1px solid var(--cf);color:var(--encre);background:var(--creme)}
 .chip svg{width:9px;height:9px;fill:var(--or);flex-shrink:0}
 .chip.hl{background:var(--op);border-color:rgba(160,120,64,.28);color:var(--or2);font-weight:500}
-.pb{border-top:1px solid var(--cf);padding-top:12px;margin-top:auto}
-.pr{display:flex;align-items:baseline;gap:9px;margin-bottom:3px}
-.pm{font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:600;color:var(--encre);line-height:1}
+.pb{border-top:none;padding-top:0;margin-top:0;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.pr{display:flex;align-items:baseline;gap:9px;margin-bottom:0;justify-content:flex-end}
+.pm{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:700;color:var(--encre);line-height:1}
 .pm sup{font-size:16px;font-weight:500;margin-right:2px;top:-.4em}
 .sav{display:inline-flex;align-items:center;gap:5px;margin-top:6px;background:rgba(30,64,53,.08);color:var(--vert);border:1px solid rgba(30,64,53,.2);border-radius:50px;padding:3px 10px;font-size:10.5px;font-weight:500;font-family:'Plus Jakarta Sans',sans-serif}
 /* ITINERANT CARD */
@@ -137,11 +146,11 @@ body.dark .sav svg{fill:#5cb88a!important}
 .rack{font-size:12px;color:var(--gc);text-decoration:line-through}
 .psub{font-size:11px;color:var(--gris);letter-spacing:.04em;margin-bottom:6px}
 .echip{display:inline-block;margin-left:5px;background:rgba(74,122,85,.1);color:var(--vert);border:1px solid rgba(74,122,85,.2);border-radius:50px;padding:1px 7px;font-size:10px;font-weight:500}
-.building-sep{grid-column:1/-1;background:var(--vert);padding:9px 24px;display:flex;align-items:center;gap:12px}
+.building-sep{background:var(--vert);padding:10px 24px;display:flex;align-items:center;gap:12px;border-radius:4px;margin-top:6px}
 .building-sep-title{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#D4B870;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600}
 .building-sep-addr{font-size:10px;color:rgba(245,239,229,.7);letter-spacing:.06em}
 .building-sep-line{flex:1;height:1px;background:rgba(245,239,229,.15)}
-.empty{grid-column:1/-1;background:var(--blanc);padding:60px 48px;text-align:center;display:none}
+.empty{background:var(--blanc);padding:60px 48px;text-align:center;display:none;border:1px solid var(--cf);border-radius:6px}
 .empty.on{display:block}
 .empty h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:300;margin-bottom:7px}
 .empty p{font-size:13px;color:var(--gris)}
@@ -373,8 +382,15 @@ body.dark footer{background:#112820}
   .filter-fab{display:inline-flex!important;align-items:center;gap:6px;background:var(--vert);color:#F5EFE5;border:none;border-radius:50px;padding:7px 14px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-left:auto}
   .fdrawer-overlay.on{display:flex!important}
   .tb{padding:8px 12px}
-  .grid{grid-template-columns:1fr;margin-bottom:80px}
-  .card{padding:16px 14px}
+  .grid{padding:0 14px;margin-bottom:80px}
+  .card{grid-template-columns:1fr auto;grid-template-areas:'details details' 'postes price' 'dispo dispo';gap:10px;padding:14px 14px 14px 42px}
+  .card-details{grid-area:details}
+  .card-postes{grid-area:postes;flex-direction:row;gap:6px;border:none;padding:0}
+  .card-postes .cp-n{font-size:22px}
+  .card-postes .cp-l{font-size:10px}
+  .card .db{grid-area:dispo;justify-content:flex-start!important}
+  .card-price{grid-area:price}
+  .card-price .pm{font-size:22px}
   .selbar{padding:10px 14px}
   .smoverlay{align-items:flex-end;padding:0}
   .smodal{max-width:100%;border-radius:12px 12px 0 0;max-height:95vh;flex-direction:column}
@@ -1101,24 +1117,33 @@ function makeCard(b){
   var engLbl = d===0 ? t('card_month')+' \u2014 '+t('card_ref_price') : t('card_month')+' \u2014 '+t('card_engagement',{d:ST.eng.replace('m','')})+' <span class="echip">-'+Math.round(d*100)+'%</span>';
   var savHtml = d>0?'<div class="sav"><svg viewBox="0 0 24 24" fill="var(--vert)"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>'+t('card_economy_y',{v:fmt(save)+'\u00a0\u20ac'})+'</div>':'';
 
+  var postesLbl = LANG==='en' ? (b.cap>1?'desks':'desk') : (b.cap>1?'postes':'poste');
+  var accessIcon = '<svg viewBox="0 0 24 24" width="9" height="9" fill="var(--or)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>';
   div.innerHTML =
     '<div class="chk"><svg viewBox="0 0 12 10"><polyline points="1,5 4,8 11,1"/></svg></div>'+
-    '<div class="ctop">'+
-      '<div>'+
-        '<div class="cref">'+esc(b.ref)+(isNew?' <span class="badge-new">NOUVEAU</span>':'')+'</div>'+
-        '<div class="csite">'+esc(b.adresse)+'</div>'+
-        (b.plateau?'<div style="display:inline-flex;align-items:center;gap:3px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;background:rgba(201,169,110,.12);color:var(--or2);border:1px solid rgba(201,169,110,.28);border-radius:50px;padding:2px 7px;margin-top:3px">\u25c6 Plateau privatif</div>':'')+
+    '<div class="card-details">'+
+      '<div class="ctop">'+
+        '<div style="min-width:0;flex:1">'+
+          '<div class="cref">'+esc(b.ref)+(isNew?' <span class="badge-new">NOUVEAU</span>':'')+'</div>'+
+          '<div class="csite">'+esc(b.adresse)+'</div>'+
+          (b.plateau?'<div style="display:inline-flex;align-items:center;gap:3px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;background:rgba(201,169,110,.12);color:var(--or2);border:1px solid rgba(201,169,110,.28);border-radius:50px;padding:2px 7px;margin-top:3px">\u25c6 Plateau privatif</div>':'')+
+        '</div>'+
       '</div>'+
-      '<div class="'+dbCls+'"><span class="ddot"></span>'+dbTxt+'</div>'+
+      '<p class="cdesc">'+esc(cleanDesc(getDesc(b)))+'</p>'+
+      '<div class="chips">'+
+        '<span class="chip'+(b.plateau?' hl':'')+'">'+etLbl(b.etage)+(b.surface?'\u00a0\u00b7\u00a0'+(b.surface%1===0?b.surface:b.surface.toLocaleString('fr-FR'))+'\u00a0m\u00b2':'')+'</span>'+
+        '<span class="chip">'+accessIcon+t('card_access_24_7')+'</span>'+
+        (b.cap>=15?'<span class="badge-large">\u2605 '+t('card_large')+'</span>':'')+
+      '</div>'+
     '</div>'+
-    '<p class="cdesc">'+esc(cleanDesc(getDesc(b)))+'</p>'+
-    '<div class="chips">'+
-      '<span class="chip'+(b.plateau?' hl':'')+'">'+etLbl(b.etage)+(b.surface?'\u00a0\u00b7\u00a0'+(b.surface%1===0?b.surface:b.surface.toLocaleString('fr-FR'))+'\u00a0m\u00b2':'')+'\u00a0\u00b7\u00a0'+b.cap+' '+(LANG==='en'?(b.cap>1?'desks':'desk'):(b.cap>1?'postes':'poste'))+'</span>'+
-      '<span class="chip"><svg viewBox="0 0 24 24" width="9" height="9" fill="var(--or)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>'+t('card_access_24_7')+'</span>'+
-      (b.cap>=15?'<span class="badge-large">\u2605 '+t('card_large')+'</span>':'')+
+    '<div class="card-postes">'+
+      '<span class="cp-n">'+b.cap+'</span>'+
+      '<span class="cp-l">'+postesLbl+'</span>'+
     '</div>'+
-    '<div class="pb">'+
-      '<div class="pr"><div class="pm"><sup>\u20ac</sup>'+fmt(price)+'</div>'+rackHtml+'</div>'+
+    '<div class="'+dbCls+'" style="justify-content:center"><span class="ddot"></span>'+dbTxt+'</div>'+
+    '<div class="card-price">'+
+      '<div class="pr"><div class="pm"><sup>\u20ac</sup>'+fmt(price)+'</div></div>'+
+      (rackHtml?'<div>'+rackHtml+'</div>':'')+
       '<div class="psub">'+engLbl+'</div>'+
       savHtml+
     '</div>';
