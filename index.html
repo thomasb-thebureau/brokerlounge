@@ -484,11 +484,12 @@ body.dark .diff-badge{background:rgba(74,154,122,.14);color:#5cb88a;border-color
 .badge-new{display:inline-flex;font-size:8px;letter-spacing:.1em;text-transform:uppercase;background:var(--vert);color:#F5EFE5;padding:2px 6px;border-radius:50px;font-weight:600;margin-left:6px;vertical-align:middle}
 .badge-large{display:inline-flex;align-items:center;gap:4px;background:rgba(74,122,85,.1);color:var(--vert);border:1px solid rgba(74,122,85,.3);border-radius:50px;padding:3px 10px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:500}
 /* ========== DARK MODE TOGGLE ========== */
-.dark-toggle,.lang-toggle{background:none;border:1px solid var(--cf);border-radius:50px;height:28px;font-size:14px;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;justify-content:center;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
-.dark-toggle{width:32px}
-.lang-toggle{width:auto;min-width:36px;padding:0 10px;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gris)}
-.dark-toggle:hover,.lang-toggle:hover{border-color:var(--or);background:var(--op)}
-.lang-toggle:hover{color:var(--or)}
+.dark-toggle{background:none;border:1px solid var(--cf);border-radius:50px;height:28px;width:32px;font-size:14px;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;justify-content:center;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
+.dark-toggle:hover{border-color:var(--or);background:var(--op)}
+.lang-toggle{display:inline-flex;align-items:center;height:28px;border:1px solid var(--cf);border-radius:50px;overflow:hidden}
+.lang-toggle button{background:none;border:none;padding:0 10px;height:100%;font-size:10px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;letter-spacing:.1em;color:var(--gris);cursor:pointer;transition:all .18s}
+.lang-toggle button.on{background:var(--vert);color:#F5EFE5}
+.lang-toggle button:hover:not(.on){color:var(--or)}
 .sm-lang-toggle{background:rgba(245,239,229,.12);border-color:rgba(245,239,229,.28);color:rgba(245,239,229,.9)}
 .sm-lang-toggle:hover{background:rgba(245,239,229,.22);border-color:var(--or);color:var(--or)}
 /* ========== DARK MODE ========== */
@@ -528,6 +529,9 @@ body.dark .tb,body.dark .fp{color:#F5EFE5}
 body.dark .refresh-btn{color:rgba(212,184,112,.6);border-color:rgba(212,184,112,.25)}
 body.dark .refresh-btn:hover{color:var(--or);border-color:var(--or)}
 body.dark .dark-toggle{border-color:rgba(212,184,112,.3)}
+body.dark .lang-toggle{border-color:rgba(212,184,112,.3)}
+body.dark .lang-toggle button{color:rgba(212,184,112,.55)}
+body.dark .lang-toggle button.on{background:var(--or);color:#1a1a1a}
 body.dark .stxt,body.dark .logo-tag{color:rgba(212,184,112,.55)}
 body.dark .broker-badge{background:rgba(212,184,112,.14);border-color:rgba(212,184,112,.28);color:var(--or)}
 body.dark .selbar{background:#1a3a30;border-top-color:rgba(245,239,229,.1)}
@@ -596,17 +600,16 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
 <div class="top-bar">
   <div class="logo-wrap">
     <a href="#" onclick="resetApp();return false;" style="display:flex;align-items:center;line-height:0" data-i18n-aria="reset_aria" data-i18n-title="reset_title" aria-label="Reinitialiser et rafraichir" title="Reinitialiser la recherche et vider le cache">
-      <img class="logo-main" src="./logo.svg" alt="The Bureau"/><img class="logo-main-dark" src="./logo-white.svg" alt="The Bureau"/>
+      <img class="logo-main" src="./logo.svg?v=11" alt="The Bureau"/><img class="logo-main-dark" src="./logo-white.svg?v=11" alt="The Bureau"/>
     </a>
     <div class="logo-div"></div>
     <span class="logo-tag">Broker Lounge</span>
   </div>
   <div class="top-right">
+    <div class="lang-toggle" id="langToggle" aria-label="Switch language"><button data-lang="fr" class="on" onclick="setLang('fr')">FR</button><button data-lang="en" onclick="setLang('en')">EN</button></div>
+    <button class="dark-toggle" id="darkToggle" data-i18n-aria="dark_aria" data-i18n-title="dark_title" aria-label="Basculer le mode sombre" title="Mode sombre">🌙</button>
     <div class="status"><div class="sdot" id="sdot"></div><span class="stxt" id="stxt" data-i18n="status_loading">Chargement…</span></div>
     <button class="refresh-btn" onclick="fetchData()" data-i18n="refresh" data-i18n-aria="refresh_aria" aria-label="Actualiser les données">↻ Actualiser</button>
-    <button class="lang-toggle" id="langToggle" onclick="toggleLang()" aria-label="Switch language" title="FR / EN">FR</button>
-    <button class="dark-toggle" id="darkToggle" data-i18n-aria="dark_aria" data-i18n-title="dark_title" aria-label="Basculer le mode sombre" title="Mode sombre">🌙</button>
-
     <span class="dlabel" id="dlabel"></span>
   </div>
 </div>
@@ -941,7 +944,8 @@ function setLang(lang){
   try { localStorage.setItem('brk_lang', lang); } catch(e){}
   document.documentElement.setAttribute('lang', lang);
   var togLbl = lang==='fr' ? 'FR' : 'EN';
-  var tog = document.getElementById('langToggle'); if(tog) tog.textContent = togLbl;
+  var tog = document.getElementById('langToggle');
+  if(tog){ var bs=tog.querySelectorAll('button[data-lang]'); for(var i=0;i<bs.length;i++){ bs[i].classList.toggle('on', bs[i].getAttribute('data-lang')===lang); } }
   var tog2 = document.getElementById('smLangToggle'); if(tog2) tog2.textContent = togLbl;
   applyI18n();
   var heroSub = document.getElementById('heroSub');
