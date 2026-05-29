@@ -2053,172 +2053,140 @@ function exportPDF(){
   var chevronsUrl = logoOrigin + '/chevrons.svg';
   var IVORY='#F5EFE5';
 
-  var h = '<!DOCTYPE html><html lang="'+LANG+'"><head><meta charset="UTF-8"><title>'+t('pdf_title')+'</title>';
-  /* Viewport fixe (largeur A4 landscape ~1123px) + text-size-adjust desactive => rendu mobile identique PC */
-  h += '<meta name="viewport" content="width=1200,initial-scale=1"/>';
-  h += '<link href="'+GFONTS+'" rel="stylesheet"/>';
-  h += '<style>';
-  h += '@page{size:A4 landscape;margin:0}';
-  h += '*{box-sizing:border-box;margin:0;padding:0}';
-  h += 'html,body{font-family:\'Plus Jakarta Sans\',Arial,sans-serif;color:'+INK+';background:#fff;font-size:10px;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact;-webkit-text-size-adjust:100%;text-size-adjust:100%}';
-  h += '.page{width:297mm;min-height:210mm;padding:10mm 12mm;display:flex;flex-direction:column;position:relative;margin:0 auto}';
-  h += '.btn-print{position:fixed;top:12px;right:12px;background:'+JADE+';color:#fff;border:none;border-radius:50px;padding:9px 20px;font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:999}';
-  h += '@media print{.no-print{display:none!important}.page{padding:8mm 10mm}}';
-  h += 'header.hd{background:'+IVORY+';padding:14px 22px;border-radius:4px;border:1px solid #ece5d6;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:16px}';
-  h += '.hd-logo{height:38px;width:auto;flex-shrink:0}';
-  h += '.hd-mid{flex:1;text-align:left;padding-left:18px;border-left:1px solid rgba(30,64,53,.18);margin-left:4px}';
-  h += '.hd-mid .eyebrow{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:'+OR2+';font-weight:600;margin-bottom:3px}';
-  h += '.hd-mid h1{font-size:22px;font-weight:300;color:'+INK+';line-height:1}';
-  h += '.hd-mid h1 em{font-style:normal;font-weight:700;color:'+JADE+'}';
-  h += '.hd-r{text-align:right;font-size:10px;color:'+GR+';line-height:1.5;white-space:nowrap}';
-  h += '.hd-r strong{font-weight:700;color:'+INK+';font-size:11px;letter-spacing:.02em}';
-  h += '.hd-r .tiers-inline{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:'+OR2+';font-weight:600;margin-top:2px}';
-  h += 'main.body{flex:1;display:flex;flex-direction:column}';
-  h += 'table.grid{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:9.5px;border-radius:4px;overflow:hidden;box-shadow:0 0 0 1px #ece5d6}';
-  h += 'table.grid th{background:'+JADE+';color:'+CR+';text-align:left;padding:8px 10px;font-weight:600;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase}';
-  h += 'table.grid th.num,table.grid td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}';
-  h += 'table.grid th.ctr,table.grid td.ctr{text-align:center}';
-  h += 'table.grid td{padding:8px 10px;border-bottom:1px solid #ece5d6;vertical-align:middle}';
-  h += 'table.grid tr:nth-child(even) td{background:'+LIGHT+'}';
-  h += 'table.grid td.price{font-weight:600;color:'+INK+'}';
-  h += 'table.grid tr.totrow td{background:'+IVORY+';border-top:2px solid '+JADE+';border-bottom:none;font-weight:700;padding:10px}';
-  h += 'table.grid tr.totrow td.num{color:'+JADE+';font-size:12px}';
-  h += '.ref-badge{display:inline-block;background:'+JADE+';color:'+CR+';padding:3px 9px;border-radius:50px;font-size:9px;font-weight:600;letter-spacing:.06em}';
-  h += '.ref-badge.tel{background:'+OR2+';color:#fff;width:18px;height:18px;line-height:12px;padding:3px 0;text-align:center}';
-  h += 'table.grid tr.telrow td{background:#fbf6ec!important;font-style:normal}';
-  h += '.bottom{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:auto;margin-bottom:10px}';
-  h += '.box{background:'+LIGHT+';border:1px solid #ece5d6;border-radius:4px;padding:9px 12px}';
-  h += '.box h3{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:'+OR2+';margin-bottom:6px;font-weight:700}';
-  h += '.box ul{list-style:none}';
-  h += '.box li{position:relative;padding-left:11px;margin-bottom:2px;font-size:7.5px;color:'+GR+';line-height:1.3}';
-  h += '.box li:last-child{margin-bottom:0}';
-  h += '.box li::before{content:\'\u2713\';position:absolute;left:0;top:0;color:'+JADE+';font-weight:700;font-size:7.5px}';
-  h += '.box.cond li::before{content:\'\u2022\';color:'+OR2+'}';
-  h += 'footer.ft{background:'+JADE+';color:'+CR+';padding:12px 22px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:auto}';
-  h += 'footer.ft .ft-l{display:flex;align-items:center;gap:14px;font-size:10px;line-height:1.5}';
-  h += 'footer.ft .ft-chev{height:26px;width:auto;opacity:.9;flex-shrink:0}';
-  h += 'footer.ft .ft-l strong{color:#fff;font-weight:700;font-size:11px}';
-  h += 'footer.ft .ft-l a{color:'+CR+';text-decoration:none}';
-  h += 'footer.ft .ft-r{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,239,229,.75);text-align:right;line-height:1.6}';
-  h += 'footer.ft .ft-r strong{color:'+OR+';font-weight:600}';
-  h += '</style></head><body>';
-  h += '<button class="btn-print no-print" onclick="window.print()">'+(LANG==='en'?'Print / PDF':'Imprimer / PDF')+'</button>';
-  h += '<div class="page">';
-
-  /* HEADER with logo */
-  h += '<header class="hd">';
-  h += '<img class="hd-logo" src="'+logoUrl+'" alt="The Bureau"/>';
-  var propWord = LANG==='en' ? 'Proposal' : 'Proposition';
-  var hdrTitleA = LANG==='en' ? 'Office' : 'Sélection';
-  var hdrTitleB = LANG==='en' ? 'selection' : 'bureaux';
-  h += '<div class="hd-mid"><div class="eyebrow">Broker Lounge — '+propWord+'</div><h1>'+hdrTitleA+' <em>'+hdrTitleB+'</em></h1></div>';
   var nbLbl = LANG==='en' ? (selData.length>1?'offices':'office') : ('bureau'+(selData.length>1?'x':''));
-  var tiersLbl = activeTiers.map(function(tr){
-    var map={'3m':t('pdf_tier_monthly'),'12m':t('pdf_tier_12'),'24m':t('pdf_tier_24'),'36m':t('pdf_tier_36')};
-    return map[tr.key]||tr.label;
-  }).join(' · ');
-  h += '<div class="hd-r"><strong>'+dateStr+'</strong><br>'+selData.length+' '+nbLbl+'<div class="tiers-inline">'+tiersLbl+'</div></div>';
-  h += '</header>';
-  h += '<main class="body">';
-
-  function tableRows(list){
-    var out = '';
-    list.forEach(function(b){
-      out += '<tr>';
-      out += '<td class="ctr"><span class="ref-badge">'+esc(b.ref)+'</span></td>';
-      out += '<td><strong>'+esc(b.label||'')+'</strong><br><span style="color:'+GR+';font-size:8.5px">'+esc(b.adresse||'')+'</span></td>';
-      out += '<td class="ctr">'+etStr(b.etage)+'</td>';
-      out += '<td class="num">'+(b.surface!=null?b.surface.toLocaleString('fr-FR'):'—')+'</td>';
-      out += '<td class="ctr">'+b.cap+'</td>';
-      out += '<td>'+dispoStr(b)+'</td>';
-      out += '<td style="font-size:8.5px;color:'+GR+';line-height:1.45">'+esc(cleanDesc(getDesc(b)))+'</td>';
-      activeTiers.forEach(function(t){
-        out += '<td class="num price">'+fmtEur(Math.round(b.prix*(1-t.d)))+'</td>';
-      });
-      out += '</tr>';
-    });
-    return out;
-  }
+  var subLine = selData.length+' '+nbLbl;
+  function priceCell(v){ return '<td class="num">'+fmt(Math.round(v))+'<span class="cur"> €</span></td>'; }
   function tableHeader(){
-    var th = '<thead><tr>';
-    th += '<th class="ctr" style="width:54px">'+t('pdf_cols_ref')+'</th><th style="width:140px">'+t('pdf_cols_site')+'</th><th class="ctr" style="width:44px">'+t('pdf_cols_etage')+'</th><th class="num" style="width:40px">'+t('pdf_cols_m2')+'</th><th class="ctr" style="width:44px">'+t('pdf_cols_postes')+'</th><th style="width:96px">'+t('pdf_cols_dispo')+'</th><th>'+t('pdf_cols_desc')+'</th>';
-    var tierMap = {'3m':t('pdf_tier_monthly'),'12m':t('pdf_tier_12'),'24m':t('pdf_tier_24'),'36m':t('pdf_tier_36')};
-    activeTiers.forEach(function(tr){ th += '<th class="num">'+(tierMap[tr.key]||tr.label)+(tr.d>0?' <span style="color:'+OR+';font-weight:500">-'+Math.round(tr.d*100)+'%</span>':'')+'</th>'; });
-    th += '</tr></thead>';
+    var th='<thead><tr>';
+    th+='<th class="ctr" style="width:62px">'+t('pdf_cols_ref')+'</th><th style="width:165px">'+t('pdf_cols_site')+'</th><th class="ctr" style="width:48px">'+t('pdf_cols_etage')+'</th><th class="num" style="width:44px">'+t('pdf_cols_m2')+'</th><th class="ctr" style="width:52px">'+t('pdf_cols_postes')+'</th><th style="width:104px">'+t('pdf_cols_dispo')+'</th><th>'+t('pdf_cols_desc')+'</th>';
+    var tierMap={'3m':t('pdf_tier_monthly'),'12m':t('pdf_tier_12'),'24m':t('pdf_tier_24'),'36m':t('pdf_tier_36')};
+    activeTiers.forEach(function(tr){ th+='<th class="num">'+(tierMap[tr.key]||tr.label)+(tr.d>0?' <span class="disc">-'+Math.round(tr.d*100)+'%</span>':'')+'</th>'; });
+    th+='</tr></thead>';
     return th;
   }
-
-  function telRowHtml(qty){
-    var sub = qty * TELETRAV_PRIX;
-    var lblTitle = LANG==='en' ? 'Telework Offer' : 'Offre T\u00e9l\u00e9travail';
-    var lblSub = qty>1 ? (LANG==='en' ? qty+' subscriptions' : qty+' abonnements') : (LANG==='en' ? '1 subscription' : '1 abonnement');
-    var lblDispo = LANG==='en' ? 'Available now' : 'Imm\u00e9diate';
-    var descShort = LANG==='en'
-      ? 'Additional access. Two users/members for the same workstation. Alternating presence \u2014 only one collaborator on site at a time.'
-      : 'Acc\u00e8s suppl\u00e9mentaire. Deux utilisateurs/membres pour un m\u00eame poste de travail. Pr\u00e9sence altern\u00e9e d\u2019un seul collaborateur \u00e0 la fois dans le b\u00e2timent.';
-    var out = '<tr class="telrow">';
-    out += '<td class="ctr"><span class="ref-badge tel">T</span></td>';
-    out += '<td><strong>'+lblTitle+'</strong><br><span style="color:'+GR+';font-size:8.5px">'+lblSub+'</span></td>';
-    out += '<td class="ctr">\u2014</td>';
-    out += '<td class="num">\u2014</td>';
-    out += '<td class="ctr">'+qty+'</td>';
-    out += '<td>'+lblDispo+'</td>';
-    out += '<td style="font-size:8.5px;color:'+GR+';line-height:1.45">'+descShort+'</td>';
-    activeTiers.forEach(function(){ out += '<td class="num price">'+fmtEur(sub)+'</td>'; });
-    out += '</tr>';
+  function tableRows(list){
+    var out='';
+    list.forEach(function(b){
+      out+='<tr>';
+      out+='<td class="ctr"><span class="refb">'+esc(b.ref)+'</span></td>';
+      out+='<td><div class="site">'+esc(b.label||'')+'</div><div class="addr">'+esc(b.adresse||'')+'</div></td>';
+      out+='<td class="ctr meta">'+etStr(b.etage)+'</td>';
+      out+='<td class="num meta">'+(b.surface!=null?b.surface.toLocaleString('fr-FR'):'—')+'</td>';
+      out+='<td class="ctr meta">'+b.cap+'</td>';
+      out+='<td class="'+(b.dispo==='immediate'?'dispo-now':'muted')+'">'+dispoStr(b)+'</td>';
+      out+='<td class="desc">'+esc(cleanDesc(getDesc(b)))+'</td>';
+      activeTiers.forEach(function(tr){ out+=priceCell(b.prix*(1-tr.d)); });
+      out+='</tr>';
+    });
     return out;
   }
-
-  var hasOpts = OPT_MODE && OPTIONS.some(function(o){ return o.refs.length>0; });
+  function telRowHtml(qty){
+    var sub=qty*TELETRAV_PRIX;
+    var lblTitle=LANG==='en'?'Telework offer':'Offre Télétravail';
+    var lblSub=qty>1?(LANG==='en'?qty+' subscriptions':qty+' abonnements'):(LANG==='en'?'1 subscription':'1 abonnement');
+    var descShort=LANG==='en'?'Additional access. Two users/members for the same workstation. Alternating presence — only one collaborator on site at a time.':'Accès supplémentaire. Deux utilisateurs/membres pour un même poste de travail. Présence alternée d’un seul collaborateur à la fois dans le bâtiment.';
+    var o='<tr><td class="ctr"><span class="tw-tag">'+(LANG==='en'?'Telework':'Télétravail')+'</span></td>';
+    o+='<td><div class="site">'+lblTitle+'</div><div class="addr">'+lblSub+'</div></td>';
+    o+='<td class="ctr muted">—</td><td class="num muted">—</td><td class="ctr meta">'+qty+'</td>';
+    o+='<td class="dispo-now">'+(LANG==='en'?'Immediate':'Immédiate')+'</td>';
+    o+='<td class="desc">'+descShort+'</td>';
+    activeTiers.forEach(function(){ o+=priceCell(sub); });
+    o+='</tr>';
+    return o;
+  }
+  function totRow(label, totsObj){
+    var o='<tr class="tot"><td colspan="7" class="lbl">'+label+'</td>';
+    activeTiers.forEach(function(tr){ o+='<td class="num">'+fmt(totsObj[tr.key])+'<span class="cur"> €</span></td>'; });
+    o+='</tr>';
+    return o;
+  }
+  var h='<!DOCTYPE html><html lang="'+LANG+'"><head><meta charset="UTF-8"><title>'+t('pdf_title')+'</title>';
+  h+='<meta name="viewport" content="width=1200,initial-scale=1"/>';
+  h+='<link href="'+GFONTS+'" rel="stylesheet"/>';
+  h+='<style>';
+  h+=':root{--jade:#1E4035;--or:#B09438;--orD:#7A6015;--ink:#0F0F0F;--gris:#5a5248;--ivory:#F5EFE5;--cream:#faf8f4;--line:#e9e1d2}';
+  h+='@page{size:A4 landscape;margin:0}';
+  h+='*{box-sizing:border-box;margin:0;padding:0}';
+  h+='html,body{font-family:\'Plus Jakarta Sans\',Arial,sans-serif;color:var(--ink);background:#fff;font-size:10.5px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}';
+  h+='.page{position:relative;width:297mm;min-height:210mm;padding:13mm 14mm 11mm;display:flex;flex-direction:column;margin:0 auto;border:2px solid rgba(176,148,56,.6)}';
+  h+='.btn-print{position:fixed;top:12px;right:12px;background:var(--jade);color:#fff;border:none;border-radius:50px;padding:9px 20px;font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:999}';
+  h+='@media print{.no-print{display:none!important}.page{border:none}}';
+  h+='.hd{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-bottom:14px;border-bottom:2px solid var(--or)}';
+  h+='.hd-l{display:flex;align-items:center;gap:18px}.hd-logo{height:42px;width:auto}.hd-div{width:1px;height:42px;background:var(--or)}';
+  h+='.hd-title .eyebrow{font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--or);font-weight:700;margin-bottom:5px}';
+  h+='.hd-title h1{font-size:27px;font-weight:200;color:var(--ink);line-height:1}.hd-title h1 em{font-style:normal;font-weight:700;color:var(--jade)}';
+  h+='.hd-r{text-align:right}.hd-r .date{font-size:13px;font-weight:700;color:var(--ink)}.hd-r .sub{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);margin-top:2px}';
+  h+='main.body{flex:1;display:flex;flex-direction:column}';
+  h+='.tbl{width:100%;border-collapse:separate;border-spacing:0;margin-top:16px;font-size:10.5px}';
+  h+='.tbl thead th{background:var(--jade);color:var(--ivory);text-align:left;padding:10px 12px;font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase}';
+  h+='.tbl thead th:first-child{border-radius:6px 0 0 0}.tbl thead th:last-child{border-radius:0 6px 0 0}';
+  h+='.tbl thead th.num{text-align:right}.tbl thead th.ctr{text-align:center}';
+  h+='.tbl thead th .disc{display:inline-block;background:var(--or);color:#fff;border-radius:50px;padding:2px 7px;font-size:8px;font-weight:700;margin-left:4px}';
+  h+='.tbl tbody td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}';
+  h+='.tbl tbody tr:nth-child(even) td{background:var(--cream)}';
+  h+='.tbl td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600;color:var(--ink)}';
+  h+='.tbl td.num .cur{color:var(--or);font-size:8.5px}.tbl td.ctr{text-align:center}';
+  h+='.refb{display:inline-block;background:var(--jade);color:var(--ivory);padding:5px 13px;border-radius:50px;font-size:10px;font-weight:700}';
+  h+='.tw-tag{display:inline-block;background:rgba(176,148,56,.14);color:var(--orD);padding:4px 11px;border-radius:50px;font-size:9px;font-weight:700}';
+  h+='.site{font-weight:700;font-size:11px;color:var(--ink)}.addr{color:var(--gris);font-size:9px;margin-top:1px}';
+  h+='.desc{font-size:9px;color:var(--gris);line-height:1.45}.meta{color:var(--ink);font-weight:500}.muted{color:var(--gris)}.dispo-now{color:var(--jade);font-weight:600}';
+  h+='.tbl tr.tot td{background:var(--jade);color:var(--ivory);padding:13px 12px;border:none}';
+  h+='.tbl tr.tot td:first-child{border-radius:0 0 0 6px}.tbl tr.tot td:last-child{border-radius:0 0 6px 0}';
+  h+='.tbl tr.tot .lbl{text-align:right;text-transform:uppercase;font-size:9.5px;letter-spacing:.14em;color:rgba(245,239,229,.8);font-weight:600}';
+  h+='.tbl tr.tot .num{font-size:15px;font-weight:700;color:#fff}.tbl tr.tot .num .cur{color:var(--or);font-size:10px}';
+  h+='.optband{background:var(--orD);color:#fff;padding:9px 14px;border-radius:6px 6px 0 0;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-top:10px}';
+  h+='.bottom{display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-top:18px}';
+  h+='.box{background:var(--cream);border:1px solid var(--line);border-radius:8px;padding:14px 16px}';
+  h+='.box h3{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--orD);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}';
+  h+='.box h3::before{content:\'\';width:16px;height:1.5px;background:var(--or)}';
+  h+='.box ul{list-style:none}.box.incl ul{column-count:2;column-gap:18px}';
+  h+='.box li{position:relative;padding-left:16px;margin-bottom:5px;font-size:8.8px;color:var(--gris);line-height:1.4;break-inside:avoid}';
+  h+='.box li::before{content:\'✓\';position:absolute;left:0;top:0;color:var(--jade);font-weight:700;font-size:9px}';
+  h+='.box.cond li::before{content:\'•\';color:var(--or);font-size:12px;top:-1px}';
+  h+='.ft{margin-top:18px;background:var(--jade);color:var(--ivory);border-radius:8px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-top:3px solid var(--or)}';
+  h+='.ft-l{display:flex;align-items:center;gap:16px}.ft-chev{height:30px;opacity:.9}';
+  h+='.ft-name{font-weight:700;color:#fff;font-size:12px}.ft-meta{font-size:10px;color:rgba(245,239,229,.85);line-height:1.6}.ft-meta a{color:var(--ivory);text-decoration:none}';
+  h+='.ft-r{text-align:right;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,239,229,.75);line-height:1.7}.ft-r b{color:var(--or);font-weight:600;font-size:11px}';
+  h+='</style></head><body>';
+  h+='<button class="btn-print no-print" onclick="window.print()">'+(LANG==='en'?'Print / PDF':'Imprimer / PDF')+'</button>';
+  h+='<div class="page">';
+  var propWord=LANG==='en'?'Proposal':'Proposition';
+  var hdrTitleA=LANG==='en'?'Office':'Sélection';
+  var hdrTitleB=LANG==='en'?'selection':'bureaux';
+  h+='<header class="hd"><div class="hd-l"><img class="hd-logo" src="'+logoUrl+'" alt="The Bureau"/><div class="hd-div"></div><div class="hd-title"><div class="eyebrow">Broker Lounge — '+propWord+'</div><h1>'+hdrTitleA+' <em>'+hdrTitleB+'</em></h1></div></div>';
+  h+='<div class="hd-r"><div class="date">'+dateStr+'</div><div class="sub">'+subLine+'</div></div></header>';
+  h+='<main class="body">';
+  var hasOpts=OPT_MODE&&OPTIONS.some(function(o){return o.refs.length>0});
   if(hasOpts){
-    /* Mode options : un tableau par option avec total par option */
     OPTIONS.forEach(function(opt){
-      var optBureaux = selData.filter(function(b){ return opt.refs.indexOf(b.ref)>=0; });
-      if(optBureaux.length===0) return;
-      var telQty = opt.teletravail || 0;
-      var telSub = telQty * TELETRAV_PRIX;
-      var optTotals = {};
-      activeTiers.forEach(function(t){ optTotals[t.key] = optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-t.d)); },0) + telSub; });
-      var optNbLbl = LANG==='en' ? (optBureaux.length>1?'offices':'office') : ('bureau'+(optBureaux.length>1?'x':''));
-      h += '<div style="background:'+OR2+';color:#fff;padding:8px 14px;border-radius:4px 4px 0 0;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-top:8px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)">'+esc(opt.label)+' \u2014 '+optBureaux.length+' '+optNbLbl+'</div>';
-      h += '<table class="grid" style="margin-top:0;border-radius:0 0 4px 4px">';
-      h += tableHeader();
-      h += '<tbody>'+tableRows(optBureaux);
-      if(telQty>0) h += telRowHtml(telQty);
-      var totOptLbl = (LANG==='en'?'Total ':'Total ')+esc(opt.label)+(LANG==='en'?' excl. VAT':' H.T.');
-      h += '<tr class="totrow"><td colspan="7" style="text-align:right;text-transform:uppercase;font-size:9px;letter-spacing:.12em;color:'+GR+'">'+totOptLbl+'</td>';
-      activeTiers.forEach(function(tr){ h += '<td class="num">'+fmtEur(optTotals[tr.key])+'</td>'; });
-      h += '</tr></tbody></table>';
+      var optBureaux=selData.filter(function(b){return opt.refs.indexOf(b.ref)>=0});
+      if(optBureaux.length===0)return;
+      var telQty=opt.teletravail||0; var telSub=telQty*TELETRAV_PRIX;
+      var optTotals={};activeTiers.forEach(function(tr){optTotals[tr.key]=optBureaux.reduce(function(s,b){return s+Math.round(b.prix*(1-tr.d))},0)+telSub});
+      var optNbLbl=LANG==='en'?(optBureaux.length>1?'offices':'office'):('bureau'+(optBureaux.length>1?'x':''));
+      h+='<div class="optband">'+esc(opt.label)+' — '+optBureaux.length+' '+optNbLbl+'</div>';
+      h+='<table class="tbl" style="margin-top:0">'+tableHeader()+'<tbody>'+tableRows(optBureaux);
+      if(telQty>0) h+=telRowHtml(telQty);
+      var totOptLbl=(LANG==='en'?'Total ':'Total ')+esc(opt.label)+(LANG==='en'?' excl. VAT':' H.T.');
+      h+=totRow(totOptLbl, optTotals);
+      h+='</tbody></table>';
     });
   } else {
-    /* Mode normal : liste complete avec total global */
-    h += '<table class="grid">';
-    h += tableHeader();
-    h += '<tbody>'+tableRows(selData);
-    h += '<tr class="totrow"><td colspan="7" style="text-align:right;text-transform:uppercase;font-size:9px;letter-spacing:.12em;color:'+GR+'">'+t('pdf_total')+'</td>';
-    activeTiers.forEach(function(tr){ h += '<td class="num">'+fmtEur(totals[tr.key])+'</td>'; });
-    h += '</tr></tbody></table>';
+    h+='<table class="tbl">'+tableHeader()+'<tbody>'+tableRows(selData);
+    h+=totRow(t('pdf_total'), totals);
+    h+='</tbody></table>';
   }
-
-  /* BOTTOM: services + conditions */
-  h += '<div class="bottom">';
-  h += '<div class="box"><h3>'+t('pdf_services')+'</h3><ul>';
-  services.forEach(function(s){ h += '<li>'+s+'</li>'; });
-  h += '</ul></div>';
-  h += '<div class="box cond"><h3>'+t('pdf_conditions')+'</h3><ul>';
-  conditions.forEach(function(s){ h += '<li>'+s+'</li>'; });
-  h += '</ul></div>';
-  h += '</div>';
-
-  h += '</main>';
-  /* FOOTER jade */
-  h += '<footer class="ft">';
-  h += '<div class="ft-l"><img class="ft-chev" src="'+chevronsUrl+'" alt=""/>';
-  h += '<div><strong>Thomas Bougeard</strong> · '+t('pdf_footer_role')+'<br>+33 6 59 23 15 92 · <a href="mailto:thomasb@thebureau.paris">thomasb@thebureau.paris</a> · <a href="https://www.thebureau.paris">thebureau.paris</a></div>';
-  h += '</div>';
-  h += '<div class="ft-r">'+t('pdf_footer_addr')+'<br><strong>75002 · 75008</strong></div>';
-  h += '</footer>';
-  h += '</div></body></html>';
+  h+='<div class="bottom">';
+  h+='<div class="box incl"><h3>'+t('pdf_services')+'</h3><ul>';
+  services.forEach(function(s){ h+='<li>'+s+'</li>'; });
+  h+='</ul></div>';
+  h+='<div class="box cond"><h3>'+t('pdf_conditions')+'</h3><ul>';
+  conditions.forEach(function(s){ h+='<li>'+s+'</li>'; });
+  h+='</ul></div></div></main>';
+  h+='<footer class="ft"><div class="ft-l"><img class="ft-chev" src="'+chevronsUrl+'" alt=""/>';
+  h+='<div class="ft-meta"><span class="ft-name">Thomas Bougeard</span> · '+t('pdf_footer_role')+'<br>+33 6 59 23 15 92 · <a href="mailto:thomasb@thebureau.paris">thomasb@thebureau.paris</a> · <a href="https://www.thebureau.paris">thebureau.paris</a></div></div>';
+  h+='<div class="ft-r">'+t('pdf_footer_addr')+'<br><b>75002 · 75008</b></div></footer>';
+  h+='</div></body></html>';
 
   /* Use Blob URL (document.write in a popup is unreliable on mobile Safari/Chrome) */
   var blob = new Blob([h], {type:'text/html;charset=utf-8'});
