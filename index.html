@@ -14,8 +14,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/theme.css?v=1"/>
+<script src="/core.js?v=1"></script>
 <style>
-:root{--encre:#0F0F0F;--creme:#FAFAFA;--cf:rgba(15,15,15,.09);--or:#B09438;--or2:#B09438;--orAA:#7A6015;--op:rgba(176,148,56,.08);--gris:rgba(15,15,15,.60);--gc:rgba(15,15,15,.45);--blanc:#FAFAFA;--vert:#1E4035;--vp:rgba(30,64,53,.08);--ambre:#c07830}
+/* Palette (tokens) -> /theme.css (socle commun) */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--creme);color:var(--encre);font-family:'Plus Jakarta Sans',sans-serif;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased}
 /* TOP BAR */
@@ -476,10 +478,7 @@ body.dark .skeleton-card::after{background:linear-gradient(90deg,transparent,rgb
 /* ========== DIFF BADGE ========== */
 .diff-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(30,64,53,.12);color:var(--vert);border:1px solid rgba(30,64,53,.3);border-radius:50px;padding:3px 10px;font-size:10.5px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;margin-left:10px}
 body.dark .diff-badge{background:rgba(74,154,122,.14);color:#5cb88a;border-color:rgba(92,184,138,.3)}
-/* ========== VIEW TRANSITIONS ========== */
-@media (prefers-reduced-motion: no-preference){
-  ::view-transition-old(root),::view-transition-new(root){animation-duration:.28s}
-}
+/* ========== VIEW TRANSITIONS -> /theme.css (socle commun) ========== */
 /* ========== BADGES ========== */
 .badge-new{display:inline-flex;font-size:8px;letter-spacing:.1em;text-transform:uppercase;background:var(--vert);color:#F5EFE5;padding:2px 6px;border-radius:50px;font-weight:600;margin-left:6px;vertical-align:middle}
 .badge-large{display:inline-flex;align-items:center;gap:4px;background:rgba(74,122,85,.1);color:var(--vert);border:1px solid rgba(74,122,85,.3);border-radius:50px;padding:3px 10px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:500}
@@ -493,7 +492,7 @@ body.dark .diff-badge{background:rgba(74,154,122,.14);color:#5cb88a;border-color
 .sm-lang-toggle{background:rgba(245,239,229,.12);border-color:rgba(245,239,229,.28);color:rgba(245,239,229,.9)}
 .sm-lang-toggle:hover{background:rgba(245,239,229,.22);border-color:var(--or);color:var(--or)}
 /* ========== DARK MODE ========== */
-body.dark{--creme:#1a1a1a;--blanc:#222;--encre:#F5EFE5;--cf:rgba(255,255,255,.09);--gris:rgba(255,255,255,.60);--gc:rgba(255,255,255,.45);--or:#D4B870;--or2:#D4B870;--orAA:#D4B870;--op:rgba(212,184,112,.12);--vert:#4a9a7a;--vp:rgba(74,154,122,.12)}
+/* dark tokens -> /theme.css (socle commun) */
 body.dark{background:#1a1a1a;color:#F5EFE5}
 body.dark .top-bar{background-image:linear-gradient(#0f0f0f,#0f0f0f),linear-gradient(90deg,var(--or2),var(--or),var(--or2));border-bottom-color:rgba(212,184,112,.3)}
 body.dark .hero{background:#0f0f0f}
@@ -938,7 +937,7 @@ function t(key, vars){
   }
   return v;
 }
-function withVT(fn){ if(document.startViewTransition){ try{ document.startViewTransition(fn); }catch(e){ fn(); } } else { fn(); } }
+/* withVT() -> /core.js (socle commun) */
 function setLang(lang){
   if(lang!=='fr' && lang!=='en') lang='fr';
   LANG = lang;

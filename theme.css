@@ -1,0 +1,18 @@
+/* ============================================================
+   THE BUREAU — SOCLE COMMUN / CHARTE PARTAGEE
+   Team Lounge  &  Broker Lounge
+   ------------------------------------------------------------
+   Fichier CANONIQUE : teamlounge/theme.css
+   NE PAS editer la copie de brokerlounge a la main.
+   Modifier ici puis lancer :  python sync-shared.py
+   (depuis le repo teamlounge) pour propager a Broker.
+============================================================ */
+
+/* Palette — mode clair */
+:root{--encre:#0F0F0F;--creme:#FAFAFA;--cf:rgba(15,15,15,.09);--or:#B09438;--or2:#B09438;--orAA:#7A6015;--op:rgba(176,148,56,.08);--gris:rgba(15,15,15,.60);--gc:rgba(15,15,15,.45);--blanc:#FAFAFA;--vert:#1E4035;--vp:rgba(30,64,53,.08);--ambre:#c07830}
+
+/* Palette — mode sombre (redefinition des memes tokens) */
+body.dark{--creme:#1a1a1a;--blanc:#222;--encre:#F5EFE5;--cf:rgba(255,255,255,.09);--gris:rgba(255,255,255,.60);--gc:rgba(255,255,255,.45);--or:#D4B870;--or2:#D4B870;--orAA:#D4B870;--op:rgba(212,184,112,.12);--vert:#4a9a7a;--vp:rgba(74,154,122,.12)}
+
+/* View Transitions — crossfade des bascules thème / langue / vue */
+@media (prefers-reduced-motion: no-preference){::view-transition-old(root),::view-transition-new(root){animation-duration:.28s}}
