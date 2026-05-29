@@ -200,8 +200,6 @@ body.dark .sav svg{fill:#5cb88a!important}
 .btn-sel{background:#F5EFE5;color:var(--vert);border:none;border-radius:50px;padding:10px 22px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;white-space:nowrap;display:flex;align-items:center;gap:7px}
 .btn-sel:hover{background:#fff}
 .btn-sel svg{width:13px;height:13px;fill:none;stroke:var(--vert);stroke-width:2}
-/* OVERLAY OUVERTURE */
-.open-overlay{position:fixed;inset:0;z-index:700;background:#fff;display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden;background-image:url("/texture.png");background-repeat:no-repeat;background-position:center center;background-size:80vmin}
 .open-card{background:var(--blanc);border-radius:8px;width:100%;max-width:500px;box-shadow:0 40px 120px rgba(0,0,0,.7);overflow:hidden;position:relative;z-index:2}
 .open-close{position:absolute;top:12px;right:12px;z-index:3;width:32px;height:32px;border-radius:50%;border:none;background:rgba(245,239,229,.12);color:#F5EFE5;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s}
 .open-close:hover{background:rgba(245,239,229,.24)}
@@ -543,55 +541,6 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
 </head>
 <body>
 
-<!-- CONFIG MODAL (edit, non-blocking) -->
-<div class="open-overlay" id="openOverlay" onclick="if(event.target===this)closeOpenModal()">
-<div class="open-card">
-    <button type="button" class="open-close" onclick="closeOpenModal()" data-i18n-aria="close" aria-label="Fermer">&#215;</button>
-    <div class="open-hdr">
-      <div class="eyebrow">Broker Lounge</div>
-      <h2 data-i18n="modal_title">Votre recherche</h2>
-      <p data-i18n="modal_subtitle">Affinez la localisation, la taille et la durée. Tous les champs sont optionnels.</p>
-    </div>
-    <div class="open-body">
-      <div class="open-section">
-        <label class="open-label" data-i18n="modal_loc">Localisation</label>
-        <div class="loc-btns">
-          <button type="button" class="loc-btn" id="locP2" onclick="setLoc('paris2')">
-            <div class="loc-title" data-i18n="p2_title">Paris 2e</div>
-            <div class="loc-sub" data-i18n="p2_sub">TB III &amp; TB IV</div>
-          </button>
-          <button type="button" class="loc-btn" id="locP8" onclick="setLoc('paris8')">
-            <div class="loc-title" data-i18n="p8_title">Paris 8e</div>
-            <div class="loc-sub" data-i18n="p8_sub">TB I &amp; TB II</div>
-          </button>
-        </div>
-        <button type="button" class="loc-clear" id="locClear" onclick="clearLoc()" data-i18n="modal_loc_clear" style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gc);background:none;border:none;padding:6px 0 0;cursor:pointer;display:none">&#8634; Effacer la localisation</button>
-      </div>
-      <div class="open-section">
-        <div class="open-row">
-          <div class="open-field">
-            <label class="open-label" data-i18n="modal_postes">Postes (jusqu'à)</label>
-            <input type="number" class="open-inp" id="openPostes" data-i18n-ph="modal_postes_ph" placeholder="Ex: 10" min="1" max="100" aria-label="Nombre de postes maximum"/>
-            <span class="open-sub" data-i18n="modal_postes_sub">Filtre postes max sur la grille</span>
-          </div>
-          <div class="open-field">
-            <label class="open-label" data-i18n="modal_duree">Durée souhaitée (mois)</label>
-            <input type="number" class="open-inp" id="openDuree" data-i18n-ph="modal_duree_ph" placeholder="Ex: 24" min="1" max="120" aria-label="Durée d'engagement souhaitée en mois"/>
-            <span class="open-sub" data-i18n="modal_duree_sub">Détermine la remise d'engagement</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="open-ftr">
-      <button type="button" class="btn-cancel" onclick="closeOpenModal()" data-i18n="cancel">Annuler</button>
-      <button type="button" class="btn-start" onclick="startBroker()">
-        <span data-i18n="apply">Appliquer</span>
-        <svg viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"/></svg>
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- MAIN APP -->
 <div id="app" style="display:none">
 
@@ -613,33 +562,6 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
     <button class="refresh-btn" onclick="fetchData()" data-i18n="refresh" data-i18n-aria="refresh_aria" aria-label="Actualiser les données">↻ Actualiser</button>
     <span class="dlabel" id="dlabel"></span>
   </div>
-</div>
-
-<!-- CONFIG BANNER -->
-<div class="config-banner" id="configBanner">
-  <div class="cb-item">
-    <span class="cb-label" data-i18n="cb_loc">Localisation</span>
-    <span class="cb-val" id="cbLoc">—</span>
-  </div>
-  <div class="cb-sep"></div>
-  <div class="cb-item">
-    <span class="cb-label" data-i18n="cb_postes">Postes max</span>
-    <span class="cb-val" id="cbPostes">—</span>
-  </div>
-  <div class="cb-sep"></div>
-  <div class="cb-item">
-    <span class="cb-label" data-i18n="cb_duree">Durée</span>
-    <span class="cb-val" id="cbDuree">—</span>
-  </div>
-  <div class="cb-sep"></div>
-  <div class="cb-item">
-    <span class="cb-label" data-i18n="cb_eng">Engagement appliqué</span>
-    <span class="cb-val" id="cbEng">—</span>
-  </div>
-  <button type="button" class="modifier-btn" onclick="showOpenModal()" style="margin-left:auto">
-    <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-    <span data-i18n="cb_edit">Modifier la recherche</span>
-  </button>
 </div>
 
 <!-- HERO -->
@@ -1136,7 +1058,8 @@ function startBroker(){
 function applyBrokerConfig(){
   var loc = BROKER.localisation;
   var postes = BROKER.postes_max;
-  var duree = BROKER.duree_mois;
+  var ENG_MONTHS={mensuel:12,'12m':12,'24m':24,'36m':36};
+  var duree = ENG_MONTHS[ST.eng]||12;
 
   ST.cmax = postes ? String(postes) : '';
   var cmaxEl = document.getElementById('cmax'); if(cmaxEl) cmaxEl.value = postes||'';
@@ -1165,7 +1088,8 @@ function applyBrokerConfig(){
 function updateConfigBanner(){
   var loc = BROKER.localisation;
   var postes = BROKER.postes_max;
-  var duree = BROKER.duree_mois;
+  var ENG_MONTHS={mensuel:12,'12m':12,'24m':24,'36m':36};
+  var duree = ENG_MONTHS[ST.eng]||12;
   var eng = ST.eng;
   var elLoc = document.getElementById('cbLoc'); if(elLoc) elLoc.textContent = loc==='paris2' ? t('cb_p2') : loc==='paris8' ? t('cb_p8') : t('cb_all_sites');
   var elP = document.getElementById('cbPostes'); if(elP) elP.textContent = postes ? t('cb_postes_max',{n:postes}) : t('cb_all');
@@ -1791,7 +1715,8 @@ function updateOptTotals(){
 function updateCommission(){
   var selData = getSelData();
   var d = disc();
-  var duree = BROKER.duree_mois;
+  var ENG_MONTHS={mensuel:12,'12m':12,'24m':24,'36m':36};
+  var duree = ENG_MONTHS[ST.eng]||12;
   var moisCalc = duree ? Math.min(duree, 12) : 12;
   var plafonne = duree && duree > 12;
   var body = document.getElementById('commBody');
@@ -2641,36 +2566,13 @@ setLang(LANG);
 /* Appliquer le mode d'affichage (liste / grille) sauvegarde */
 setViewMode(VIEW_MODE);
 
-/* Restore saved config (silent — no forced modal on load) */
-try {
-  var _savedCfg = JSON.parse(localStorage.getItem('brk_config')||'null');
-  if(_savedCfg && typeof _savedCfg==='object'){
-    BROKER.localisation = _savedCfg.localisation || null;
-    BROKER.postes_max   = _savedCfg.postes_max   || null;
-    BROKER.duree_mois   = _savedCfg.duree_mois   || null;
-  }
-} catch(e){}
-
-if(location.hash && (location.hash.indexOf('sel=')>=0 || location.hash.indexOf('open=1')>=0)){
-  /* Shared link : restore selection from hash, then show app with saved/shared config */
-  document.getElementById('openOverlay').style.display='none';
-  document.getElementById('app').style.display='block';
-  var _shouldOpen = restoreFromHash();
-  if(BROKER.localisation) _selectedLoc = BROKER.localisation;
-  applyBrokerConfig();
-  render();
-  if(_shouldOpen) { window._brkHashPendingOpen = true; setTimeout(openModal, 250); }
-  fetchData();
-} else {
-  /* Skip startup modal — show app immediately with saved or default config.
-     User edits via the "Modifier la recherche" button on the config banner. */
-  document.getElementById('openOverlay').style.display='none';
-  document.getElementById('app').style.display='block';
-  if(BROKER.localisation) _selectedLoc = BROKER.localisation;
-  applyBrokerConfig();
-  render();
-  fetchData();
-}
+/* Config de recherche retiree : on affiche l'app directement (filtres par defaut). */
+document.getElementById('app').style.display='block';
+var _shouldOpen = restoreFromHash();
+applyBrokerConfig();
+render();
+if(_shouldOpen){ setTimeout(openModal, 250); }
+fetchData();
 /* Also try updated_at */
 (function(){
   var x=new XMLHttpRequest();
@@ -2685,13 +2587,6 @@ if(location.hash && (location.hash.indexOf('sel=')>=0 || location.hash.indexOf('
 })();
 setInterval(fetchData, REFRESH_MS);
 
-/* ESC ferme la modale config */
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){
-    var ov=document.getElementById('openOverlay');
-    if(ov && ov.style.display==='flex') closeOpenModal();
-  }
-});
 
 /* ============================================================
    DARK MODE TOGGLE
