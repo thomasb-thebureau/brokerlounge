@@ -287,6 +287,18 @@ body.dark .mdesc{color:rgba(255,255,255,.7)}
 .opt-total{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;color:var(--encre);text-align:right;padding:6px 0 0;border-top:1px solid var(--cf);margin-top:4px}
 .btn-add-opt{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:50px;border:1px solid var(--orAA);background:transparent;color:var(--orAA);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;font-weight:600}
 .btn-add-opt:hover{background:var(--orAA);color:var(--blanc)}
+.opt-telet-row{display:flex;align-items:center;gap:8px;padding:8px 0 6px;border-top:1px dashed var(--cf);margin-top:4px}
+.opt-telet-row .opt-row-label{font-size:11px;color:var(--encre);display:flex;align-items:center;gap:6px}
+.opt-telet-row .opt-telet-tag{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--or2);background:rgba(201,169,110,.12);border:1px solid rgba(201,169,110,.3);border-radius:50px;padding:2px 6px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif}
+.opt-telet-row .opt-row-price{font-size:11px;color:var(--gris)}
+.opt-telet-qty{display:inline-flex;align-items:center;gap:6px;margin-left:6px;font-family:'Plus Jakarta Sans',sans-serif}
+.opt-telet-qty button{width:20px;height:20px;border-radius:50%;border:1px solid var(--orAA);background:transparent;color:var(--orAA);cursor:pointer;font-size:13px;line-height:1;display:inline-flex;align-items:center;justify-content:center;padding:0;font-family:inherit;font-weight:600;transition:all .15s}
+.opt-telet-qty button:hover:not(:disabled){background:var(--orAA);color:var(--blanc)}
+.opt-telet-qty button:disabled{opacity:.35;cursor:not-allowed}
+.opt-telet-qty .opt-telet-val{min-width:14px;text-align:center;font-size:12px;font-weight:600;color:var(--encre)}
+.opt-telet-hint{font-size:10px;color:var(--gris);font-style:italic;margin-left:4px}
+.opt-telet-desc{font-size:10px;line-height:1.5;color:var(--gris);background:rgba(201,169,110,.06);border-left:2px solid var(--or2);padding:8px 10px;margin-top:4px;border-radius:0 3px 3px 0}
+.opt-telet-desc strong{display:block;color:var(--or2);font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:4px;font-family:'Plus Jakarta Sans',sans-serif}
 .btn-del-opt{background:none;border:none;cursor:pointer;color:#D4B870;font-size:11px;font-weight:600;transition:color .15s;letter-spacing:.04em}
 .btn-del-opt:hover{color:#e55a4a}
 .btn-opt-mode{font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;border-radius:50px;border:1px solid var(--cf);background:var(--creme);color:var(--gris);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s}
@@ -982,6 +994,8 @@ var DATA = FALLBACK.slice();
 var BROKER = { localisation: null, postes_max: null, duree_mois: null };
 var ST = { sites:{all:true}, eng:'mensuel', cmin:'', cmax:'', dispo:'all', sort:'nom', search:'' };
 var ITIN_PRIX = 499;
+var TELETRAV_PRIX = 170;
+var TELETRAV_DESC ='Accès supplémentaire. Deux utilisateurs/membres pour un même poste de travail. Présence alternée d’un seul collaborateur à la fois dans le bâtiment.';
 var ITIN_ADDONS_BY_SITE = {}; /* { 'I': {domi:false, casier:false}, ... } */
 var SEL = {};
 var SEL_ORDER = [];
@@ -1455,7 +1469,7 @@ function toggleOptMode(){
 
 function addOption(){
   OPT_COUNTER++;
-  OPTIONS.push({id:'opt'+OPT_COUNTER, label:t('opt_label_prefix')+' '+OPT_COUNTER, refs:[]});
+  OPTIONS.push({id:'opt'+OPT_COUNTER, label:t('opt_label_prefix')+' '+OPT_COUNTER, refs:[], teletravail:0});
   renderModal();
 }
 function removeOption(id){
@@ -1649,6 +1663,8 @@ function makeOptBlock(opt, selData, d){
     chk.addEventListener('change', function(){
       if(this.checked){ if(opt.refs.indexOf(b.ref)<0) opt.refs.push(b.ref); }
       else { opt.refs=opt.refs.filter(function(r){ return r!==b.ref; }); }
+      if(opt.refs.length===0) opt.teletravail = 0;
+      renderTelRow(); renderTelDesc();
       updateOptTotals(); updateCommission();
     });
     var lbl = document.createElement('span');
@@ -1660,6 +1676,50 @@ function makeOptBlock(opt, selData, d){
     row.appendChild(chk); row.appendChild(lbl); row.appendChild(prx);
     content.appendChild(row);
   });
+
+  /* Télétravail add-on */
+  if(typeof opt.teletravail !== 'number') opt.teletravail = 0;
+  var telRow = document.createElement('div');
+  telRow.className = 'opt-telet-row';
+  telRow.id = 'opttel_'+opt.id;
+  function renderTelRow(){
+    var qty = opt.teletravail||0;
+    var sub = qty * TELETRAV_PRIX;
+    telRow.innerHTML =
+      '<span class="opt-row-label"><span class="opt-telet-tag">Télétravail</span> 170 € H.T./mois / pers.</span>'+
+      '<span class="opt-telet-qty">'+
+        '<button type="button" class="opt-telet-dec" aria-label="Diminuer"'+(qty<=0?' disabled':'')+'>−</button>'+
+        '<span class="opt-telet-val">'+qty+'</span>'+
+        '<button type="button" class="opt-telet-inc" aria-label="Augmenter"'+(opt.refs.length===0?' disabled':'')+'>+</button>'+
+      '</span>'+
+      (opt.refs.length===0?'<span class="opt-telet-hint">Sélectionnez au moins un bureau</span>':'')+
+      '<span class="opt-row-price" style="margin-left:auto">'+(qty>0?fmt(sub)+' €':'—')+'</span>';
+    telRow.querySelector('.opt-telet-dec').addEventListener('click', function(e){
+      e.stopPropagation();
+      if(opt.teletravail>0){ opt.teletravail--; renderTelRow(); renderTelDesc(); updateOptTotals(); updateCommission(); }
+    });
+    telRow.querySelector('.opt-telet-inc').addEventListener('click', function(e){
+      e.stopPropagation();
+      if(opt.refs.length===0) return;
+      opt.teletravail++; renderTelRow(); renderTelDesc(); updateOptTotals(); updateCommission();
+    });
+  }
+  var telDesc = document.createElement('div');
+  telDesc.className = 'opt-telet-desc';
+  telDesc.id = 'opttelDesc_'+opt.id;
+  function renderTelDesc(){
+    if((opt.teletravail||0) > 0){
+      telDesc.style.display = '';
+      telDesc.innerHTML = '<strong>Offre Télétravail · '+opt.teletravail+' utilisateur'+(opt.teletravail>1?'s':'')+'</strong>'+esc(TELETRAV_DESC);
+    } else {
+      telDesc.style.display = 'none';
+      telDesc.innerHTML = '';
+    }
+  }
+  renderTelRow();
+  renderTelDesc();
+  content.appendChild(telRow);
+  content.appendChild(telDesc);
 
   /* Total for option */
   var totDiv = document.createElement('div');
@@ -1681,19 +1741,26 @@ function makeOptBlock(opt, selData, d){
 
 function refreshOptTotal(el, opt, selData, d){
   var optBureaux = selData.filter(function(b){ return opt.refs.indexOf(b.ref)>=0; });
-  var tot = optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-d)); },0);
-  el.innerHTML = tot>0
-    ? 'Total option : <strong style="color:var(--orAA)">'+fmt(tot)+'\u00a0\u20ac</strong> <span style="font-size:10px;color:var(--gris)">H.T./mois</span>'
-    : 'Aucun bureau s\u00e9lectionn\u00e9';
+  var telQty = (opt && opt.teletravail) || 0;
+  var tot = optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-d)); },0) + telQty*TELETRAV_PRIX;
+  if(tot>0){
+    var detail = telQty>0
+      ? ' <span style="font-size:10px;color:var(--gris)">(dont t\u00e9l\u00e9travail '+fmt(telQty*TELETRAV_PRIX)+'\u00a0\u20ac)</span>'
+      : '';
+    el.innerHTML = 'Total option : <strong style="color:var(--orAA)">'+fmt(tot)+'\u00a0\u20ac</strong> <span style="font-size:10px;color:var(--gris)">H.T./mois</span>'+detail;
+  } else {
+    el.innerHTML = 'Aucun bureau s\u00e9lectionn\u00e9';
+  }
 }
 
 function renderOptTiersInline(el, opt, selData){
   el.innerHTML='';
   var optBureaux = selData.filter(function(b){ return opt.refs.indexOf(b.ref)>=0; });
-  if(optBureaux.length===0) return;
+  var telQty = (opt && opt.teletravail) || 0;
+  if(optBureaux.length===0 && telQty===0) return;
   var paliers=[{label:'Mensuel',d:0,idx:0},{label:'12 mois -5%',d:0.05,idx:1},{label:'24 mois -10%',d:0.10,idx:2},{label:'36 mois -15%',d:0.15,idx:3}].filter(function(p){ return TIER_SEL[p.idx]; });
   paliers.forEach(function(p){
-    var tot=optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-p.d)); },0);
+    var tot=optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-p.d)); },0) + telQty*TELETRAV_PRIX;
     var row=document.createElement('div');
     row.style.cssText='display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid var(--cf);font-size:11px';
     row.innerHTML='<span style="color:var(--gris)">'+p.label+'</span><span style="font-weight:600;color:var(--encre)">'+fmt(tot)+'\u00a0\u20ac <span style="font-weight:400;color:var(--gris);font-size:10px">H.T./mois</span></span>';
@@ -1754,7 +1821,8 @@ function updateCommission(){
     commBlock.className='comm-block';
     commBlock.innerHTML='<div class="comm-block-title">'+lblDetail+'</div>';
     var tot=0;
-    selData.forEach(function(b){
+    var commData = selData.filter(function(b){ return !b.isItin; });
+    commData.forEach(function(b){
       var monthly=b.prix*(1-d);
       var comm=monthly*moisCalc*0.10;
       tot+=comm;
@@ -1763,10 +1831,10 @@ function updateCommission(){
       line.innerHTML='<span class="comm-line-ref">'+esc(b.ref)+' \u2014 '+b.cap+' '+lblPeople+'</span><span class="comm-line-amt">'+fmt(comm)+'\u00a0\u20ac</span>';
       commBlock.appendChild(line);
     });
-    if(selData.length===0) commBlock.innerHTML+='<div style="font-size:11px;color:rgba(244,239,230,.3);padding:8px 0">'+lblEmpty+'</div>';
+    if(commData.length===0) commBlock.innerHTML+='<div style="font-size:11px;color:rgba(244,239,230,.3);padding:8px 0">'+lblEmpty+'</div>';
     body.appendChild(commBlock);
     /* Total box */
-    if(selData.length>0){
+    if(commData.length>0){
       var totBox=document.createElement('div');
       totBox.className='comm-total-box';
       totBox.innerHTML='<div class="comm-total-label">'+lblEst+'</div>'+
@@ -1779,7 +1847,7 @@ function updateCommission(){
     var hasOpts=OPTIONS.some(function(o){ return o.refs.length>0; });
     if(hasOpts){
       OPTIONS.forEach(function(opt){
-        var optBureaux=selData.filter(function(b){ return opt.refs.indexOf(b.ref)>=0; });
+        var optBureaux=selData.filter(function(b){ return !b.isItin && opt.refs.indexOf(b.ref)>=0; });
         if(optBureaux.length===0) return;
         var totOpt=optBureaux.reduce(function(s,b){ return s+b.prix*(1-d)*moisCalc*0.10; },0);
         var block=document.createElement('div');
@@ -1816,17 +1884,17 @@ function updateCommission(){
   note.textContent=lblNote;
   body.appendChild(note);
 
-  /* Mobile toggle amount : grand total across modes */
+  /* Mobile toggle amount : grand total across modes — bureaux uniquement (télétravail + itinérant exclus) */
   var grandTot = 0;
   if(!OPT_MODE){
-    selData.forEach(function(b){ grandTot += b.prix*(1-d)*moisCalc*0.10; });
+    selData.forEach(function(b){ if(!b.isItin) grandTot += b.prix*(1-d)*moisCalc*0.10; });
   } else {
     var counted = {};
     OPTIONS.forEach(function(opt){
       opt.refs.forEach(function(r){
         if(counted[r]) return; counted[r]=true;
         var b = selData.find(function(x){ return x.ref===r; });
-        if(b) grandTot += b.prix*(1-d)*moisCalc*0.10;
+        if(b && !b.isItin) grandTot += b.prix*(1-d)*moisCalc*0.10;
       });
     });
   }
@@ -1852,7 +1920,7 @@ function encodeSelectionHash(){
   if(OPT_MODE) parts.push('optmode=1');
   if(OPTIONS && OPTIONS.length){
     try {
-      var optsMin = OPTIONS.map(function(o){ return {i:o.id, l:o.label, r:o.refs||[]}; });
+      var optsMin = OPTIONS.map(function(o){ return {i:o.id, l:o.label, r:o.refs||[], t:o.teletravail||0}; });
       parts.push('opts='+encodeURIComponent(JSON.stringify(optsMin)));
     } catch(e){}
   }
@@ -1914,7 +1982,7 @@ function restoreFromHash(){
     try {
       var parsed = JSON.parse(obj.opts);
       if(Array.isArray(parsed)){
-        OPTIONS = parsed.map(function(o){ return { id:o.i, label:o.l, refs:Array.isArray(o.r)?o.r:[] }; });
+        OPTIONS = parsed.map(function(o){ return { id:o.i, label:o.l, refs:Array.isArray(o.r)?o.r:[], teletravail: parseInt(o.t)||0 }; });
         /* Resynchroniser OPT_COUNTER sur le max pour eviter collisions sur nouvel ajout */
         var maxN = 0;
         OPTIONS.forEach(function(o){ var m = /^opt(\d+)$/.exec(o.id); if(m){ var n=parseInt(m[1]); if(n>maxN) maxN=n; } });
