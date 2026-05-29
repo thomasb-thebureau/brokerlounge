@@ -606,7 +606,7 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
     <span class="logo-tag">Broker Lounge</span>
   </div>
   <div class="top-right">
-    <div class="lang-toggle" id="langToggle" aria-label="Switch language"><button data-lang="fr" class="on" onclick="setLang('fr')">FR</button><button data-lang="en" onclick="setLang('en')">EN</button></div>
+    <div class="lang-toggle" id="langToggle" aria-label="Switch language"><button data-lang="fr" class="on" onclick="withVT(function(){setLang('fr')})">FR</button><button data-lang="en" onclick="withVT(function(){setLang('en')})">EN</button></div>
     <button class="dark-toggle" id="darkToggle" data-i18n-aria="dark_aria" data-i18n-title="dark_title" aria-label="Basculer le mode sombre" title="Mode sombre">🌙</button>
     <div class="status"><div class="sdot" id="sdot"></div><span class="stxt" id="stxt" data-i18n="status_loading">Chargement…</span></div>
     <button class="refresh-btn" onclick="fetchData()" data-i18n="refresh" data-i18n-aria="refresh_aria" aria-label="Actualiser les données">↻ Actualiser</button>
@@ -719,8 +719,8 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
   <div class="rc"><strong id="cnt">-</strong> <span id="cntLbl">bureau disponible</span><span id="ps" style="display:none"></span><span id="ps2" style="display:none"></span></div>
   <span class="hint" data-i18n="hint_click">Cliquer sur une carte pour sélectionner</span>
   <div class="view-toggle" id="viewToggle" role="group" aria-label="Mode d'affichage">
-    <button type="button" id="vtList" onclick="setViewMode('list')" title="Liste" aria-label="Affichage liste"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg></button>
-    <button type="button" id="vtGrid" onclick="setViewMode('grid')" title="Grille" aria-label="Affichage grille"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+    <button type="button" id="vtList" onclick="withVT(function(){setViewMode('list')})" title="Liste" aria-label="Affichage liste"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg></button>
+    <button type="button" id="vtGrid" onclick="withVT(function(){setViewMode('grid')})" title="Grille" aria-label="Affichage grille"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
   </div>
   <button class="filter-fab" id="filterFab" onclick="openFilterDrawer()" aria-label="Ouvrir les filtres">
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
@@ -938,6 +938,7 @@ function t(key, vars){
   }
   return v;
 }
+function withVT(fn){ if(document.startViewTransition){ try{ document.startViewTransition(fn); }catch(e){ fn(); } } else { fn(); } }
 function setLang(lang){
   if(lang!=='fr' && lang!=='en') lang='fr';
   LANG = lang;
@@ -2702,10 +2703,13 @@ document.addEventListener('keydown',function(e){
     dt.textContent='\u2600\ufe0f';
   }
   dt.addEventListener('click',function(){
-    document.body.classList.toggle('dark');
-    var isDark=document.body.classList.contains('dark');
-    this.textContent=isDark?'\u2600\ufe0f':'\ud83c\udf19';
-    localStorage.setItem('brk_dark',isDark?'1':'0');
+    var self=this;
+    withVT(function(){
+      document.body.classList.toggle('dark');
+      var isDark=document.body.classList.contains('dark');
+      self.textContent=isDark?'\u2600\ufe0f':'\ud83c\udf19';
+      localStorage.setItem('brk_dark',isDark?'1':'0');
+    });
   });
 })();
 
