@@ -2153,7 +2153,7 @@ function exportPDF(){
   h += 'table.grid tr.totrow td{background:'+IVORY+';border-top:2px solid '+JADE+';border-bottom:none;font-weight:700;padding:10px}';
   h += 'table.grid tr.totrow td.num{color:'+JADE+';font-size:12px}';
   h += '.ref-badge{display:inline-block;background:'+JADE+';color:'+CR+';padding:3px 9px;border-radius:50px;font-size:9px;font-weight:600;letter-spacing:.06em}';
-  h += '.ref-badge.tel{background:'+OR2+';color:'+INK+';width:18px;height:18px;line-height:12px;padding:3px 0;text-align:center}';
+  h += '.ref-badge.tel{background:'+OR2+';color:#fff;width:18px;height:18px;line-height:12px;padding:3px 0;text-align:center}';
   h += 'table.grid tr.telrow td{background:#fbf6ec!important;font-style:normal}';
   h += '.bottom{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:auto;margin-bottom:10px}';
   h += '.box{background:'+LIGHT+';border:1px solid #ece5d6;border-radius:4px;padding:9px 12px}';
@@ -2223,8 +2223,8 @@ function exportPDF(){
     var lblSub = qty>1 ? (LANG==='en' ? qty+' subscriptions' : qty+' abonnements') : (LANG==='en' ? '1 subscription' : '1 abonnement');
     var lblDispo = LANG==='en' ? 'Available now' : 'Imm\u00e9diate';
     var descShort = LANG==='en'
-      ? 'Double the desk for 170 \u20ac/month per person: 2 collaborators share a desk (alternating presence).'
-      : 'Doublez le desk pour 170 \u20ac/mois par personne : 2 collaborateurs partagent un bureau (pr\u00e9sence altern\u00e9e).';
+      ? 'Additional access. Two users/members for the same workstation. Alternating presence \u2014 only one collaborator on site at a time.'
+      : 'Acc\u00e8s suppl\u00e9mentaire. Deux utilisateurs/membres pour un m\u00eame poste de travail. Pr\u00e9sence altern\u00e9e d\u2019un seul collaborateur \u00e0 la fois dans le b\u00e2timent.';
     var out = '<tr class="telrow">';
     out += '<td class="ctr"><span class="ref-badge tel">T</span></td>';
     out += '<td><strong>'+lblTitle+'</strong><br><span style="color:'+GR+';font-size:8.5px">'+lblSub+'</span></td>';
