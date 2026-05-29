@@ -2167,7 +2167,7 @@ function exportPDF(){
       h+='<div class="optband"><span class="optnum">Option '+(_oi+1)+'</span>'+esc(opt.label)+' · '+optBureaux.length+' '+optNbLbl+'</div>';
       h+='<table class="tbl" style="margin-top:0">'+tableHeader()+'<tbody>'+tableRows(optBureaux);
       if(telQty>0) h+=telRowHtml(telQty);
-      var totOptLbl=(LANG==='en'?'Total ':'Total ')+esc(opt.label)+(LANG==='en'?' excl. VAT':' H.T.');
+      var totOptLbl=(LANG==='en'?'Total ':'Total ')+'Option '+(_oi+1)+(LANG==='en'?' excl. VAT':' H.T.');
       h+=totRow(totOptLbl, optTotals);
       h+='</tbody></table>';
     });
