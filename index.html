@@ -1399,7 +1399,7 @@ function toggleOptMode(){
 
 function addOption(){
   OPT_COUNTER++;
-  OPTIONS.push({id:'opt'+OPT_COUNTER, label:t('opt_label_prefix')+' '+OPT_COUNTER, refs:[], teletravail:0});
+  OPTIONS.push({id:'opt'+OPT_COUNTER, label:(LANG==='en'?'Custom text':'Texte personnalisé'), refs:[], teletravail:0});
   renderModal();
 }
 function removeOption(id){
@@ -1501,7 +1501,7 @@ function renderModal(){
     optHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px';
     optHdr.innerHTML='<div class="sm-sect" style="margin:0">Options</div><button class="btn-add-opt" onclick="addOption()">+ Nouvelle option</button>';
     left.appendChild(optHdr);
-    OPTIONS.forEach(function(opt){ left.appendChild(makeOptBlock(opt, selData, d)); });
+    OPTIONS.forEach(function(opt,_oi){ left.appendChild(makeOptBlock(opt, selData, d)); });
   }
 
   /* Update commission panel */
@@ -1701,7 +1701,7 @@ function renderOptTiersInline(el, opt, selData){
 function updateOptTotals(){
   var selData = getSelData();
   var d = disc();
-  OPTIONS.forEach(function(opt){
+  OPTIONS.forEach(function(opt,_oi){
     var el=document.getElementById('opttot_'+opt.id);
     if(el) refreshOptTotal(el, opt, selData, d);
     var tel=document.getElementById('opttiers_'+opt.id);
@@ -1777,7 +1777,7 @@ function updateCommission(){
     /* Per option commission */
     var hasOpts=OPTIONS.some(function(o){ return o.refs.length>0; });
     if(hasOpts){
-      OPTIONS.forEach(function(opt){
+      OPTIONS.forEach(function(opt,_oi){
         var optBureaux=selData.filter(function(b){ return !b.isItin && opt.refs.indexOf(b.ref)>=0; });
         if(optBureaux.length===0) return;
         var totOpt=optBureaux.reduce(function(s,b){ return s+b.prix*(1-d)*moisCalc*0.10; },0);
@@ -1821,7 +1821,7 @@ function updateCommission(){
     selData.forEach(function(b){ if(!b.isItin) grandTot += b.prix*(1-d)*moisCalc*0.10; });
   } else {
     var counted = {};
-    OPTIONS.forEach(function(opt){
+    OPTIONS.forEach(function(opt,_oi){
       opt.refs.forEach(function(r){
         if(counted[r]) return; counted[r]=true;
         var b = selData.find(function(x){ return x.ref===r; });
@@ -2134,7 +2134,7 @@ function exportPDF(){
   h+='.tbl tr.tot td:first-child{border-radius:0 0 0 6px}.tbl tr.tot td:last-child{border-radius:0 0 6px 0}';
   h+='.tbl tr.tot .lbl{text-align:right;text-transform:uppercase;font-size:9.5px;letter-spacing:.14em;color:rgba(245,239,229,.8);font-weight:600}';
   h+='.tbl tr.tot .num{font-size:15px;font-weight:700;color:#fff}.tbl tr.tot .num .cur{color:var(--or);font-size:10px}';
-  h+='.optband{background:#eef2f0;color:var(--jade);padding:10px 16px;border:1px solid var(--line);border-left:4px solid var(--or);border-radius:8px 8px 0 0;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-top:14px}';
+  h+='.optband{background:#eef2f0;color:var(--jade);padding:10px 16px;border:1px solid var(--line);border-left:4px solid var(--or);border-radius:8px 8px 0 0;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-top:14px;display:flex;align-items:center;gap:4px}';h+='.optnum{background:var(--or);color:#fff;border-radius:50px;padding:3px 11px;font-size:9px;font-weight:700;letter-spacing:.06em;margin-right:8px}';
   h+='.bottom{display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-top:18px}';
   h+='.box{background:var(--cream);border:1px solid var(--line);border-radius:8px;padding:14px 16px}';
   h+='.box h3{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--orD);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}';
@@ -2158,13 +2158,13 @@ function exportPDF(){
   h+='<main class="body">';
   var hasOpts=OPT_MODE&&OPTIONS.some(function(o){return o.refs.length>0});
   if(hasOpts){
-    OPTIONS.forEach(function(opt){
+    OPTIONS.forEach(function(opt,_oi){
       var optBureaux=selData.filter(function(b){return opt.refs.indexOf(b.ref)>=0});
       if(optBureaux.length===0)return;
       var telQty=opt.teletravail||0; var telSub=telQty*TELETRAV_PRIX;
       var optTotals={};activeTiers.forEach(function(tr){optTotals[tr.key]=optBureaux.reduce(function(s,b){return s+Math.round(b.prix*(1-tr.d))},0)+telSub});
       var optNbLbl=LANG==='en'?(optBureaux.length>1?'offices':'office'):('bureau'+(optBureaux.length>1?'x':''));
-      h+='<div class="optband">'+esc(opt.label)+' — '+optBureaux.length+' '+optNbLbl+'</div>';
+      h+='<div class="optband"><span class="optnum">Option '+(_oi+1)+'</span>'+esc(opt.label)+' · '+optBureaux.length+' '+optNbLbl+'</div>';
       h+='<table class="tbl" style="margin-top:0">'+tableHeader()+'<tbody>'+tableRows(optBureaux);
       if(telQty>0) h+=telRowHtml(telQty);
       var totOptLbl=(LANG==='en'?'Total ':'Total ')+esc(opt.label)+(LANG==='en'?' excl. VAT':' H.T.');
