@@ -2153,6 +2153,8 @@ function exportPDF(){
   h += 'table.grid tr.totrow td{background:'+IVORY+';border-top:2px solid '+JADE+';border-bottom:none;font-weight:700;padding:10px}';
   h += 'table.grid tr.totrow td.num{color:'+JADE+';font-size:12px}';
   h += '.ref-badge{display:inline-block;background:'+JADE+';color:'+CR+';padding:3px 9px;border-radius:50px;font-size:9px;font-weight:600;letter-spacing:.06em}';
+  h += '.ref-badge.tel{background:'+OR2+';color:'+INK+';width:18px;height:18px;line-height:12px;padding:3px 0;text-align:center}';
+  h += 'table.grid tr.telrow td{background:#fbf6ec!important;font-style:normal}';
   h += '.bottom{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:auto;margin-bottom:10px}';
   h += '.box{background:'+LIGHT+';border:1px solid #ece5d6;border-radius:4px;padding:9px 12px}';
   h += '.box h3{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:'+OR2+';margin-bottom:6px;font-weight:700}';
@@ -2215,19 +2217,43 @@ function exportPDF(){
     return th;
   }
 
+  function telRowHtml(qty){
+    var sub = qty * TELETRAV_PRIX;
+    var lblTitle = LANG==='en' ? 'Telework Offer' : 'Offre T\u00e9l\u00e9travail';
+    var lblSub = qty>1 ? (LANG==='en' ? qty+' subscriptions' : qty+' abonnements') : (LANG==='en' ? '1 subscription' : '1 abonnement');
+    var lblDispo = LANG==='en' ? 'Available now' : 'Imm\u00e9diate';
+    var descShort = LANG==='en'
+      ? 'Double the desk for 170 \u20ac/month per person: 2 collaborators share a desk (alternating presence).'
+      : 'Doublez le desk pour 170 \u20ac/mois par personne : 2 collaborateurs partagent un bureau (pr\u00e9sence altern\u00e9e).';
+    var out = '<tr class="telrow">';
+    out += '<td class="ctr"><span class="ref-badge tel">T</span></td>';
+    out += '<td><strong>'+lblTitle+'</strong><br><span style="color:'+GR+';font-size:8.5px">'+lblSub+'</span></td>';
+    out += '<td class="ctr">\u2014</td>';
+    out += '<td class="num">\u2014</td>';
+    out += '<td class="ctr">'+qty+'</td>';
+    out += '<td>'+lblDispo+'</td>';
+    out += '<td style="font-size:8.5px;color:'+GR+';line-height:1.45">'+descShort+'</td>';
+    activeTiers.forEach(function(){ out += '<td class="num price">'+fmtEur(sub)+'</td>'; });
+    out += '</tr>';
+    return out;
+  }
+
   var hasOpts = OPT_MODE && OPTIONS.some(function(o){ return o.refs.length>0; });
   if(hasOpts){
     /* Mode options : un tableau par option avec total par option */
     OPTIONS.forEach(function(opt){
       var optBureaux = selData.filter(function(b){ return opt.refs.indexOf(b.ref)>=0; });
       if(optBureaux.length===0) return;
+      var telQty = opt.teletravail || 0;
+      var telSub = telQty * TELETRAV_PRIX;
       var optTotals = {};
-      activeTiers.forEach(function(t){ optTotals[t.key] = optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-t.d)); },0); });
+      activeTiers.forEach(function(t){ optTotals[t.key] = optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-t.d)); },0) + telSub; });
       var optNbLbl = LANG==='en' ? (optBureaux.length>1?'offices':'office') : ('bureau'+(optBureaux.length>1?'x':''));
       h += '<div style="background:'+OR2+';color:#fff;padding:8px 14px;border-radius:4px 4px 0 0;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-top:8px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)">'+esc(opt.label)+' \u2014 '+optBureaux.length+' '+optNbLbl+'</div>';
       h += '<table class="grid" style="margin-top:0;border-radius:0 0 4px 4px">';
       h += tableHeader();
       h += '<tbody>'+tableRows(optBureaux);
+      if(telQty>0) h += telRowHtml(telQty);
       var totOptLbl = (LANG==='en'?'Total ':'Total ')+esc(opt.label)+(LANG==='en'?' excl. VAT':' H.T.');
       h += '<tr class="totrow"><td colspan="7" style="text-align:right;text-transform:uppercase;font-size:9px;letter-spacing:.12em;color:'+GR+'">'+totOptLbl+'</td>';
       activeTiers.forEach(function(tr){ h += '<td class="num">'+fmtEur(optTotals[tr.key])+'</td>'; });
