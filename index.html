@@ -800,17 +800,16 @@ var I18N = {
     /* PDF */
     pdf_title:'Sélection — The Bureau Broker Lounge', pdf_subtitle:'Sélection personnalisée · données en temps réel', pdf_cols_ref:'Réf.', pdf_cols_site:'Site', pdf_cols_etage:'Étage', pdf_cols_m2:'m²', pdf_cols_postes:'Postes', pdf_cols_dispo:'Dispo.', pdf_cols_desc:'Description', pdf_tier_monthly:'3 mois (Mensuel)', pdf_tier_12:'12 mois', pdf_tier_24:'24 mois', pdf_tier_36:'36 mois', pdf_total:'TOTAL H.T./mois', pdf_services:'Services inclus', pdf_conditions:'Conditions', pdf_footer_role:'Directeur Commercial', pdf_footer_addr:'The Bureau Paris',
     services:[
-      'Accès 24/7 à l\'arrondissement choisi et du lundi au vendredi de 8h à 19h aux autres espaces The Bureau sur présentation du badge.',
-      'Accès aux espaces communs : coworking, restauration, patio, douches, salle de sport, cabines téléphoniques.',
-      'Domiciliation et rangement tiroir inclus (sauf Itinérant).',
-      'Téléphone fixe + communications France et monde incluses (fixe et mobile).',
-      'Forfait impression : 200 copies N&B + 25 couleurs / mois / personne.',
-      'Tisaneries illimitées : café, thé, eau filtrée, fruits frais.',
-      'Programmation événementielle : soirées, vernissages, apéritivo du jeudi.',
-      'Mobilier : bureau, chaise et caisson.',
-      'Conciergerie : accueil clients, courrier, taxis, réservations de salles.',
-      'Global Collective : 2 jours/mois dans les espaces partenaires.',
-      'All-inclus : électricité, ménage, charges, climatisation, chauffage.'
+      'Accès 24/7 dans nos bâtiments.',
+      'Espaces communs : coworking, restauration, patio, sport.',
+      'Domiciliation et rangement tiroir (sauf Itinérant).',
+      'Téléphone fixe, communications France et monde incluses.',
+      'Forfait impression : 200 N&B et 25 couleurs / mois.',
+      'Tisaneries illimitées : café, thé, fruits frais.',
+      'Programmation événementielle : soirées, vernissages, partenariats et apéritivo du jeudi.',
+      'Conciergerie : courrier, taxis, réservations de salles.',
+      'Global Collective : 2 jours/mois dans les espaces partenaires (globalcollective.co).',
+      'ALL-INCLUSIVE : électricité, ménage, charges, climatisation, chauffage.'
     ],
     conditions:[
       '3 mois d\'engagement minimum puis contrat renouvelé au mois le mois jusqu\'au préavis.',
@@ -832,17 +831,16 @@ var I18N = {
     sel_clr_all:'Clear all', sel_view:'View selection', empty_grid:'No office matches your criteria.', bureaux_count_one:'%n office available', bureaux_count_n:'%n offices available', sel_total_from:'Total from', sel_ht_month:'excl. VAT / month', pdf_footer_pluriel_office:'offices', pdf_footer_sing_office:'office',
     pdf_title:'Selection — The Bureau Broker Lounge', pdf_subtitle:'Tailored selection · real-time data', pdf_cols_ref:'Ref.', pdf_cols_site:'Site', pdf_cols_etage:'Floor', pdf_cols_m2:'sqm', pdf_cols_postes:'Desks', pdf_cols_dispo:'Avail.', pdf_cols_desc:'Description', pdf_tier_monthly:'3 months (Monthly)', pdf_tier_12:'12 months', pdf_tier_24:'24 months', pdf_tier_36:'36 months', pdf_total:'TOTAL excl. VAT / month', pdf_services:'Included services', pdf_conditions:'Terms', pdf_footer_role:'Sales Director', pdf_footer_addr:'The Bureau Paris',
     services:[
-      '24/7 access to the chosen district, and weekdays 8am–7pm in other The Bureau spaces on badge presentation.',
-      'Access to shared spaces: coworking, food hall, patio, showers, gym, phone booths.',
-      'Registered address and drawer storage included (except Nomad).',
-      'Landline + France & worldwide calls included (landline and mobile).',
-      'Printing allowance: 200 B&W + 25 colour copies / month / person.',
-      'Unlimited pantries: coffee, tea, filtered water, fresh fruit.',
-      'Events programme: parties, vernissages, Thursday aperitivo.',
-      'Furniture: desk, chair and pedestal.',
-      'Concierge: guest welcome, mail, taxis, meeting room bookings.',
-      'Global Collective: 2 days/month in partner spaces.',
-      'All-inclusive: electricity, cleaning, utilities, AC, heating.'
+      '24/7 access in our buildings.',
+      'Shared spaces: coworking, dining, patio, gym.',
+      'Business address & drawer storage (except Nomad).',
+      'Fixed line, calls to France & worldwide included.',
+      'Print allowance: 200 B&W and 25 colour / month.',
+      'Unlimited break areas: coffee, tea, fresh fruit.',
+      'Events programme: evenings, openings, partnerships & Thursday aperitivo.',
+      'Concierge: mail, taxis, meeting room bookings.',
+      'Global Collective: 2 days/month at partner spaces (globalcollective.co).',
+      'ALL-INCLUSIVE: electricity, cleaning, utilities, AC, heating.'
     ],
     conditions:[
       '3-month minimum term then month-to-month until notice.',
@@ -2171,10 +2169,9 @@ function exportPDF(){
   h+='.box{background:var(--cream);border:1px solid var(--line);border-radius:8px;padding:14px 16px}';
   h+='.box h3{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--orD);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}';
   h+='.box h3::before{content:\'\';width:16px;height:1.5px;background:var(--or)}';
-  h+='.box ul{list-style:none}.box.incl ul{column-count:2;column-gap:18px}';
+  h+='.box ul{list-style:none}.box.incl ul,.box.cond ul{column-count:2;column-gap:18px}';
   h+='.box li{position:relative;padding-left:16px;margin-bottom:5px;font-size:8.8px;color:var(--gris);line-height:1.4;break-inside:avoid}';
   h+='.box li::before{content:\'✓\';position:absolute;left:0;top:0;color:var(--jade);font-weight:700;font-size:9px}';
-  h+='.box.cond li::before{content:\'•\';color:var(--or);font-size:12px;top:-1px}';
   h+='.ft{margin-top:18px;background:var(--jade);color:var(--ivory);border-radius:8px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-top:3px solid var(--or)}';
   h+='.ft-l{display:flex;align-items:center;gap:16px}.ft-chev{height:30px;opacity:.9}';
   h+='.ft-name{font-weight:700;color:#fff;font-size:12px}.ft-meta{font-size:10px;color:rgba(245,239,229,.85);line-height:1.6}.ft-meta a{color:var(--ivory);text-decoration:none}';
