@@ -930,6 +930,12 @@ var SEL_ORDER = [];
 var MODAL_SORT = 'custom';
 var OPT_MODE = false;
 var TIER_SEL = [true, true, true, true]; /* 0:3mois, 1:12mois, 2:24mois, 3:36mois */
+var DEFAULT_TIER = 3; /* durée mise en avant (surbrillance PDF) */
+function getDefaultTier(){
+  var d = DEFAULT_TIER;
+  if(!TIER_SEL[d]){ for(var i=3;i>=0;i--){ if(TIER_SEL[i]){ d=i; break; } } }
+  return d;
+}
 var TIERS = [
   {key:'3m',  label:'3 mois (mensuel)', d:0},
   {key:'12m', label:'12 mois',          d:0.05},
@@ -1458,6 +1464,23 @@ function renderModal(){
     });
   });
   left.appendChild(tierWrap);
+
+  /* --- Durée mise en avant (surbrillance PDF) --- */
+  var defWrap = document.createElement('div');
+  defWrap.className='tier-picker';
+  defWrap.style.marginTop='8px';
+  var defTitle = LANG==='en' ? 'Displayed rate' : 'Durée mise en avant';
+  var _dt = getDefaultTier();
+  defWrap.innerHTML =
+    '<span class="sm-sect" style="margin:0 8px 0 0">'+defTitle+'</span>'+
+    '<label><input type="radio" name="brkDefTier" data-def="0" '+(_dt===0?'checked':'')+'> 3 '+mois+'</label>'+
+    '<label><input type="radio" name="brkDefTier" data-def="1" '+(_dt===1?'checked':'')+'> 12 '+mois+'</label>'+
+    '<label><input type="radio" name="brkDefTier" data-def="2" '+(_dt===2?'checked':'')+'> 24 '+mois+'</label>'+
+    '<label><input type="radio" name="brkDefTier" data-def="3" '+(_dt===3?'checked':'')+'> 36 '+mois+'</label>';
+  defWrap.querySelectorAll('input[data-def]').forEach(function(c){
+    c.addEventListener('change', function(){ DEFAULT_TIER = parseInt(this.dataset.def); renderModal(); });
+  });
+  left.appendChild(defWrap);
 
   /* --- Bureau list --- */
   var offs = document.createElement('div');
@@ -2022,6 +2045,8 @@ function exportPDF(){
   if(selData.length===0) return;
   var activeTiers = TIERS.filter(function(_,i){ return TIER_SEL[i]; });
   if(activeTiers.length===0) activeTiers = [TIERS[1]];
+  var _defKey=TIERS[getDefaultTier()]?TIERS[getDefaultTier()].key:null;
+  if(!activeTiers.some(function(t){return t.key===_defKey;})) _defKey=activeTiers[activeTiers.length-1].key;
   var OR='#B09438', OR2='#7A6015', JADE='#1E4035', INK='#0F0F0F', CR='#F5EFE5', GR='#5a5248', LIGHT='#faf8f4';
   var GFONTS='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap';
   var today = new Date();
@@ -2055,12 +2080,13 @@ function exportPDF(){
 
   var nbLbl = LANG==='en' ? (selData.length>1?'offices':'office') : ('bureau'+(selData.length>1?'x':''));
   var subLine = selData.length+' '+nbLbl;
-  function priceCell(v){ return '<td class="num">'+fmt(Math.round(v))+'<span class="cur"> €</span></td>'; }
+  function priceCell(v, hl){ return '<td class="num'+(hl?' hl':'')+'">'+fmt(Math.round(v))+'<span class="cur"> €</span></td>'; }
+  var _pickLbl=LANG==='en'?'★ DISPLAYED RATE':'★ TARIF AFFICHÉ';
   function tableHeader(){
     var th='<thead><tr>';
     th+='<th class="ctr" style="width:62px">'+t('pdf_cols_ref')+'</th><th style="width:165px">'+t('pdf_cols_site')+'</th><th class="ctr" style="width:48px">'+t('pdf_cols_etage')+'</th><th class="num" style="width:44px">'+t('pdf_cols_m2')+'</th><th class="ctr" style="width:52px">'+t('pdf_cols_postes')+'</th><th style="width:104px">'+t('pdf_cols_dispo')+'</th><th>'+t('pdf_cols_desc')+'</th>';
     var tierMap={'3m':t('pdf_tier_monthly'),'12m':t('pdf_tier_12'),'24m':t('pdf_tier_24'),'36m':t('pdf_tier_36')};
-    activeTiers.forEach(function(tr){ th+='<th class="num">'+(tierMap[tr.key]||tr.label)+(tr.d>0?' <span class="disc">-'+Math.round(tr.d*100)+'%</span>':'')+'</th>'; });
+    activeTiers.forEach(function(tr){ var hl=tr.key===_defKey; th+='<th class="num'+(hl?' hl':'')+'">'+(hl?'<span class="pick">'+_pickLbl+'</span>':'')+(tierMap[tr.key]||tr.label)+(tr.d>0?' <span class="disc">-'+Math.round(tr.d*100)+'%</span>':'')+'</th>'; });
     th+='</tr></thead>';
     return th;
   }
@@ -2075,7 +2101,7 @@ function exportPDF(){
       out+='<td class="ctr meta">'+b.cap+'</td>';
       out+='<td class="'+(b.dispo==='immediate'?'dispo-now':'muted')+'">'+dispoStr(b)+'</td>';
       out+='<td class="desc">'+esc(cleanDesc(getDesc(b)))+'</td>';
-      activeTiers.forEach(function(tr){ out+=priceCell(b.prix*(1-tr.d)); });
+      activeTiers.forEach(function(tr){ out+=priceCell(b.prix*(1-tr.d), tr.key===_defKey); });
       out+='</tr>';
     });
     return out;
@@ -2090,13 +2116,13 @@ function exportPDF(){
     o+='<td class="ctr muted">—</td><td class="num muted">—</td><td class="ctr meta">'+qty+'</td>';
     o+='<td class="dispo-now">'+(LANG==='en'?'Immediate':'Immédiate')+'</td>';
     o+='<td class="desc">'+descShort+'</td>';
-    activeTiers.forEach(function(){ o+=priceCell(sub); });
+    activeTiers.forEach(function(tr){ o+=priceCell(sub, tr.key===_defKey); });
     o+='</tr>';
     return o;
   }
   function totRow(label, totsObj){
     var o='<tr class="tot"><td colspan="7" class="lbl">'+label+'</td>';
-    activeTiers.forEach(function(tr){ o+='<td class="num">'+fmt(totsObj[tr.key])+'<span class="cur"> €</span></td>'; });
+    activeTiers.forEach(function(tr){ o+='<td class="num'+(tr.key===_defKey?' hl':'')+'">'+fmt(totsObj[tr.key])+'<span class="cur"> €</span></td>'; });
     o+='</tr>';
     return o;
   }
@@ -2122,6 +2148,12 @@ function exportPDF(){
   h+='.tbl thead th:first-child{border-radius:6px 0 0 0}.tbl thead th:last-child{border-radius:0 6px 0 0}';
   h+='.tbl thead th.num{text-align:right}.tbl thead th.ctr{text-align:center}';
   h+='.tbl thead th .disc{display:inline-block;background:var(--or);color:#fff;border-radius:50px;padding:2px 7px;font-size:8px;font-weight:700;margin-left:4px}';
+  h+='.tbl thead th.num.hl{background:var(--or);color:#fff}';
+  h+='.tbl thead th.hl .pick{display:block;font-size:7px;letter-spacing:.08em;color:#fff;font-weight:700;margin-bottom:3px}';
+  h+='.tbl thead th.hl .disc{background:#fff;color:var(--orD)}';
+  h+='.tbl tbody td.num.hl{background:#fbf2d8!important;border-left:2px solid var(--or);border-right:2px solid var(--or);color:var(--jade);font-weight:700}';
+  h+='.tbl tr.tot td.num.hl{background:var(--or)!important;color:#fff;border-left:2px solid var(--or);border-right:2px solid var(--or)}';
+  h+='.tbl tr.tot td.num.hl .cur{color:#fff}';
   h+='.tbl tbody td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}';
   h+='.tbl tbody tr:nth-child(even):not(.tot) td{background:var(--cream)}';
   h+='.tbl td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600;color:var(--ink)}';
