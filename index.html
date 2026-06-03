@@ -253,7 +253,10 @@ body.dark .smodal-hdr{background:#112820}
 .sm-sect{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--orAA);font-weight:700;margin-bottom:10px;margin-top:18px;display:flex;align-items:center;justify-content:space-between}
 .sm-sect:first-child{margin-top:0}
 .moffs{display:flex;flex-direction:column;gap:6px}
-.mrow{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 14px;background:var(--creme);border-radius:3px;border:1px solid var(--cf);cursor:grab;gap:12px}
+.mrow{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#fff;border-radius:12px;border:1px solid var(--cf);cursor:grab;gap:13px;margin-bottom:9px}
+.mrb{background:var(--vert);color:#F5EFE5;border-radius:50px;padding:5px 12px;font-size:11px;font-weight:700;flex-shrink:0;min-width:60px;text-align:center}
+.mref2{font-size:13px;font-weight:700;color:var(--encre)}
+.mdispo{font-size:10px;font-weight:600;margin-top:3px}
 .mrow:active{cursor:grabbing}
 .mref{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--orAA);font-weight:700;margin-bottom:3px}
 .mname{font-size:12.5px;color:var(--encre)}
@@ -1540,26 +1543,29 @@ function renderModal(){
 function makeModalRow(b, d){
   var row = document.createElement('div');
   row.className='mrow'; row.dataset.ref=b.ref;
+  var pill = document.createElement('span');
+  pill.className='mrb'; pill.textContent = b.ref;
   var info = document.createElement('div');
   info.style.cssText='min-width:0;flex:1';
-  var desc = cleanDesc(getDesc(b));
   var dispoLbl = b.dispo==='immediate'
-    ? (LANG==='en'?'Available now':'Dispo imm\u00e9diate')
-    : (LANG==='en'?'Available from ':'Dispo le ')+dtLbl(b.date);
+    ? (LANG==='en'?'Available now':'Disponible immédiatement')
+    : (LANG==='en'?'Available from ':'Dès le ')+dtLbl(b.date);
+  var dispoCol = b.dispo==='immediate' ? 'var(--vert)' : 'var(--gris)';
   var postesLbl = LANG==='en'?(b.cap>1?'desks':'desk'):(b.cap>1?'postes':'poste');
-  info.innerHTML='<div class="mref">'+esc(b.ref)+' \u2014 '+esc(b.label)+'</div>'+
-    '<div class="mname">'+etLbl(b.etage)+' \u2014 '+b.cap+' '+postesLbl+(b.surface?' \u2014 '+b.surface.toLocaleString('fr-FR')+'\u00a0m\u00b2':'')+' \u2014 '+dispoLbl+'</div>'+
-    (desc?'<div class="mdesc">'+esc(desc)+'</div>':'');
+  var meta = etLbl(b.etage)+(b.surface?' · '+b.surface.toLocaleString('fr-FR')+' m²':'')+' · '+b.cap+' '+postesLbl;
+  info.innerHTML='<div class="mref2">'+esc(b.label)+'</div>'+
+    '<div class="mname">'+meta+'</div>'+
+    '<div class="mdispo" style="color:'+dispoCol+'">'+dispoLbl+'</div>';
   var right = document.createElement('div');
-  right.style.cssText='display:flex;align-items:center;gap:4px';
+  right.style.cssText='display:flex;align-items:center;gap:8px';
   var pe = document.createElement('div');
-  pe.className='mprice'; pe.textContent=fmt(b.prix*(1-d))+' \u20ac';
+  pe.className='mprice'; pe.innerHTML=fmt(b.prix*(1-d))+' €<div style="font-size:8.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--gris);text-align:right;margin-top:1px">H.T./mois</div>';
   var del = document.createElement('button');
   del.className='mdel'; del.title='Retirer';
   del.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
   del.addEventListener('click', function(){ toggleSel(b.ref); });
   right.appendChild(pe); right.appendChild(del);
-  row.appendChild(info); row.appendChild(right);
+  row.appendChild(pill); row.appendChild(info); row.appendChild(right);
   return row;
 }
 
