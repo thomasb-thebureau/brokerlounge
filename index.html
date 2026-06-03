@@ -426,6 +426,25 @@ body.dark .ec-toggle{color:#F5EFE5}
 body.dark .brk-rtable th{background:#23362e;color:#cfe2d6}
 body.dark .brk-rtable td{background:#1c2a24;color:#eaf2ee}
 .opt-num-badge{background:var(--or);color:#fff;border-radius:50px;padding:3px 11px;font-size:9px;font-weight:700;letter-spacing:.06em;flex-shrink:0;margin-right:8px;white-space:nowrap}
+.msort-seg{display:flex;background:var(--creme);border:1px solid var(--cf);border-radius:50px;padding:2px}
+.msort-seg .msb{border:none!important;background:none!important;border-radius:50px;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;color:var(--gris);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;transition:all .15s}
+.msort-seg .msb.on{background:var(--vert)!important;color:#F5EFE5!important}
+.optmode-pill{border:1px dashed var(--or);background:none;color:var(--or);border-radius:50px;padding:6px 14px;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s}
+.optmode-pill.on{background:var(--vert);border-color:var(--vert);border-style:solid;color:#F5EFE5}
+.brk-rtable{box-shadow:0 1px 0 rgba(0,0,0,.02)}
+.brk-rtable th{padding:9px 10px}
+.brk-rtable td{padding:12px 10px;font-size:16px}
+.brk-rtable th.hl,.brk-rtable td.hl{box-shadow:inset 0 0 0 1px rgba(176,148,56,.25)}
+.opt-pool-lbl{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--gris);font-weight:600;margin:2px 0 8px}
+.opt-pool{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px}
+.opt-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:50px;border:1px solid var(--cf);background:#fff;color:var(--gris);cursor:pointer;font:600 11px 'Plus Jakarta Sans',sans-serif;transition:all .15s}
+.opt-pill .opt-pill-ref{font-weight:700}
+.opt-pill .opt-pill-pp{color:#b9b2a3;font-weight:500;font-size:10px}
+.opt-pill.in{border-color:var(--vert);background:#e9f3ee;color:var(--vert)}
+.opt-pill.in .opt-pill-ref{color:var(--or)}
+.opt-pill.in .opt-pill-pp{color:var(--vert)}
+body.dark .opt-pill{background:#2a2a2a;border-color:rgba(255,255,255,.12)}
+body.dark .opt-pill.in{background:#1d3a2c;border-color:var(--vert)}
 .tier-picker label{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:50px;border:1px solid var(--cf);font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--encre);cursor:pointer;user-select:none;transition:all .2s;background:var(--creme)}
 .tier-picker label:has(input:checked){background:var(--vert);color:#F5EFE5;border-color:var(--vert)}
 .tier-picker input{accent-color:var(--or);cursor:pointer;width:13px;height:13px}
@@ -1453,6 +1472,7 @@ function removeOption(id){
 function renderModal(){
   var selData = getSelData();
   var d = disc();
+  var fd = [0,0.05,0.10,0.15][(typeof getDefaultTier==='function'?getDefaultTier():1)]||0; /* remise de la durée mise en avant */
   var left = document.getElementById('smLeft');
   left.innerHTML='';
 
@@ -1466,13 +1486,15 @@ function renderModal(){
   var mPrice = LANG==='en'?'Price':'Prix';
   var optLbl = (OPT_MODE?'✓ ':'+ ')+(LANG==='en'?'Option mode':'Mode options');
   sortDiv.innerHTML=
-    '<div class="sm-sect" style="margin:0">'+sortLbl+'</div>'+
-    '<div class="msort-btns" style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+
-      '<button class="msb'+(MODAL_SORT==='custom'?' on':'')+'" data-sort="custom">'+mManual+'</button>'+
-      '<button class="msb'+(MODAL_SORT==='nom'?' on':'')+'" data-sort="nom">'+mRef+'</button>'+
-      '<button class="msb'+(MODAL_SORT==='surface'?' on':'')+'" data-sort="surface">'+mSize+'</button>'+
-      '<button class="msb'+(MODAL_SORT==='prix'?' on':'')+'" data-sort="prix">'+mPrice+'</button>'+
-      '<button id="optModeBtn" class="msb'+(OPT_MODE?' on':'')+'" style="margin-left:6px" onclick="toggleOptMode()">'+optLbl+'</button>'+
+    '<div class="brk-seclbl" style="margin:0">'+sortLbl+'</div>'+
+    '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+
+      '<div class="msort-seg">'+
+        '<button class="msb'+(MODAL_SORT==='custom'?' on':'')+'" data-sort="custom">'+mManual+'</button>'+
+        '<button class="msb'+(MODAL_SORT==='nom'?' on':'')+'" data-sort="nom">'+mRef+'</button>'+
+        '<button class="msb'+(MODAL_SORT==='surface'?' on':'')+'" data-sort="surface">'+mSize+'</button>'+
+        '<button class="msb'+(MODAL_SORT==='prix'?' on':'')+'" data-sort="prix">'+mPrice+'</button>'+
+      '</div>'+
+      '<button id="optModeBtn" class="optmode-pill'+(OPT_MODE?' on':'')+'" onclick="toggleOptMode()">'+optLbl+'</button>'+
     '</div>';
   sortDiv.querySelectorAll('.msb[data-sort]').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -1525,11 +1547,11 @@ function renderModal(){
   offs.className='moffs';
   if(!OPT_MODE){
     selData.forEach(function(b){
-      offs.appendChild(makeModalRow(b, d));
+      offs.appendChild(makeModalRow(b, fd));
     });
   } else {
     /* Options mode: show all selected bureaux ungrouped first, then options */
-    selData.forEach(function(b){ offs.appendChild(makeModalRow(b, d)); });
+    selData.forEach(function(b){ offs.appendChild(makeModalRow(b, fd)); });
   }
   left.appendChild(offs);
 
@@ -1564,9 +1586,9 @@ function renderModal(){
   if(OPT_MODE){
     var optHdr = document.createElement('div');
     optHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px';
-    optHdr.innerHTML='<div class="sm-sect" style="margin:0">Options</div><button class="btn-add-opt" onclick="addOption()">+ Nouvelle option</button>';
+    optHdr.innerHTML='<div class="brk-seclbl" style="margin:0">Options</div><button class="btn-add-opt" onclick="addOption()">+ Nouvelle option</button>';
     left.appendChild(optHdr);
-    OPTIONS.forEach(function(opt,_oi){ left.appendChild(makeOptBlock(opt, selData, d, _oi+1)); });
+    OPTIONS.forEach(function(opt,_oi){ left.appendChild(makeOptBlock(opt, selData, fd, _oi+1)); });
   }
 
   /* Update commission panel */
@@ -1629,7 +1651,7 @@ function renderTiersTable(parent, selData){
 function renderBrkOptions(parent){
   var sec=document.createElement('div'); sec.style.marginTop='20px';
   var twL=LANG==='en'?'Telework':'Télétravail';
-  var h='<div class="sm-sect" style="margin-bottom:10px">Options</div>';
+  var h='<div class="brk-seclbl" style="margin:18px 0 10px">Options</div>';
   if(BRK_TW>0){
     h+='<div class="opt-telet-row"><span class="opt-row-label"><span class="opt-telet-tag">'+twL+'</span> 170 € H.T./mois / pers.</span><span class="opt-telet-qty"><button type="button" onclick="setBrkTw('+(BRK_TW-1)+')">−</button><span class="opt-telet-val">'+BRK_TW+'</span><button type="button" onclick="setBrkTw('+(BRK_TW+1)+')">+</button></span><span class="opt-row-price" style="margin-left:auto">'+fmt(getBrkTwTotal())+' €</span><button type="button" onclick="setBrkTw(0)" title="Retirer" style="margin-left:6px;background:none;border:none;color:var(--gris);cursor:pointer;font-size:16px;line-height:1">×</button></div>';
   }
@@ -1663,28 +1685,27 @@ function makeOptBlock(opt, selData, d, num){
   var content = document.createElement('div');
   content.className='opt-block-content';
 
+  var poolLbl = document.createElement('div');
+  poolLbl.className='opt-pool-lbl';
+  poolLbl.textContent = LANG==='en' ? 'Offices in this option' : 'Bureaux de cette option';
+  content.appendChild(poolLbl);
+  var pool = document.createElement('div');
+  pool.className='opt-pool';
   selData.forEach(function(b){
-    var row = document.createElement('div');
-    row.className='opt-row';
-    var chk = document.createElement('input');
-    chk.type='checkbox'; chk.checked=opt.refs.indexOf(b.ref)>=0;
-    chk.setAttribute('aria-label','Inclure '+b.ref+' dans cette option');
-    chk.addEventListener('change', function(){
-      if(this.checked){ if(opt.refs.indexOf(b.ref)<0) opt.refs.push(b.ref); }
-      else { opt.refs=opt.refs.filter(function(r){ return r!==b.ref; }); }
-      if(opt.refs.length===0) opt.teletravail = 0;
-      renderTelRow(); renderTelDesc();
-      updateOptTotals(); updateCommission();
+    var inOpt = opt.refs.indexOf(b.ref)>=0;
+    var pill = document.createElement('button');
+    pill.type='button';
+    pill.className='opt-pill'+(inOpt?' in':'');
+    pill.innerHTML='<span class="opt-pill-ref">'+esc(b.ref)+'</span><span class="opt-pill-pp">'+fmt(b.prix*(1-d))+' €</span>';
+    pill.addEventListener('click', function(){
+      var i=opt.refs.indexOf(b.ref);
+      if(i>=0) opt.refs.splice(i,1); else opt.refs.push(b.ref);
+      if(opt.refs.length===0) opt.teletravail=0;
+      renderModal();
     });
-    var lbl = document.createElement('span');
-    lbl.className='opt-row-label';
-    lbl.textContent=b.ref+' \u2014 '+b.cap+' poste'+(b.cap>1?'s':'')+(b.surface?' \u2014 '+b.surface.toLocaleString('fr-FR')+'\u00a0m\u00b2':'');
-    var prx = document.createElement('span');
-    prx.className='opt-row-price';
-    prx.textContent=fmt(b.prix*(1-d))+'\u00a0\u20ac';
-    row.appendChild(chk); row.appendChild(lbl); row.appendChild(prx);
-    content.appendChild(row);
+    pool.appendChild(pill);
   });
+  content.appendChild(pool);
 
   /* Télétravail add-on */
   if(typeof opt.teletravail !== 'number') opt.teletravail = 0;
