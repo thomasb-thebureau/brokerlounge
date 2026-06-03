@@ -1867,27 +1867,32 @@ function updateCommission(){
   var engShortEN = ['Monthly','12 months','24 months','36 months'];
   var body = document.getElementById('commBody');
   if(!body) return;
+  var monthly = (_dt===0);
   var subEl = document.querySelector('.comm-sub');
-  if(subEl) subEl.textContent = (LANG==='en'?'10% of first-year revenue excl. VAT · featured ':'10 % du CA H.T. 1ʳᵉ année · engagement ')+(LANG==='en'?engShortEN[_dt]:engShort[_dt]);
+  if(subEl) subEl.textContent = monthly
+    ? (LANG==='en'?'10% of monthly revenue excl. VAT · per month of commitment':'10 % du CA H.T. mensuel · par mois d\'engagement')
+    : (LANG==='en'?'10% of first-year revenue excl. VAT · featured ':'10 % du CA H.T. 1ʳᵉ année · engagement ')+(LANG==='en'?engShortEN[_dt]:engShort[_dt]);
   /* Bureaux dans l'assiette (itinérant exclu) */
   var off;
   if(!OPT_MODE){ off = selData.filter(function(b){ return !b.isItin; }); }
   else { var counted={}; off=[]; OPTIONS.forEach(function(o){ o.refs.forEach(function(r){ if(counted[r])return; counted[r]=true; var b=selData.find(function(x){return x.ref===r;}); if(b&&!b.isItin) off.push(b); }); }); }
   var caMonth = off.reduce(function(s,b){ return s+Math.round(b.prix*(1-fd)); },0);
   var caYear = caMonth*12;
-  var comm = Math.round(caYear*0.10);
+  /* Mensuel mis en avant : commission par mois (pas d'assiette annuelle) */
+  var comm = monthly ? Math.round(caMonth*0.10) : Math.round(caYear*0.10);
+  var perMois = monthly ? (LANG==='en'?' /mo':' /mois') : '';
   var h='';
-  h+='<div class="commbox"><div class="big">'+fmt(comm)+'<sup> €</sup></div><div class="u">'+(LANG==='en'?'estimated commission':'commission estimée')+'</div></div>';
+  h+='<div class="commbox"><div class="big">'+fmt(comm)+'<sup> €'+perMois+'</sup></div><div class="u">'+(LANG==='en'?'estimated commission':'commission estimée')+(monthly?(LANG==='en'?' / month':' / mois'):'')+'</div></div>';
   h+='<div class="cbreak">';
   h+='<div class="r"><span>'+(LANG==='en'?'Monthly revenue excl. VAT':'CA mensuel H.T.')+'</span><b>'+fmt(caMonth)+' €</b></div>';
-  h+='<div class="r"><span>'+(LANG==='en'?'Annual revenue excl. VAT':'CA annuel H.T.')+'</span><b>'+fmt(caYear)+' €</b></div>';
+  if(!monthly) h+='<div class="r"><span>'+(LANG==='en'?'Annual revenue excl. VAT':'CA annuel H.T.')+'</span><b>'+fmt(caYear)+' €</b></div>';
   h+='<div class="r"><span>'+(LANG==='en'?'Commission rate':'Taux commission')+'</span><b>10 %</b></div>';
-  h+='<div class="r"><span>Commission</span><b style="color:#7A6015">'+fmt(comm)+' €</b></div>';
+  h+='<div class="r"><span>'+(monthly?(LANG==='en'?'Commission / month':'Commission / mois'):'Commission')+'</span><b style="color:#7A6015">'+fmt(comm)+' €</b></div>';
   h+='</div>';
   h+='<div class="comm-note">'+(LANG==='en'?'Non-binding estimate. Commission subject to the terms of your mandate. Nomad is excluded from the commission base.':'Estimation non contractuelle. La commission dépend des termes de votre mandat. L\'itinérant n\'entre pas dans l\'assiette de commission.')+'</div>';
   body.innerHTML = h;
   var cmt = document.getElementById('cmtAmt');
-  if(cmt) cmt.textContent = comm>0 ? fmt(comm)+' €' : '—';
+  if(cmt) cmt.textContent = comm>0 ? fmt(comm)+' €'+perMois : '—';
 }
 
 /* ============================================================
