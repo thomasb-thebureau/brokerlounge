@@ -383,6 +383,21 @@ body.dark .comm-note{border-top-color:rgba(255,255,255,.08)}
 body.dark .btn-csv{color:#5cb88a;border-color:#5cb88a}
 body.dark .btn-csv:hover{background:rgba(74,154,122,.14)}
 .tier-picker{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
+.tier-fused{align-items:center;margin:6px 0 4px}
+.engchip{position:relative;display:flex;align-items:center;gap:6px;border:1px solid var(--cf);background:var(--creme);border-radius:10px;padding:6px 9px 6px 11px;cursor:pointer;opacity:.5;transition:all .15s}
+.engchip.shown{opacity:1;border-color:var(--vert)}
+.engchip.star{background:var(--or);border-color:var(--or);opacity:1}
+.ec-toggle{font-size:12px;font-weight:600;color:var(--encre);cursor:pointer;display:flex;align-items:center;gap:5px}
+.engchip.star .ec-toggle{color:#fff}
+.ec-pct{font-size:9px;color:var(--or);font-weight:700}
+.engchip.star .ec-pct{color:#fff}
+.ec-star{background:none;border:none;cursor:pointer;font-size:13px;line-height:1;color:#cdc6b6;padding:0}
+.engchip.shown .ec-star{color:var(--or)}
+.engchip.star .ec-star{color:#fff}
+.ec-badge{position:absolute;top:-8px;right:-6px;background:var(--vert);color:#fff;font-size:7px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:50px;white-space:nowrap}
+.eng-hint{font-size:10px;color:var(--gris);font-style:italic;margin:0 0 14px}
+body.dark .engchip{background:#2a2a2a;border-color:rgba(255,255,255,.12)}
+body.dark .ec-toggle{color:#F5EFE5}
 .tier-picker label{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:50px;border:1px solid var(--cf);font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--encre);cursor:pointer;user-select:none;transition:all .2s;background:var(--creme)}
 .tier-picker label:has(input:checked){background:var(--vert);color:#F5EFE5;border-color:var(--vert)}
 .tier-picker input{accent-color:var(--or);cursor:pointer;width:13px;height:13px}
@@ -957,6 +972,14 @@ function optExtrasTotal(opt){
   if(!opt||!opt.extras) return 0;
   var t=0; ADDONS.forEach(function(a){ t += (opt.extras[a.k]||0)*a.p; }); return t;
 }
+/* Options globales (mode normal) — télétravail + extras, non remisés, hors commission */
+var BRK_TW = 0;
+var BRK_EXTRAS = {};
+function getBrkTwTotal(){ return BRK_TW*TELETRAV_PRIX; }
+function getBrkExtrasTotal(){ var t=0; ADDONS.forEach(function(a){ t += (BRK_EXTRAS[a.k]||0)*a.p; }); return t; }
+function getBrkOptionsTotal(){ return getBrkTwTotal()+getBrkExtrasTotal(); }
+function setBrkTw(q){ BRK_TW=Math.max(0,Math.min(20,q||0)); renderModal(); }
+function setBrkExtra(k,q){ BRK_EXTRAS[k]=Math.max(0,Math.min(50,q||0)); renderModal(); }
 
 /* ============================================================
    HELPERS
@@ -1432,40 +1455,37 @@ function renderModal(){
 
   /* --- Tier picker : 3 / 12 / 24 / 36 mois --- */
   var tierWrap = document.createElement('div');
-  tierWrap.className='tier-picker';
+  tierWrap.className='tier-picker tier-fused';
   var tierTitle = LANG==='en' ? 'Terms' : 'Durées';
   var mois = LANG==='en' ? 'months' : 'mois';
-  tierWrap.innerHTML =
-    '<span class="sm-sect" style="margin:0 8px 0 0">'+tierTitle+'</span>'+
-    '<label><input type="checkbox" data-tier="0" '+(TIER_SEL[0]?'checked':'')+'> 3 '+mois+'</label>'+
-    '<label><input type="checkbox" data-tier="1" '+(TIER_SEL[1]?'checked':'')+'> 12 '+mois+'</label>'+
-    '<label><input type="checkbox" data-tier="2" '+(TIER_SEL[2]?'checked':'')+'> 24 '+mois+'</label>'+
-    '<label><input type="checkbox" data-tier="3" '+(TIER_SEL[3]?'checked':'')+'> 36 '+mois+'</label>';
-  tierWrap.querySelectorAll('input[data-tier]').forEach(function(c){
-    c.addEventListener('change', function(){
-      TIER_SEL[parseInt(this.dataset.tier)] = this.checked;
-      if(!TIER_SEL.some(function(v){return v;})) { TIER_SEL[1]=true; this.checked = parseInt(this.dataset.tier)===1; }
+  var _dt = getDefaultTier();
+  var _starLbl = LANG==='en'?'Featured':'Mis en avant';
+  var _tlabels = ['3 '+mois, '12 '+mois, '24 '+mois, '36 '+mois];
+  var _tpct = ['', '−5%','−10%','−15%'];
+  var _th='<span class="sm-sect" style="margin:0 10px 0 0">'+tierTitle+'</span>';
+  for(var _i=0;_i<4;_i++){
+    var _shown=TIER_SEL[_i], _star=(_dt===_i);
+    _th+='<div class="engchip'+(_shown?' shown':'')+(_star?' star':'')+'">'
+      +'<span class="ec-toggle" data-tier="'+_i+'">'+_tlabels[_i]+(_tpct[_i]?'<span class="ec-pct">'+_tpct[_i]+'</span>':'')+'</span>'
+      +'<button type="button" class="ec-star" data-star="'+_i+'" title="'+_starLbl+'">★</button>'
+      +(_star?'<span class="ec-badge">'+_starLbl+'</span>':'')
+      +'</div>';
+  }
+  tierWrap.innerHTML=_th;
+  tierWrap.querySelectorAll('.ec-toggle').forEach(function(el){
+    el.addEventListener('click', function(){
+      var i=parseInt(this.dataset.tier); TIER_SEL[i]=!TIER_SEL[i];
+      if(!TIER_SEL.some(function(v){return v;})) TIER_SEL[i]=true;
       renderModal();
     });
   });
-  left.appendChild(tierWrap);
-
-  /* --- Durée mise en avant (surbrillance PDF) --- */
-  var defWrap = document.createElement('div');
-  defWrap.className='tier-picker';
-  defWrap.style.marginTop='8px';
-  var defTitle = LANG==='en' ? 'Displayed rate' : 'Durée mise en avant';
-  var _dt = getDefaultTier();
-  defWrap.innerHTML =
-    '<span class="sm-sect" style="margin:0 8px 0 0">'+defTitle+'</span>'+
-    '<label><input type="radio" name="brkDefTier" data-def="0" '+(_dt===0?'checked':'')+'> 3 '+mois+'</label>'+
-    '<label><input type="radio" name="brkDefTier" data-def="1" '+(_dt===1?'checked':'')+'> 12 '+mois+'</label>'+
-    '<label><input type="radio" name="brkDefTier" data-def="2" '+(_dt===2?'checked':'')+'> 24 '+mois+'</label>'+
-    '<label><input type="radio" name="brkDefTier" data-def="3" '+(_dt===3?'checked':'')+'> 36 '+mois+'</label>';
-  defWrap.querySelectorAll('input[data-def]').forEach(function(c){
-    c.addEventListener('change', function(){ DEFAULT_TIER = parseInt(this.dataset.def); renderModal(); });
+  tierWrap.querySelectorAll('.ec-star').forEach(function(el){
+    el.addEventListener('click', function(e){ e.stopPropagation(); var i=parseInt(this.dataset.star); TIER_SEL[i]=true; DEFAULT_TIER=i; renderModal(); });
   });
-  left.appendChild(defWrap);
+  left.appendChild(tierWrap);
+  var _hint=document.createElement('div'); _hint.className='eng-hint';
+  _hint.textContent=LANG==='en'?'Click a term to show/hide it · click ★ to feature it in the document.':'Cliquez une durée pour l’afficher/masquer · cliquez ★ pour la mettre en avant dans le document.';
+  left.appendChild(_hint);
 
   /* --- Bureau list --- */
   var offs = document.createElement('div');
@@ -1501,6 +1521,7 @@ function renderModal(){
   /* --- Price tiers table --- */
   if(!OPT_MODE){
     renderTiersTable(left, selData);
+    renderBrkOptions(left);
   }
 
   /* --- Options panel --- */
@@ -1574,6 +1595,23 @@ function renderTiersTable(parent, selData){
   parent.appendChild(tbl);
 }
 
+function renderBrkOptions(parent){
+  var sec=document.createElement('div'); sec.style.marginTop='20px';
+  var twL=LANG==='en'?'Telework':'Télétravail';
+  var h='<div class="sm-sect" style="margin-bottom:10px">Options</div>';
+  if(BRK_TW>0){
+    h+='<div class="opt-telet-row"><span class="opt-row-label"><span class="opt-telet-tag">'+twL+'</span> 170 € H.T./mois / pers.</span><span class="opt-telet-qty"><button type="button" onclick="setBrkTw('+(BRK_TW-1)+')">−</button><span class="opt-telet-val">'+BRK_TW+'</span><button type="button" onclick="setBrkTw('+(BRK_TW+1)+')">+</button></span><span class="opt-row-price" style="margin-left:auto">'+fmt(getBrkTwTotal())+' €</span><button type="button" onclick="setBrkTw(0)" title="Retirer" style="margin-left:6px;background:none;border:none;color:var(--gris);cursor:pointer;font-size:16px;line-height:1">×</button></div>';
+  }
+  ADDONS.forEach(function(a){ var q=BRK_EXTRAS[a.k]||0; if(q<=0) return;
+    h+='<div class="opt-telet-row"><span class="opt-row-label"><span class="opt-telet-tag">'+(LANG==='en'?a.en:a.fr)+'</span> '+a.p+' € H.T.'+(LANG==='en'?a.perEn:a.perFr)+'</span><span class="opt-telet-qty"><button type="button" onclick="setBrkExtra(\''+a.k+'\','+(q-1)+')">−</button><span class="opt-telet-val">'+q+'</span><button type="button" onclick="setBrkExtra(\''+a.k+'\','+(q+1)+')">+</button></span><span class="opt-row-price" style="margin-left:auto">'+fmt(q*a.p)+' €</span><button type="button" onclick="setBrkExtra(\''+a.k+'\',0)" title="Retirer" style="margin-left:6px;background:none;border:none;color:var(--gris);cursor:pointer;font-size:16px;line-height:1">×</button></div>';
+  });
+  var chips='';
+  if(BRK_TW<=0) chips+='<button type="button" class="exchip" onclick="setBrkTw(1)">+ '+(LANG==='en'?'Telework offer':'Offre Télétravail')+'</button>';
+  ADDONS.forEach(function(a){ if(!(BRK_EXTRAS[a.k]>0)) chips+='<button type="button" class="exchip" onclick="setBrkExtra(\''+a.k+'\',1)">+ '+(LANG==='en'?a.en:a.fr)+'</button>'; });
+  if(chips) h+='<div style="display:flex;flex-wrap:wrap;margin-top:8px">'+chips+'</div>';
+  sec.innerHTML=h;
+  parent.appendChild(sec);
+}
 function makeOptBlock(opt, selData, d){
   var wrap = document.createElement('div');
   wrap.className='opt-block'; wrap.id='optblock_'+opt.id;
@@ -2088,9 +2126,10 @@ function exportPDF(){
   var conditions = t('conditions');
 
   /* Totals per tier */
+  var _brkOpt = (typeof getBrkOptionsTotal==='function') ? getBrkOptionsTotal() : 0;
   var totals = {};
   activeTiers.forEach(function(t){
-    totals[t.key] = selData.reduce(function(s,b){ return s + Math.round(b.prix*(1-t.d)); }, 0);
+    totals[t.key] = selData.reduce(function(s,b){ return s + Math.round(b.prix*(1-t.d)); }, 0) + _brkOpt;
   });
 
   var logoOrigin = window.location.origin;
@@ -2106,7 +2145,7 @@ function exportPDF(){
   var _shortLabels=LANG==='en'?['Monthly','12 months','24 months','36 months']:['Mensuel','12 mois','24 mois','36 mois'];
   var defShort=_shortLabels[_defIdx];
   var pickLbl=LANG==='en'?'★ DISPLAYED RATE':'★ TARIF AFFICHÉ';
-  var baseRecap=selData.reduce(function(s,b){return s+b.prix;},0);
+  var baseRecap=selData.reduce(function(s,b){return s+b.prix;},0)+_brkOpt;
   function simpleHeader(){
     return '<thead><tr><th class="ctr" style="width:64px">'+t('pdf_cols_ref')+'</th><th>'+(LANG==='en'?'Office':'Bureau')+'</th><th class="ctr" style="width:52px">'+t('pdf_cols_etage')+'</th><th class="num" style="width:48px">'+t('pdf_cols_m2')+'</th><th class="ctr" style="width:56px">'+t('pdf_cols_postes')+'</th><th style="width:150px">'+t('pdf_cols_dispo')+'</th><th class="num" style="width:128px">'+(LANG==='en'?'Price excl. VAT/mo':'Prix H.T./mois')+'</th></tr></thead>';
   }
@@ -2205,7 +2244,7 @@ function exportPDF(){
     });
   } else {
     h+='<div class="sec">'+(LANG==='en'?'Your selection · ':'Votre sélection · ')+subLine+'<span class="eng">'+(LANG==='en'?'Displayed rate · ':'Tarif affiché · ')+defShort+'</span></div>';
-    h+='<table class="tbl">'+simpleHeader()+'<tbody>'+simpleRows(selData)+'</tbody></table>';
+    h+='<table class="tbl">'+simpleHeader()+'<tbody>'+simpleRows(selData)+(BRK_TW>0?simpleTwRow(BRK_TW):'')+extraRows({extras:BRK_EXTRAS})+'</tbody></table>';
     h+=recapTable(totals);
   }
   h+='<div class="bottom"><div class="box incl"><h3>'+t('pdf_services')+'</h3><ul>'+services.map(function(s){return '<li>'+s+'</li>';}).join('')+'</ul></div>';

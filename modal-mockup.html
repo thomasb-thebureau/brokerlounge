@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Broker Lounge — Modal sélection (maquette refonte ergonomie)</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{--jade:#1E4035;--or:#B09438;--orD:#7A6015;--ink:#0F0F0F;--gris:#5a5248;--ivory:#F5EFE5;--cream:#faf8f4;--line:#e9e1d2;--vp:#eef5f1}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',Arial,sans-serif;background:#0d1714;color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(120% 120% at 50% 0,rgba(30,64,53,.55),rgba(13,23,20,.96))}
+
+.modal{position:relative;z-index:1;width:100%;max-width:1080px;max-height:92vh;background:#fff;border-radius:16px;box-shadow:0 40px 110px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(176,148,56,.25)}
+
+/* HEADER */
+.hd{background:var(--jade);padding:18px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.hd .eyebrow{font-size:8.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--or);font-weight:700;margin-bottom:4px}
+.hd h2{font-size:19px;font-weight:300;color:#fff}.hd h2 b{font-weight:700}
+.hd-r{display:flex;align-items:center;gap:12px}
+.lang{display:flex;border:1px solid rgba(176,148,56,.4);border-radius:50px;overflow:hidden}
+.lang button{border:none;background:none;color:rgba(245,239,229,.65);font:600 11px 'Plus Jakarta Sans';padding:5px 12px;cursor:pointer;letter-spacing:.04em}
+.lang button.on{background:var(--or);color:#fff}
+.x{background:none;border:1px solid rgba(176,148,56,.3);border-radius:50%;width:32px;height:32px;color:rgba(245,239,229,.7);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.x svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none}
+
+/* BODY 2 cols */
+.body{display:flex;flex:1;min-height:0}
+.left{flex:1;overflow-y:auto;padding:22px 26px}
+.rail{width:300px;flex-shrink:0;background:var(--cream);border-left:1px solid var(--line);padding:22px 22px;overflow-y:auto;display:flex;flex-direction:column}
+
+/* toolbar */
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.toolbar .ttl{font-size:13px;font-weight:700;color:var(--ink)}
+.toolbar .ttl b{color:var(--or)}
+.tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:flex;background:var(--cream);border:1px solid var(--line);border-radius:50px;padding:2px}
+.seg button{border:none;background:none;font:600 10px 'Plus Jakarta Sans';letter-spacing:.04em;color:var(--gris);padding:5px 11px;border-radius:50px;cursor:pointer;text-transform:uppercase}
+.seg button.on{background:var(--jade);color:var(--ivory)}
+.optsw{display:flex;align-items:center;gap:7px;border:1px dashed var(--or);border-radius:50px;padding:5px 13px;font:600 10px 'Plus Jakarta Sans';letter-spacing:.04em;text-transform:uppercase;color:var(--orD);cursor:pointer;background:none}
+
+/* bureau cards */
+.off{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:9px}
+.off .rb{background:var(--jade);color:var(--ivory);border-radius:50px;padding:5px 12px;font-weight:700;font-size:11px;flex-shrink:0;min-width:62px;text-align:center}
+.off .mid{flex:1;min-width:0}
+.off .nm{font-weight:700;font-size:13px}
+.off .mt{font-size:10.5px;color:var(--gris);margin-top:2px}
+.off .dispo{font-size:10px;color:var(--jade);font-weight:600;margin-top:3px}
+.off .pr{text-align:right;white-space:nowrap}
+.off .pr .v{font-size:15px;font-weight:700;color:var(--ink)}
+.off .pr .v sup{color:var(--or);font-size:9px}
+.off .pr .l{font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--gris)}
+.off .qty{display:flex;align-items:center;gap:2px;background:#fff;border:1px solid var(--line);border-radius:50px;padding:2px;flex-shrink:0}
+.off .qty button{border:none;background:none;width:22px;height:22px;cursor:pointer;color:var(--jade);font-size:14px;font-weight:600}
+.off .qty span{min-width:22px;text-align:center;font-size:12px;font-weight:600}
+.off .del{background:none;border:none;color:#c2bcae;cursor:pointer;font-size:18px;line-height:1;flex-shrink:0}
+.off.itin .rb{background:#27563f}
+
+/* pricing panel */
+.psec{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+.psec .lbl{display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--orD);font-weight:700;margin-bottom:10px}
+.psec .lbl::before{content:'';width:16px;height:2px;background:var(--or)}
+.eng-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.eng{position:relative;border:1px solid var(--line);background:var(--cream);border-radius:10px;padding:9px 14px 9px 12px;font-size:12px;font-weight:600;color:var(--gris);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:74px}
+.eng .pct{font-size:9px;color:var(--orD);font-weight:600}
+.eng.shown{color:var(--ink);border-color:var(--jade)}
+.eng.star{background:var(--or);border-color:var(--or);color:#fff}
+.eng.star .pct{color:#fff}
+.eng .badge{position:absolute;top:-8px;right:-6px;background:var(--jade);color:#fff;font-size:7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:50px}
+.eng-hint{font-size:10px;color:var(--gris);font-style:italic;margin-bottom:14px}
+.remise{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:14px}
+.remise .t{font-size:11.5px;font-weight:600;color:var(--ink)}
+.remise .s{font-size:9.5px;color:var(--gris);margin-top:1px}
+.remise .inp{display:flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:4px 8px}
+.remise input{width:34px;border:none;text-align:center;font:600 13px 'Plus Jakarta Sans';outline:none}
+
+/* totals table */
+.rtable{width:100%;border-collapse:collapse;border:1px solid #d3e6da;border-radius:10px;overflow:hidden}
+.rtable th{background:#dceae2;padding:8px;text-align:center;font-size:10px;font-weight:600;color:var(--jade);border-left:1px solid #cfe2d6;line-height:1.3}
+.rtable th:first-child{border-left:none}
+.rtable th .pct{display:block;font-size:8.5px;color:var(--orD);margin-top:2px}
+.rtable td{background:#eef5f1;padding:10px 8px;text-align:center;font-size:15px;font-weight:700;color:var(--jade);border-left:1px solid #cfe2d6;border-top:1px solid #d3e6da}
+.rtable td:first-child{border-left:none}
+.rtable td sup{color:var(--or);font-size:9px}
+.rtable .hl th{background:var(--or);color:#fff}.rtable .hl th .pct{color:#fff}
+.rtable .hl td{background:#fbf2d8;border-left:2px solid var(--or);border-right:2px solid var(--or)}
+
+/* RIGHT rail commission */
+.rail .ce{font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--orD);font-weight:700}
+.rail .ct{font-size:13px;font-weight:700;color:var(--ink);margin:2px 0 2px}
+.rail .cs{font-size:10px;color:var(--gris);line-height:1.4;margin-bottom:14px}
+.commbox{background:var(--jade);border-radius:14px;padding:18px;color:#fff;text-align:center;margin-bottom:14px}
+.commbox .big{font-size:30px;font-weight:700;letter-spacing:-.5px}.commbox .big sup{color:var(--or);font-size:15px}
+.commbox .u{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,239,229,.7);margin-top:3px}
+.cbreak{font-size:11px;color:var(--gris)}
+.cbreak .r{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line)}
+.cbreak .r b{color:var(--ink);font-weight:700}
+.cnote{font-size:9px;color:var(--gris);line-height:1.5;margin-top:auto;padding-top:14px;font-style:italic}
+
+/* FOOTER */
+.ftr{border-top:1px solid var(--line);padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff}
+.bclose{background:none;border:1px solid var(--line);border-radius:50px;padding:9px 18px;font:600 11px 'Plus Jakarta Sans';color:var(--gris);cursor:pointer}
+.fr-actions{display:flex;gap:9px;align-items:center}
+.btn-sec{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:50px;padding:9px 15px;font:600 11px 'Plus Jakarta Sans';color:var(--jade);cursor:pointer}
+.btn-sec svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none}
+.btn-pdf{display:flex;align-items:center;gap:7px;background:var(--or);border:none;border-radius:50px;padding:11px 22px;font:700 11px 'Plus Jakarta Sans';letter-spacing:.06em;text-transform:uppercase;color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(176,148,56,.35)}
+.btn-pdf svg{width:15px;height:15px;stroke:#fff;stroke-width:2;fill:none}
+.cap{position:fixed;left:0;right:0;bottom:10px;text-align:center;color:rgba(245,239,229,.5);font-size:11px;letter-spacing:.14em;text-transform:uppercase;z-index:5}
+</style>
+</head>
+<body>
+<div class="modal">
+
+  <div class="hd">
+    <div>
+      <div class="eyebrow">Broker Lounge · Confidentiel</div>
+      <h2>Sélection &amp; <b>commission</b></h2>
+    </div>
+    <div class="hd-r">
+      <div class="lang"><button class="on">FR</button><button>EN</button></div>
+      <button class="x"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- LEFT -->
+    <div class="left">
+      <div class="toolbar">
+        <div class="ttl">Bureaux sélectionnés · <b>3</b></div>
+        <div class="tools">
+          <div class="seg"><button class="on">Manuel</button><button>Réf.</button><button>Taille</button><button>Prix</button></div>
+          <button class="optsw">+ Mode options</button>
+        </div>
+      </div>
+
+      <div class="off">
+        <span class="rb">A000</span>
+        <div class="mid"><div class="nm">The Bureau I</div><div class="mt">RDC · 90 m² · 28 postes</div><div class="dispo">Disponible immédiatement</div></div>
+        <div class="pr"><div class="v">17 750<sup> €</sup></div><div class="l">H.T./mois</div></div>
+        <button class="del">×</button>
+      </div>
+      <div class="off">
+        <span class="rb">A211</span>
+        <div class="mid"><div class="nm">The Bureau I</div><div class="mt">2e étage · 12,1 m² · 4 postes</div><div class="dispo" style="color:var(--gris)">Dès le 30 sept. 2026</div></div>
+        <div class="pr"><div class="v">3 596<sup> €</sup></div><div class="l">H.T./mois</div></div>
+        <button class="del">×</button>
+      </div>
+      <div class="off itin">
+        <span class="rb">Itin.</span>
+        <div class="mid"><div class="nm">Itinérant</div><div class="mt">Placement libre · tous nos sites</div></div>
+        <div class="qty"><button>−</button><span>2</span><button>+</button></div>
+        <div class="pr"><div class="v">998<sup> €</sup></div><div class="l">2 abonnements</div></div>
+        <button class="del">×</button>
+      </div>
+
+      <!-- PRICING -->
+      <div class="psec">
+        <div class="lbl">Tarification</div>
+
+        <div class="eng-row">
+          <div class="eng shown">3 mois<span class="pct">réf.</span></div>
+          <div class="eng star">12 mois<span class="pct">−5 %</span><span class="badge">Mis en avant</span></div>
+          <div class="eng shown">24 mois<span class="pct">−10 %</span></div>
+          <div class="eng shown">36 mois<span class="pct">−15 %</span></div>
+        </div>
+        <div class="eng-hint">Cliquez une durée pour l'afficher/masquer · cliquez ★ (maintenir) pour la mettre en avant dans le doc.</div>
+
+        <table class="rtable">
+          <tr><th>3 mois<span class="pct">réf.</span></th><th class="_">12 mois<span class="pct">−5 %</span></th><th>24 mois<span class="pct">−10 %</span></th><th>36 mois<span class="pct">−15 %</span></th></tr>
+          <tr><td>22 344<sup> €</sup></td><td>21 227<sup> €</sup></td><td>20 110<sup> €</sup></td><td>18 992<sup> €</sup></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT rail -->
+    <div class="rail">
+      <div class="ce">Estimation</div>
+      <div class="ct">Commission</div>
+      <div class="cs">10 % du CA H.T. 1ʳᵉ année · engagement mis en avant 12 mois</div>
+      <div class="commbox">
+        <div class="big">25 472<sup> €</sup></div>
+        <div class="u">commission estimée</div>
+      </div>
+      <div class="cbreak">
+        <div class="r"><span>CA mensuel H.T.</span><b>21 227 €</b></div>
+        <div class="r"><span>CA annuel H.T.</span><b>254 724 €</b></div>
+        <div class="r"><span>Taux commission</span><b>10 %</b></div>
+        <div class="r"><span>Commission</span><b style="color:var(--orD)">25 472 €</b></div>
+      </div>
+      <div class="cnote">Estimation non contractuelle. La commission dépend des termes de votre mandat. L'itinérant n'entre pas dans l'assiette de commission.</div>
+    </div>
+  </div>
+
+  <div class="ftr">
+    <button class="bclose">Fermer</button>
+    <div class="fr-actions">
+      <button class="btn-sec"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Partager</button>
+      <button class="btn-sec"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M3 15v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"/></svg> CSV</button>
+      <button class="btn-pdf"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Télécharger le PDF</button>
+    </div>
+  </div>
+
+</div>
+<div class="cap">Maquette — refonte ergonomie modal · Broker Lounge</div>
+</body>
+</html>
