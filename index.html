@@ -928,7 +928,7 @@ var SEL_ORDER = [];
 var MODAL_SORT = 'custom';
 var OPT_MODE = false;
 var TIER_SEL = [true, true, true, true]; /* 0:3mois, 1:12mois, 2:24mois, 3:36mois */
-var DEFAULT_TIER = 3; /* durée mise en avant (surbrillance PDF) */
+var DEFAULT_TIER = 1; /* durée mise en avant (surbrillance PDF) — 12 mois par défaut */
 function getDefaultTier(){
   var d = DEFAULT_TIER;
   if(!TIER_SEL[d]){ for(var i=3;i>=0;i--){ if(TIER_SEL[i]){ d=i; break; } } }
