@@ -364,6 +364,16 @@ body.dark .sm-right{background:#2a2a2a;color:#F5EFE5;border-left-color:rgba(255,
 .comm-total-amt{font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;color:#F5EFE5;font-weight:600;line-height:1}
 .comm-total-sub{font-size:10.5px;color:rgba(245,239,229,.75);margin-top:3px}
 .comm-note{font-size:10.5px;color:var(--gris);line-height:1.55;margin-top:14px;padding-top:12px;border-top:1px solid var(--cf)}
+.commbox{background:var(--vert);border-radius:14px;padding:18px;color:#fff;text-align:center;margin:4px 0 14px}
+.commbox .big{font-size:30px;font-weight:700;letter-spacing:-.5px;font-family:'Plus Jakarta Sans',sans-serif}
+.commbox .big sup{color:var(--or);font-size:15px}
+.commbox .u{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,239,229,.7);margin-top:3px}
+.cbreak{font-size:11px;color:var(--gris)}
+.cbreak .r{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--cf)}
+.cbreak .r b{color:var(--encre);font-weight:700}
+body.dark .cbreak .r{border-top-color:rgba(255,255,255,.08)}
+body.dark .cbreak .r b{color:#F5EFE5}
+body.dark .commbox{background:#112820}
 body.dark .comm-hdr{border-bottom-color:rgba(255,255,255,.09)}
 body.dark .comm-eyebrow{color:var(--or)}
 body.dark .comm-title{color:#F5EFE5}
@@ -401,6 +411,20 @@ body.dark .btn-csv:hover{background:rgba(74,154,122,.14)}
 .eng-hint{font-size:10px;color:var(--gris);font-style:italic;margin:0 0 14px}
 body.dark .engchip{background:#2a2a2a;border-color:rgba(255,255,255,.12)}
 body.dark .ec-toggle{color:#F5EFE5}
+.brk-seclbl{display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#7A6015;font-weight:700;margin:20px 0 10px}
+.brk-seclbl::before{content:'';width:16px;height:2px;background:var(--or)}
+.brk-rtable{width:100%;border-collapse:collapse;border:1px solid #d3e6da;border-radius:10px;overflow:hidden;margin-top:4px}
+.brk-rtable th{background:#dceae2;padding:8px;text-align:center;font-size:10px;font-weight:600;color:var(--vert);border-left:1px solid #cfe2d6;line-height:1.3}
+.brk-rtable th:first-child{border-left:none}
+.brk-rtable th .pct{display:block;font-size:8.5px;color:#7A6015;font-weight:600;margin-top:2px}
+.brk-rtable th .pct.mono{color:var(--gris);font-weight:400}
+.brk-rtable td{background:#eef5f1;padding:10px 8px;text-align:center;font-size:15px;font-weight:700;color:var(--vert);border-left:1px solid #cfe2d6;border-top:1px solid #d3e6da}
+.brk-rtable td:first-child{border-left:none}
+.brk-rtable td sup{color:var(--or);font-size:9px}
+.brk-rtable th.hl{background:var(--or);color:#fff}.brk-rtable th.hl .pct{color:#fff}
+.brk-rtable td.hl{background:#fbf2d8;border-left:2px solid var(--or);border-right:2px solid var(--or)}
+body.dark .brk-rtable th{background:#23362e;color:#cfe2d6}
+body.dark .brk-rtable td{background:#1c2a24;color:#eaf2ee}
 .tier-picker label{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:50px;border:1px solid var(--cf);font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--encre);cursor:pointer;user-select:none;transition:all .2s;background:var(--creme)}
 .tier-picker label:has(input:checked){background:var(--vert);color:#F5EFE5;border-color:var(--vert)}
 .tier-picker input{accent-color:var(--or);cursor:pointer;width:13px;height:13px}
@@ -1456,10 +1480,15 @@ function renderModal(){
   });
   left.appendChild(sortDiv);
 
-  /* --- Tier picker : 3 / 12 / 24 / 36 mois --- */
+  /* --- TARIFICATION --- */
+  var _tarifLbl = document.createElement('div');
+  _tarifLbl.className='brk-seclbl';
+  _tarifLbl.textContent = LANG==='en' ? 'Pricing' : 'Tarification';
+  left.appendChild(_tarifLbl);
+  /* --- Tier picker fusionné : 3 / 12 / 24 / 36 mois --- */
   var tierWrap = document.createElement('div');
   tierWrap.className='tier-picker tier-fused';
-  var tierTitle = LANG==='en' ? 'Terms' : 'Durées';
+  var tierTitle = '';
   var mois = LANG==='en' ? 'months' : 'mois';
   var _dt = getDefaultTier();
   var _starLbl = LANG==='en'?'Featured':'Mis en avant';
@@ -1571,33 +1600,25 @@ function makeModalRow(b, d){
 
 function renderTiersTable(parent, selData){
   if(selData.length===0) return;
-  var baseTotal = selData.reduce(function(s,b){ return s+b.prix; },0);
-  var tSect = document.createElement('div');
-  tSect.className='sm-sect'; tSect.style.marginTop='18px'; tSect.textContent = LANG==='en' ? 'Term tiers' : 'Paliers d\u2019engagement';
-  parent.appendChild(tSect);
-  var tbl = document.createElement('table');
-  tbl.className='tiers-table';
-  tbl.style.cssText='border:1px solid var(--cf);border-radius:3px;overflow:hidden';
-  var monthlyLbl = LANG==='en' ? 'Monthly (3-month minimum)' : 'Mensuel (3 mois minimum)';
-  var monthsLbl = LANG==='en' ? 'months' : 'mois';
-  var yearAbbr  = LANG==='en' ? 'yr'    : 'an';
-  var paliers = [
-    {label:monthlyLbl,d:0,eng:'mensuel',idx:0},
-    {label:'12 '+monthsLbl,d:0.05,eng:'12m',idx:1},
-    {label:'24 '+monthsLbl,d:0.10,eng:'24m',idx:2},
-    {label:'36 '+monthsLbl,d:0.15,eng:'36m',idx:3}
+  var _brkOpt=(typeof getBrkOptionsTotal==='function')?getBrkOptionsTotal():0;
+  var _dt=getDefaultTier();
+  var monthsLbl=LANG==='en'?'months':'mois';
+  var tiers=[
+    {l:LANG==='en'?'Monthly':'Mensuel', sub:LANG==='en'?'3-mo min.':'3 mois min.', d:0, idx:0, mono:true},
+    {l:'12 '+monthsLbl, sub:'−5 %', d:0.05, idx:1},
+    {l:'24 '+monthsLbl, sub:'−10 %', d:0.10, idx:2},
+    {l:'36 '+monthsLbl, sub:'−15 %', d:0.15, idx:3}
   ].filter(function(p){ return TIER_SEL[p.idx]; });
-  if(paliers.length===0){ parent.appendChild(tbl); return; }
-  paliers.forEach(function(p,pi){
-    var tot = selData.reduce(function(s,b){ return s+Math.round(b.prix*(1-p.d)); },0);
-    var save = Math.round((baseTotal-tot)*12);
-    var tr = document.createElement('tr');
-    tr.className = p.d===0?'ref-row':'disc-row';
-    var saveChip = p.d>0&&save>0?'<span class="tier-save">\u2713 '+fmt(save)+'\u00a0\u20ac\u2009/\u00a0'+yearAbbr+'</span>':'';
-    var disc_pct = p.d>0?' <span class="echip">-'+Math.round(p.d*100)+'%</span>':'';
-    tr.innerHTML='<td>'+p.label+disc_pct+saveChip+'</td><td style="text-align:right;font-weight:'+(p.d>0?600:400)+';font-family:\'Plus Jakarta Sans\',sans-serif;font-size:'+(p.d>0?18:16)+'px;white-space:nowrap">'+fmt(tot)+'\u00a0\u20ac <span style="font-size:10px;font-weight:300;font-family:Plus Jakarta Sans,sans-serif;color:var(--gc)">'+t('sel_ht_month')+'</span></td>';
-    tbl.appendChild(tr);
+  if(!tiers.length) return;
+  var ths='',tds='';
+  tiers.forEach(function(p){
+    var hl=(p.idx===_dt);
+    var tot=selData.reduce(function(s,b){ return s+Math.round(b.prix*(1-p.d)); },0)+_brkOpt;
+    ths+='<th'+(hl?' class="hl"':'')+'>'+p.l+'<span class="pct'+(p.mono?' mono':'')+'">'+p.sub+'</span></th>';
+    tds+='<td'+(hl?' class="hl"':'')+'>'+fmt(tot)+'<sup> €</sup></td>';
   });
+  var tbl=document.createElement('table'); tbl.className='brk-rtable';
+  tbl.innerHTML='<tr>'+ths+'</tr><tr>'+tds+'</tr>';
   parent.appendChild(tbl);
 }
 
@@ -1804,123 +1825,34 @@ function updateOptTotals(){
 ============================================================ */
 function updateCommission(){
   var selData = getSelData();
-  var d = disc();
-  var ENG_MONTHS={mensuel:12,'12m':12,'24m':24,'36m':36};
-  var duree = ENG_MONTHS[ST.eng]||12;
-  var moisCalc = duree ? Math.min(duree, 12) : 12;
-  var plafonne = duree && duree > 12;
+  var _dt = (typeof getDefaultTier==='function') ? getDefaultTier() : 1;
+  var DSC=[0,0.05,0.10,0.15];
+  var fd = DSC[_dt]||0;
+  var engShort = ['Mensuel','12 mois','24 mois','36 mois'];
+  var engShortEN = ['Monthly','12 months','24 months','36 months'];
   var body = document.getElementById('commBody');
-  body.innerHTML='';
-
-  /* Info rows */
-  function addRow(label, val){
-    var row=document.createElement('div');
-    row.className='comm-row';
-    row.innerHTML='<span class="comm-row-label">'+label+'</span><span class="comm-row-val">'+val+'</span>';
-    body.appendChild(row);
-  }
-  var lblDuree = LANG==='en' ? 'Term applied' : 'Durée retenue';
-  var lblTaux  = LANG==='en' ? 'Rate' : 'Taux';
-  var lblMois  = LANG==='en' ? 'months' : 'mois';
-  var lblCap   = LANG==='en' ? '(capped)' : '(plafonn\u00e9e)';
-  var lblDef   = LANG==='en' ? '(default)' : '(d\u00e9faut)';
-  var lblRate  = LANG==='en' ? '10% of first-year revenue excl. VAT' : '10% du CA HT';
-  var lblDetail= LANG==='en' ? 'Per office' : 'D\u00e9tail par bureau';
-  var lblEmpty = LANG==='en' ? 'No office selected' : 'Aucun bureau s\u00e9lectionn\u00e9';
-  var lblEst   = LANG==='en' ? 'Estimated commission' : 'Commission estim\u00e9e';
-  var lblHT    = LANG==='en' ? 'excl. VAT \u2014 10% \u00d7 ' : 'H.T. \u2014 10% \u00d7 ';
-  var lblOptPh = LANG==='en' ? 'Assign offices to options to compute commission.' : 'Affectez des bureaux aux options pour calculer la commission.';
-  var lblNote  = LANG==='en' ? 'Non-binding estimate. Commission subject to the terms of your mandate.' : 'Estimation non contractuelle. Commission verifiable selon les conditions de votre mandat.';
-  var lblPeople= LANG==='en' ? 'p.' : 'p.';
-
-  addRow(lblDuree, duree ? moisCalc+' '+lblMois+(plafonne?' <span style="font-size:9px;color:var(--gris);font-weight:500">'+lblCap+'</span>':'') : '12 '+lblMois+' <span style="font-size:9px;color:var(--gris);font-weight:500">'+lblDef+'</span>');
-  addRow(lblTaux, lblRate);
-
-  if(!OPT_MODE){
-    /* Global commission */
-    var commBlock=document.createElement('div');
-    commBlock.className='comm-block';
-    commBlock.innerHTML='<div class="comm-block-title">'+lblDetail+'</div>';
-    var tot=0;
-    var commData = selData.filter(function(b){ return !b.isItin; });
-    commData.forEach(function(b){
-      var monthly=b.prix*(1-d);
-      var comm=monthly*moisCalc*0.10;
-      tot+=comm;
-      var line=document.createElement('div');
-      line.className='comm-line';
-      line.innerHTML='<span class="comm-line-ref">'+esc(b.ref)+' \u2014 '+b.cap+' '+lblPeople+'</span><span class="comm-line-amt">'+fmt(comm)+'\u00a0\u20ac</span>';
-      commBlock.appendChild(line);
-    });
-    if(commData.length===0) commBlock.innerHTML+='<div style="font-size:11px;color:rgba(244,239,230,.3);padding:8px 0">'+lblEmpty+'</div>';
-    body.appendChild(commBlock);
-    /* Total box */
-    if(commData.length>0){
-      var totBox=document.createElement('div');
-      totBox.className='comm-total-box';
-      totBox.innerHTML='<div class="comm-total-label">'+lblEst+'</div>'+
-        '<div class="comm-total-amt">'+fmt(tot)+'\u00a0\u20ac</div>'+
-        '<div class="comm-total-sub">'+lblHT+moisCalc+' '+lblMois+'</div>';
-      body.appendChild(totBox);
-    }
-  } else {
-    /* Per option commission */
-    var hasOpts=OPTIONS.some(function(o){ return o.refs.length>0; });
-    if(hasOpts){
-      OPTIONS.forEach(function(opt,_oi){
-        var optBureaux=selData.filter(function(b){ return !b.isItin && opt.refs.indexOf(b.ref)>=0; });
-        if(optBureaux.length===0) return;
-        var totOpt=optBureaux.reduce(function(s,b){ return s+b.prix*(1-d)*moisCalc*0.10; },0);
-        var block=document.createElement('div');
-        block.className='comm-block';
-        block.style.marginTop='12px';
-        block.innerHTML='<div class="comm-block-title">'+esc(opt.label)+'</div>';
-        optBureaux.forEach(function(b){
-          var monthly=b.prix*(1-d);
-          var comm=monthly*moisCalc*0.10;
-          var line=document.createElement('div');
-          line.className='comm-line';
-          line.innerHTML='<span class="comm-line-ref">'+esc(b.ref)+' \u2014 '+b.cap+' '+lblPeople+'</span><span class="comm-line-amt">'+fmt(comm)+'\u00a0\u20ac</span>';
-          block.appendChild(line);
-        });
-        body.appendChild(block);
-        var optTotBox=document.createElement('div');
-        optTotBox.className='comm-total-box';
-        optTotBox.innerHTML='<div class="comm-total-label">'+lblEst+' \u00b7 '+esc(opt.label)+'</div>'+
-          '<div class="comm-total-amt">'+fmt(totOpt)+'\u00a0\u20ac</div>'+
-          '<div class="comm-total-sub">'+lblHT+moisCalc+' '+lblMois+'</div>';
-        body.appendChild(optTotBox);
-      });
-    } else {
-      var ph=document.createElement('div');
-      ph.style.cssText='font-size:11px;color:rgba(244,239,230,.3);padding-top:12px';
-      ph.textContent=lblOptPh;
-      body.appendChild(ph);
-    }
-  }
-
-  /* Note */
-  var note=document.createElement('div');
-  note.className='comm-note';
-  note.textContent=lblNote;
-  body.appendChild(note);
-
-  /* Mobile toggle amount : grand total across modes — bureaux uniquement (télétravail + itinérant exclus) */
-  var grandTot = 0;
-  if(!OPT_MODE){
-    selData.forEach(function(b){ if(!b.isItin) grandTot += b.prix*(1-d)*moisCalc*0.10; });
-  } else {
-    var counted = {};
-    OPTIONS.forEach(function(opt,_oi){
-      opt.refs.forEach(function(r){
-        if(counted[r]) return; counted[r]=true;
-        var b = selData.find(function(x){ return x.ref===r; });
-        if(b && !b.isItin) grandTot += b.prix*(1-d)*moisCalc*0.10;
-      });
-    });
-  }
+  if(!body) return;
+  var subEl = document.querySelector('.comm-sub');
+  if(subEl) subEl.textContent = (LANG==='en'?'10% of first-year revenue excl. VAT · featured ':'10 % du CA H.T. 1ʳᵉ année · engagement ')+(LANG==='en'?engShortEN[_dt]:engShort[_dt]);
+  /* Bureaux dans l'assiette (itinérant exclu) */
+  var off;
+  if(!OPT_MODE){ off = selData.filter(function(b){ return !b.isItin; }); }
+  else { var counted={}; off=[]; OPTIONS.forEach(function(o){ o.refs.forEach(function(r){ if(counted[r])return; counted[r]=true; var b=selData.find(function(x){return x.ref===r;}); if(b&&!b.isItin) off.push(b); }); }); }
+  var caMonth = off.reduce(function(s,b){ return s+Math.round(b.prix*(1-fd)); },0);
+  var caYear = caMonth*12;
+  var comm = Math.round(caYear*0.10);
+  var h='';
+  h+='<div class="commbox"><div class="big">'+fmt(comm)+'<sup> €</sup></div><div class="u">'+(LANG==='en'?'estimated commission':'commission estimée')+'</div></div>';
+  h+='<div class="cbreak">';
+  h+='<div class="r"><span>'+(LANG==='en'?'Monthly revenue excl. VAT':'CA mensuel H.T.')+'</span><b>'+fmt(caMonth)+' €</b></div>';
+  h+='<div class="r"><span>'+(LANG==='en'?'Annual revenue excl. VAT':'CA annuel H.T.')+'</span><b>'+fmt(caYear)+' €</b></div>';
+  h+='<div class="r"><span>'+(LANG==='en'?'Commission rate':'Taux commission')+'</span><b>10 %</b></div>';
+  h+='<div class="r"><span>Commission</span><b style="color:#7A6015">'+fmt(comm)+' €</b></div>';
+  h+='</div>';
+  h+='<div class="comm-note">'+(LANG==='en'?'Non-binding estimate. Commission subject to the terms of your mandate. Nomad is excluded from the commission base.':'Estimation non contractuelle. La commission dépend des termes de votre mandat. L\'itinérant n\'entre pas dans l\'assiette de commission.')+'</div>';
+  body.innerHTML = h;
   var cmt = document.getElementById('cmtAmt');
-  if(cmt) cmt.textContent = grandTot>0 ? fmt(grandTot)+'\u00a0\u20ac' : '—';
+  if(cmt) cmt.textContent = comm>0 ? fmt(comm)+' €' : '—';
 }
 
 /* ============================================================
