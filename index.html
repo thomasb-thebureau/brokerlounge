@@ -1207,21 +1207,18 @@ function sortData(arr){
   });
 }
 
-function makeItinCard(siteId){
+function makeItinCard(){
   var d = disc();
-  var ref = 'ITIN-'+siteId;
+  var ref = 'ITIN';
   var isSel = !!SEL[ref];
-  if(!ITIN_ADDONS_BY_SITE[siteId]) ITIN_ADDONS_BY_SITE[siteId] = {domi:false, casier:false};
-  var addons = ITIN_ADDONS_BY_SITE[siteId];
-  var extra = (addons.domi?60:0) + (addons.casier?30:0);
-  var base = ITIN_PRIX + extra;
-  var price = Math.round(ITIN_PRIX*(1-d)) + extra;
-  var save = d > 0 ? Math.round((ITIN_PRIX - Math.round(ITIN_PRIX*(1-d))) * 12) : 0;
+  var base = ITIN_PRIX;
+  var price = Math.round(ITIN_PRIX*(1-d));
+  var save = d > 0 ? Math.round((ITIN_PRIX - price) * 12) : 0;
   var engLbl = d===0
-    ? 'H.T./mois/pers. \u2014 tarif r\u00e9f\u00e9rence'
-    : 'H.T./mois/pers. \u2014 engagement '+ST.eng+' <span class="echip">-'+Math.round(d*100)+'%</span>';
-  var rackHtml = d>0 ? '<span class="rack">'+base+' \u20ac</span>' : '';
-  var savHtml  = d>0 ? '<div class="sav"><svg viewBox="0 0 24 24" fill="var(--vert)"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>\u00c9conomie\u00a0: '+fmt(save)+' \u20ac / an</div>' : '';
+    ? 'H.T./mois/pers. — tarif référence'
+    : 'H.T./mois/pers. — engagement '+ST.eng+' <span class="echip">-'+Math.round(d*100)+'%</span>';
+  var rackHtml = d>0 ? '<span class="rack">'+base+' €</span>' : '';
+  var savHtml  = d>0 ? '<div class="sav"><svg viewBox="0 0 24 24" fill="var(--vert)"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>Économie : '+fmt(save)+' € / an</div>' : '';
 
   var div = document.createElement('div');
   div.className = 'card itin-card' + (isSel?' sel':'');
@@ -1231,49 +1228,27 @@ function makeItinCard(siteId){
     '<div class="chk"><svg viewBox="0 0 12 10"><polyline points="1,5 4,8 11,1"/></svg></div>'+
     '<div class="ctop">'+
       '<div>'+
-        '<div class="cref">Itin\u00e9rant <span class="itin-badge">Starter</span></div>'+
-        '<div class="csite">'+esc(SITE_LABELS[siteId])+' \u2014 '+esc(SITE_ADDR[siteId])+'</div>'+
+        '<div class="cref">Itinérant <span class="itin-badge">Starter</span></div>'+
+        '<div class="csite">Placement libre · tous nos sites</div>'+
       '</div>'+
     '</div>'+
-    '<p class="cdesc">Acc\u00e8s en placement libre aux espaces partag\u00e9s et services The Bureau. Acc\u00e8s 24/7 au site, acc\u00e8s \u00e0 la journ\u00e9e aux autres sites. Formule all-incluse.</p>'+
+    '<p class="cdesc">Accès en placement libre aux espaces partagés et services The Bureau. Accès 24/7, accès à la journée aux autres sites. Formule all-incluse.</p>'+
     '<div class="chips">'+
       '<span class="chip itin-chip">Placement libre</span>'+
-      '<span class="chip itin-chip">Acc\u00e8s 24/7</span>'+
+      '<span class="chip itin-chip">Accès 24/7</span>'+
       '<span class="chip itin-chip">Global Collective</span>'+
     '</div>'+
-    '<div class="itin-row" onclick="event.stopPropagation()">'+
-      '<span class="itin-lbl">Options</span>'+
-      '<label class="itin-chk-lbl"><input type="checkbox" class="itin-domi" '+(addons.domi?'checked':'')+'> Domiciliation <span class="itin-addon-price">+60\u00a0\u20ac/mois</span></label>'+
-      '<label class="itin-chk-lbl"><input type="checkbox" class="itin-casier" '+(addons.casier?'checked':'')+'> Casier <span class="itin-addon-price">+30\u00a0\u20ac/mois</span></label>'+
-    '</div>'+
     '<div class="pb">'+
-      '<div class="pr"><div class="pm"><sup>\u20ac</sup>'+fmt(price)+'</div>'+rackHtml+'</div>'+
+      '<div class="pr"><div class="pm"><sup>€</sup>'+fmt(price)+'</div>'+rackHtml+'</div>'+
       '<div class="psub">'+engLbl+'</div>'+savHtml+
     '</div>';
-
-  function rebuildItin(){
-    addons.domi   = !!div.querySelector('.itin-domi').checked;
-    addons.casier = !!div.querySelector('.itin-casier').checked;
-    if(SEL[ref]){
-      SEL[ref].addons = JSON.parse(JSON.stringify(addons));
-      SEL[ref].prix   = ITIN_PRIX + (addons.domi?60:0) + (addons.casier?30:0);
-    }
-    var old = document.querySelector('.itin-card[data-ref="'+ref+'"]');
-    if(old) old.parentNode.replaceChild(makeItinCard(siteId), old);
-    updateSelBar();
-  }
-  div.querySelector('.itin-domi').addEventListener('change', rebuildItin);
-  div.querySelector('.itin-casier').addEventListener('change', rebuildItin);
 
   div.addEventListener('click', function(){
     if(!SEL[ref]){
       SEL[ref] = {
-        ref:ref, site:siteId,
-        label:SITE_LABELS[siteId], adresse:SITE_ADDR[siteId],
-        prix:ITIN_PRIX+(addons.domi?60:0)+(addons.casier?30:0),
-        cap:1, etage:0, surface:null, dispo:'immediate', date:null,
-        desc:'Acc\u00e8s en placement libre aux espaces partag\u00e9s et services The Bureau.',
-        addons:JSON.parse(JSON.stringify(addons)),
+        ref:ref, site:null, label:'Itinérant', adresse:'',
+        prix:ITIN_PRIX, cap:1, etage:0, surface:null, dispo:'immediate', date:null,
+        desc:'Accès en placement libre aux espaces partagés et services The Bureau. Accès 24/7. Formule all-incluse.',
         isItin:true
       };
       SEL_ORDER.push(ref);
@@ -1282,7 +1257,7 @@ function makeItinCard(siteId){
       SEL_ORDER = SEL_ORDER.filter(function(r){ return r!==ref; });
     }
     var old2 = document.querySelector('.itin-card[data-ref="'+ref+'"]');
-    if(old2) old2.parentNode.replaceChild(makeItinCard(siteId), old2);
+    if(old2) old2.parentNode.replaceChild(makeItinCard(), old2);
     updateSelBar();
   });
   return div;
@@ -1324,14 +1299,11 @@ function render(){
         '<span class="building-sep-addr">'+esc(SITE_ADDR[siteId])+'</span>'+
         '<span class="building-sep-line"></span>';
       frag.appendChild(sep);
-      if(showItin) frag.appendChild(makeItinCard(siteId));
     }
 
+    /* Carte Itinérant unique (générique, sans site) en tête de grille */
     if(showItin){
-      /* Insert ITIN card for every site that passes the site filter, even if no bureaux match */
-      ['I','II','III','IV'].forEach(function(sid){
-        if(allSites || ST.sites[sid]) insertSiteHeaderAndItin(sid);
-      });
+      frag.appendChild(makeItinCard());
     }
 
     filtered.forEach(function(b){
@@ -1992,14 +1964,11 @@ function restoreFromHash(){
       if(!ref) return;
       var existing = DATA.find(function(b){ return b.ref===ref; });
       if(existing){ SEL[ref]=true; SEL_ORDER.push(ref); }
-      else if(ref.indexOf('ITIN-')===0){
-        var sid = ref.split('-')[1];
-        var addons = ITIN_ADDONS_BY_SITE[sid] || {domi:false,casier:false};
-        SEL[ref] = { ref:ref, site:sid, label:SITE_LABELS[sid], adresse:SITE_ADDR[sid],
-          prix: ITIN_PRIX+(addons.domi?60:0)+(addons.casier?30:0),
-          cap:1, etage:0, surface:null, dispo:'immediate', date:null,
-          desc:'Accès en placement libre aux espaces partagés et services The Bureau.',
-          addons:JSON.parse(JSON.stringify(addons)), isItin:true };
+      else if(ref==='ITIN'){
+        SEL[ref] = { ref:'ITIN', site:null, label:'Itinérant', adresse:'',
+          prix: ITIN_PRIX, cap:1, etage:0, surface:null, dispo:'immediate', date:null,
+          desc:'Accès en placement libre aux espaces partagés et services The Bureau. Accès 24/7. Formule all-incluse.',
+          isItin:true };
         SEL_ORDER.push(ref);
       }
       else {
