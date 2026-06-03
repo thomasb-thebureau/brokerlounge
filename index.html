@@ -2078,140 +2078,99 @@ function exportPDF(){
 
   var nbLbl = LANG==='en' ? (selData.length>1?'offices':'office') : ('bureau'+(selData.length>1?'x':''));
   var subLine = selData.length+' '+nbLbl;
-  function priceCell(v, hl){ return '<td class="num'+(hl?' hl':'')+'">'+fmt(Math.round(v))+'<span class="cur"> €</span></td>'; }
-  var _pickLbl=LANG==='en'?'★ DISPLAYED RATE':'★ TARIF AFFICHÉ';
-  function tableHeader(){
-    var th='<thead><tr>';
-    th+='<th class="ctr" style="width:62px">'+t('pdf_cols_ref')+'</th><th style="width:165px">'+t('pdf_cols_site')+'</th><th class="ctr" style="width:48px">'+t('pdf_cols_etage')+'</th><th class="num" style="width:44px">'+t('pdf_cols_m2')+'</th><th class="ctr" style="width:52px">'+t('pdf_cols_postes')+'</th><th style="width:104px">'+t('pdf_cols_dispo')+'</th><th>'+t('pdf_cols_desc')+'</th>';
-    var tierMap={'3m':t('pdf_tier_monthly'),'12m':t('pdf_tier_12'),'24m':t('pdf_tier_24'),'36m':t('pdf_tier_36')};
-    activeTiers.forEach(function(tr){ var hl=tr.key===_defKey; th+='<th class="num'+(hl?' hl':'')+'">'+(hl?'<span class="pick">'+_pickLbl+'</span>':'')+(tierMap[tr.key]||tr.label)+(tr.d>0?' <span class="disc">-'+Math.round(tr.d*100)+'%</span>':'')+'</th>'; });
-    th+='</tr></thead>';
-    return th;
+  var _tierIdxOf={'3m':0,'12m':1,'24m':2,'36m':3};
+  var _defIdx=_tierIdxOf[_defKey];
+  var defD=TIERS[_defIdx].d;
+  var _shortLabels=LANG==='en'?['Monthly','12 months','24 months','36 months']:['Mensuel','12 mois','24 mois','36 mois'];
+  var defShort=_shortLabels[_defIdx];
+  var pickLbl=LANG==='en'?'★ DISPLAYED RATE':'★ TARIF AFFICHÉ';
+  var baseRecap=selData.reduce(function(s,b){return s+b.prix;},0);
+  function simpleHeader(){
+    return '<thead><tr><th class="ctr" style="width:64px">'+t('pdf_cols_ref')+'</th><th>'+(LANG==='en'?'Office':'Bureau')+'</th><th class="ctr" style="width:52px">'+t('pdf_cols_etage')+'</th><th class="num" style="width:48px">'+t('pdf_cols_m2')+'</th><th class="ctr" style="width:56px">'+t('pdf_cols_postes')+'</th><th style="width:150px">'+t('pdf_cols_dispo')+'</th><th class="num" style="width:128px">'+(LANG==='en'?'Price excl. VAT/mo':'Prix H.T./mois')+'</th></tr></thead>';
   }
-  function tableRows(list){
+  function simpleRows(list){
     var out='';
     list.forEach(function(b){
+      var price=Math.round(b.prix*(1-defD));
+      var d=esc(cleanDesc(getDesc(b)||''));
       out+='<tr>';
       out+='<td class="ctr"><span class="refb">'+esc(b.ref)+'</span></td>';
-      out+='<td><div class="site">'+esc(b.label||'')+'</div><div class="addr">'+esc(b.adresse||'')+'</div></td>';
+      out+='<td><span class="site">'+esc(b.label||'')+(d?'<span class="bdesc">'+d+'</span>':'')+'</span></td>';
       out+='<td class="ctr meta">'+etStr(b.etage)+'</td>';
       out+='<td class="num meta">'+(b.surface!=null?b.surface.toLocaleString('fr-FR'):'—')+'</td>';
       out+='<td class="ctr meta">'+b.cap+'</td>';
       out+='<td class="'+(b.dispo==='immediate'?'dispo-now':'muted')+'">'+dispoStr(b)+'</td>';
-      out+='<td class="desc">'+esc(cleanDesc(getDesc(b)))+'</td>';
-      activeTiers.forEach(function(tr){ out+=priceCell(b.prix*(1-tr.d), tr.key===_defKey); });
+      out+='<td class="num"><span class="price">'+fmt(price)+'<span class="cur"> €</span></span></td>';
       out+='</tr>';
     });
     return out;
   }
-  function telRowHtml(qty){
-    var sub=qty*TELETRAV_PRIX;
-    var lblTitle=LANG==='en'?'Telework offer':'Offre Télétravail';
-    var lblSub=qty>1?(LANG==='en'?qty+' subscriptions':qty+' abonnements'):(LANG==='en'?'1 subscription':'1 abonnement');
-    var descShort=LANG==='en'?'Additional access. Two users/members for the same workstation. Alternating presence — only one collaborator on site at a time.':'Accès supplémentaire. Deux utilisateurs/membres pour un même poste de travail. Présence alternée d’un seul collaborateur à la fois dans le bâtiment.';
-    var o='<tr><td class="ctr"><span class="tw-tag">'+(LANG==='en'?'Telework':'Télétravail')+'</span></td>';
-    o+='<td><div class="site">'+lblTitle+'</div><div class="addr">'+lblSub+'</div></td>';
-    o+='<td class="ctr muted">—</td><td class="num muted">—</td><td class="ctr meta">'+qty+'</td>';
-    o+='<td class="dispo-now">'+(LANG==='en'?'Immediate':'Immédiate')+'</td>';
-    o+='<td class="desc">'+descShort+'</td>';
-    activeTiers.forEach(function(tr){ o+=priceCell(sub, tr.key===_defKey); });
-    o+='</tr>';
-    return o;
+  function recapTable(totsObj){
+    var ths='',tds='',svs='';
+    activeTiers.forEach(function(tr){
+      var hl=tr.key===_defKey, idx=_tierIdxOf[tr.key];
+      var sub=idx===0?(LANG==='en'?'3 months min.':'3 mois min.'):'−'+(Math.round(tr.d*100))+' %';
+      ths+='<th'+(hl?' class="hl"':'')+'>'+(hl?'<span class="pick">'+pickLbl+'</span>':'')+_shortLabels[idx]+'<span class="pct'+(!hl&&idx===0?' mono':'')+'">'+sub+'</span></th>';
+      tds+='<td'+(hl?' class="hl"':'')+'>'+fmt(totsObj[tr.key])+'<span class="cur"> €</span></td>';
+      var sv=Math.round((baseRecap-totsObj[tr.key])*12);
+      var svTxt=(idx===0||sv<=0)?'—':'−'+fmt(sv)+' €/'+(LANG==='en'?'yr':'an');
+      svs+='<td'+(hl?' class="hl"':'')+'>'+svTxt+'</td>';
+    });
+    return '<div class="recap"><div class="rt">'+(LANG==='en'?'Total monthly excl. VAT by commitment':'Total mensuel H.T. selon l’engagement')+'</div><table class="rtable"><tr>'+ths+'</tr><tr>'+tds+'</tr><tr class="sv">'+svs+'</tr></table></div>';
   }
-  function totRow(label, totsObj){
-    var o='<tr class="tot"><td colspan="7" class="lbl">'+label+'</td>';
-    activeTiers.forEach(function(tr){ o+='<td class="num'+(tr.key===_defKey?' hl':'')+'">'+fmt(totsObj[tr.key])+'<span class="cur"> €</span></td>'; });
-    o+='</tr>';
-    return o;
+  function optRows(list){
+    var out='';
+    list.forEach(function(b){
+      var price=Math.round(b.prix*(1-defD));
+      var parts=[];
+      parts.push(etStr(b.etage)+(LANG==='en'?' floor':' étage'));
+      if(b.surface) parts.push(b.surface.toLocaleString('fr-FR')+' m²');
+      parts.push(b.cap+(LANG==='en'?(b.cap>1?' desks':' desk'):(b.cap>1?' postes':' poste')));
+      out+='<tr><td style="width:70px"><span class="orefb">'+esc(b.ref)+'</span></td>';
+      out+='<td><span class="osite">'+esc(b.label||'')+'<span class="d">'+parts.join(' · ')+'</span></span></td>';
+      out+='<td class="ometa" style="width:140px">'+dispoStr(b)+'</td>';
+      out+='<td class="oprice" style="width:120px">'+fmt(price)+'<span class="cur"> €</span></td></tr>';
+    });
+    return out;
   }
-  var h='<!DOCTYPE html><html lang="'+LANG+'"><head><meta charset="UTF-8"><title>'+t('pdf_title')+'</title>';
-  h+='<meta name="viewport" content="width=1200,initial-scale=1"/>';
-  h+='<link href="'+GFONTS+'" rel="stylesheet"/>';
-  h+='<style>';
-  h+=':root{--jade:#1E4035;--or:#B09438;--orD:#7A6015;--ink:#0F0F0F;--gris:#5a5248;--ivory:#F5EFE5;--cream:#faf8f4;--line:#e9e1d2}';
-  h+='@page{size:A4 landscape;margin:0}';
-  h+='*{box-sizing:border-box;margin:0;padding:0}';
-  h+='html,body{font-family:\'Plus Jakarta Sans\',Arial,sans-serif;color:var(--ink);background:#fff;font-size:10.5px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}';
-  h+='.page{position:relative;width:297mm;min-height:210mm;padding:13mm 14mm 11mm;display:flex;flex-direction:column;margin:0 auto;border:2px solid rgba(176,148,56,.6)}';
-  h+='.btn-print{position:fixed;top:12px;right:12px;background:var(--jade);color:#fff;border:none;border-radius:50px;padding:9px 20px;font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:999}';
-  h+='@media print{.no-print{display:none!important}.page{border:none}}';
-  h+='.hd{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-bottom:14px;border-bottom:2px solid var(--or)}';
-  h+='.hd-l{display:flex;align-items:center;gap:18px}.hd-logo{height:42px;width:auto}.hd-div{width:1px;height:42px;background:var(--or)}';
-  h+='.hd-title .eyebrow{font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--or);font-weight:700;margin-bottom:5px}';
-  h+='.hd-title h1{font-size:27px;font-weight:200;color:var(--ink);line-height:1}.hd-title h1 em{font-style:normal;font-weight:700;color:var(--jade)}';
-  h+='.hd-r{text-align:right}.hd-r .date{font-size:13px;font-weight:700;color:var(--ink)}.hd-r .sub{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);margin-top:2px}';
-  h+='main.body{flex:1;display:flex;flex-direction:column}';
-  h+='.tbl{width:100%;border-collapse:separate;border-spacing:0;margin-top:16px;font-size:10.5px}';
-  h+='.tbl thead th{background:var(--jade);color:var(--ivory);text-align:left;padding:10px 12px;font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase}';
-  h+='.tbl thead th:first-child{border-radius:6px 0 0 0}.tbl thead th:last-child{border-radius:0 6px 0 0}';
-  h+='.tbl thead th.num{text-align:right}.tbl thead th.ctr{text-align:center}';
-  h+='.tbl thead th .disc{display:inline-block;background:var(--or);color:#fff;border-radius:50px;padding:2px 7px;font-size:8px;font-weight:700;margin-left:4px}';
-  h+='.tbl thead th.num.hl{background:var(--or);color:#fff}';
-  h+='.tbl thead th.hl .pick{display:block;font-size:7px;letter-spacing:.08em;color:#fff;font-weight:700;margin-bottom:3px}';
-  h+='.tbl thead th.hl .disc{background:#fff;color:var(--orD)}';
-  h+='.tbl tbody td.num.hl{background:#fbf2d8!important;border-left:2px solid var(--or);border-right:2px solid var(--or);color:var(--jade);font-weight:700}';
-  h+='.tbl tr.tot td.num.hl{background:var(--or)!important;color:#fff;border-left:2px solid var(--or);border-right:2px solid var(--or)}';
-  h+='.tbl tr.tot td.num.hl .cur{color:#fff}';
-  h+='.tbl tbody td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}';
-  h+='.tbl tbody tr:nth-child(even):not(.tot) td{background:var(--cream)}';
-  h+='.tbl td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600;color:var(--ink)}';
-  h+='.tbl td.num .cur{color:var(--or);font-size:8.5px}.tbl td.ctr{text-align:center}';
-  h+='.refb{display:inline-block;background:var(--jade);color:var(--ivory);padding:5px 13px;border-radius:50px;font-size:10px;font-weight:700}';
-  h+='.tw-tag{display:inline-block;background:rgba(176,148,56,.14);color:var(--orD);padding:4px 11px;border-radius:50px;font-size:9px;font-weight:700}';
-  h+='.site{font-weight:700;font-size:11px;color:var(--ink)}.addr{color:var(--gris);font-size:9px;margin-top:1px}';
-  h+='.desc{font-size:9px;color:var(--gris);line-height:1.45}.meta{color:var(--ink);font-weight:500}.muted{color:var(--gris)}.dispo-now{color:var(--jade);font-weight:600}';
-  h+='.tbl tr.tot td{background:var(--jade);color:var(--ivory);padding:13px 12px;border:none}';
-  h+='.tbl tr.tot td:first-child{border-radius:0 0 0 6px}.tbl tr.tot td:last-child{border-radius:0 0 6px 0}';
-  h+='.tbl tr.tot .lbl{text-align:right;text-transform:uppercase;font-size:9.5px;letter-spacing:.14em;color:rgba(245,239,229,.8);font-weight:600}';
-  h+='.tbl tr.tot .num{font-size:15px;font-weight:700;color:#fff}.tbl tr.tot .num .cur{color:var(--or);font-size:10px}';
-  h+='.optblock{border-left:5px solid var(--or);border-radius:8px;overflow:hidden;margin-top:14px}.optblock .tbl{margin-top:0}.optblock .tbl thead th,.optblock .tbl tr.tot td{border-radius:0}';h+='.optband{background:#eef2f0;color:var(--jade);padding:10px 16px;border-bottom:1px solid var(--line);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;display:flex;align-items:center;gap:4px}';h+='.optnum{background:var(--or);color:#fff;border-radius:50px;padding:3px 11px;font-size:9px;font-weight:700;letter-spacing:.06em;margin-right:8px}';
-  h+='.bottom{display:flex;flex-direction:column;gap:14px;margin-top:18px}';
-  h+='.box{background:var(--cream);border:1px solid var(--line);border-radius:8px;padding:14px 16px}';
-  h+='.box h3{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--orD);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}';
-  h+='.box h3::before{content:\'\';width:16px;height:1.5px;background:var(--or)}';
-  h+='.box ul{list-style:none}.box.incl ul,.box.cond ul{column-count:2;column-gap:18px}';
-  h+='.box li{position:relative;padding-left:16px;margin-bottom:5px;font-size:8.8px;color:var(--gris);line-height:1.4;break-inside:avoid}';
-  h+='.box li::before{content:\'✓\';position:absolute;left:0;top:0;color:var(--jade);font-weight:700;font-size:9px}';
-  h+='.ft{margin-top:18px;background:var(--jade);color:var(--ivory);border-radius:8px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-top:3px solid var(--or)}';
-  h+='.ft-l{display:flex;align-items:center;gap:16px}.ft-chev{height:30px;opacity:.9}';
-  h+='.ft-name{font-weight:700;color:#fff;font-size:12px}.ft-meta{font-size:10px;color:rgba(245,239,229,.85);line-height:1.6}.ft-meta a{color:var(--ivory);text-decoration:none}';
-  h+='.ft-r{text-align:right;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,239,229,.75);line-height:1.7}.ft-r b{color:var(--or);font-weight:600;font-size:11px}';
-  h+='</style></head><body>';
+  function optTelRow(qty){
+    return '<tr><td style="width:70px"><span class="tw-tag">'+(LANG==='en'?'Telework':'Télétravail')+'</span></td><td><span class="osite">'+(LANG==='en'?'Telework offer':'Offre Télétravail')+'<span class="d">'+qty+(LANG==='en'?(qty>1?' subscriptions':' subscription'):(qty>1?' abonnements':' abonnement'))+'</span></span></td><td class="ometa" style="width:140px">'+(LANG==='en'?'Immediate':'Immédiate')+'</td><td class="oprice" style="width:120px">'+fmt(qty*TELETRAV_PRIX)+'<span class="cur"> €</span></td></tr>';
+  }
+  function optFooter(optT){
+    var e='';
+    activeTiers.forEach(function(tr){ var hl=tr.key===_defKey, idx=_tierIdxOf[tr.key]; e+='<div class="e'+(hl?' hl':'')+'"><span class="lab">'+_shortLabels[idx]+'</span><b>'+fmt(optT[tr.key])+' €</b></div>'; });
+    return '<div class="opt-ft">'+e+'</div>';
+  }
+  var eyebrow=LANG==='en'?'Personalised proposal':'Proposition personnalisée';
+  var logoWhiteUrl=window.location.origin+'/logo-white.svg';
+  var CSS="@page{size:A4 landscape;margin:0}*{box-sizing:border-box;margin:0;padding:0}html,body{font-family:'Plus Jakarta Sans',Arial,sans-serif;color:#0F0F0F;background:#fff;font-size:10.5px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}.btn-print{position:fixed;top:12px;right:12px;background:#1E4035;color:#fff;border:none;border-radius:50px;padding:9px 20px;font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:999}@media print{.no-print{display:none!important}.page{border:none!important}}.page{position:relative;width:297mm;min-height:210mm;padding:13mm 14mm 11mm;display:flex;flex-direction:column;margin:0 auto;border:2px solid rgba(176,148,56,.6);border-radius:8px;overflow:hidden}.hd{display:flex;align-items:center;justify-content:space-between;gap:24px;background:#1E4035;margin:-13mm -14mm 0;padding:18px 14mm}.hd-l{display:flex;align-items:center;gap:16px}.hd-logo{height:34px;width:auto}.hd-div{width:1px;height:34px;background:rgba(176,148,56,.5)}.hd-title .eyebrow{font-size:8.5px;letter-spacing:.26em;text-transform:uppercase;color:#B09438;font-weight:700;margin-bottom:3px}.hd-title h1{font-size:20px;font-weight:300;color:#fff;line-height:1}.hd-title h1 em{font-style:normal;font-weight:700;color:#fff}.hd-r{text-align:right}.hd-r .date{font-size:13px;font-weight:700;color:#fff}.hd-r .sub{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,239,229,.7);margin-top:2px}main.body{flex:1;display:flex;flex-direction:column}.sec{display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#7A6015;font-weight:700;margin:16px 0 10px}.sec::before{content:'';width:18px;height:2px;background:#B09438}.sec .eng{margin-left:auto;background:#B09438;color:#fff;border-radius:50px;padding:3px 12px;font-size:8.5px;letter-spacing:.06em;font-weight:700}.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:10.5px;border:1px solid #e9e1d2;border-radius:10px;overflow:hidden}.tbl thead th{background:#1E4035;color:#F5EFE5;text-align:left;padding:9px 12px;font-weight:600;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase}.tbl thead th.num{text-align:right}.tbl thead th.ctr{text-align:center}.tbl tbody td{padding:10px 12px;border-top:1px solid #e9e1d2;vertical-align:middle}.tbl tbody tr:nth-child(even) td{background:#faf8f4}.tbl td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.tbl td.ctr{text-align:center}.refb{display:inline-block;background:#1E4035;color:#F5EFE5;padding:5px 12px;border-radius:50px;font-size:10px;font-weight:700}.site{font-weight:700;font-size:11px;color:#0F0F0F}.site .bdesc{display:block;color:#5a5248;font-size:9px;font-weight:400;margin-top:2px;line-height:1.4}.meta{color:#0F0F0F;font-weight:500}.muted{color:#5a5248}.dispo-now{color:#1E4035;font-weight:600}.price{font-size:14px;font-weight:700;color:#0F0F0F}.price .cur{color:#B09438;font-size:9px}.tw-tag{display:inline-block;background:rgba(176,148,56,.14);color:#7A6015;padding:4px 11px;border-radius:50px;font-size:9px;font-weight:700}.recap{margin-top:14px}.rt{display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#7A6015;font-weight:700;margin-bottom:8px}.rt::before{content:'';width:18px;height:2px;background:#B09438}.rtable{width:100%;border-collapse:collapse;border:1px solid #d3e6da;border-radius:10px;overflow:hidden}.rtable th{background:#dceae2;padding:8px 10px;text-align:center;font-size:11px;font-weight:600;color:#1E4035;border-left:1px solid #cfe2d6;line-height:1.3}.rtable th:first-child{border-left:none}.rtable th .pct{display:block;font-size:9px;color:#7A6015;font-weight:600;margin-top:2px}.rtable th .pct.mono{color:#5a5248;font-weight:400}.rtable td{background:#eef5f1;padding:10px;text-align:center;font-size:16px;font-weight:700;color:#1E4035;border-left:1px solid #cfe2d6;border-top:1px solid #d3e6da}.rtable td:first-child{border-left:none}.rtable td .cur{color:#B09438;font-size:10px}.rtable tr.sv td{font-size:9px;font-weight:600;color:#7A6015;padding:0 10px 8px;border-top:none}.rtable th.hl{background:#B09438;color:#fff;border-color:#B09438}.rtable th.hl .pick{display:block;font-size:7.5px;letter-spacing:.1em;color:#fff;font-weight:700;margin-bottom:2px}.rtable th.hl .pct{color:#fff}.rtable td.hl{background:#fbf2d8;color:#1E4035;border-left:2px solid #B09438;border-right:2px solid #B09438}.rtable tr.sv td.hl{border-left:2px solid #B09438;border-right:2px solid #B09438;border-bottom:2px solid #B09438;color:#7A6015}.opt{border:1px solid #e9e1d2;border-left:5px solid #B09438;border-radius:12px;overflow:hidden;margin-bottom:12px}.opt-hd{display:flex;align-items:center;gap:10px;background:#faf8f4;padding:10px 16px;border-bottom:1px solid #e9e1d2}.opt-num{background:#B09438;color:#fff;border-radius:50px;padding:4px 13px;font-size:10px;font-weight:700;letter-spacing:.06em}.opt-name{font-size:13px;font-weight:700;color:#0F0F0F}.opt-tot{margin-left:auto;text-align:right}.opt-tot .v{font-size:17px;font-weight:700;color:#1E4035}.opt-tot .v .cur{color:#B09438;font-size:10px}.opt-tot .l{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:#5a5248}.otbl{width:100%;border-collapse:collapse}.otbl td{padding:9px 16px;border-top:1px solid #f1ede4;vertical-align:middle}.otbl tr:first-child td{border-top:none}.orefb{display:inline-block;background:#1E4035;color:#F5EFE5;padding:4px 11px;border-radius:50px;font-size:10px;font-weight:700}.osite{font-weight:700;font-size:11px;color:#0F0F0F}.osite .d{display:block;color:#5a5248;font-size:9px;font-weight:400;margin-top:1px}.ometa{color:#5a5248;font-size:10px;text-align:center}.oprice{text-align:right;font-size:13px;font-weight:700;color:#0F0F0F;white-space:nowrap}.oprice .cur{color:#B09438;font-size:9px}.opt-ft{display:flex;background:#f3efe6;border-top:1px solid #e9e1d2}.opt-ft .e{flex:1;text-align:center;padding:7px 6px;border-left:1px solid #e9e1d2;font-size:9px;color:#5a5248}.opt-ft .e:first-child{border-left:none}.opt-ft .e .lab{display:block;text-transform:uppercase;letter-spacing:.06em;font-size:8px;margin-bottom:2px}.opt-ft .e b{font-size:11px;color:#1E4035}.opt-ft .e.hl{background:#B09438}.opt-ft .e.hl .lab{color:#fff}.opt-ft .e.hl b{color:#fff}.bottom{display:flex;flex-direction:column;gap:12px;margin-top:14px}.box{background:#faf8f4;border:1px solid #e9e1d2;border-radius:10px;padding:13px 16px}.box h3{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#7A6015;font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:8px}.box h3::before{content:'';width:16px;height:2px;background:#B09438}.box ul{list-style:none;column-count:2;column-gap:22px}.box li{position:relative;padding-left:17px;margin-bottom:5px;font-size:9px;color:#5a5248;line-height:1.4;break-inside:avoid}.box li::before{content:'✓';position:absolute;left:0;top:0;color:#1E4035;font-weight:700;font-size:9px}.ft{margin-top:14px;background:#1E4035;color:#F5EFE5;border-radius:10px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-top:3px solid #B09438}.ft-l{display:flex;align-items:center;gap:14px}.ft-chev{height:28px;opacity:.9}.ft-name{font-weight:700;color:#fff;font-size:12px}.ft-meta{font-size:10px;color:rgba(245,239,229,.85);line-height:1.6}.ft-meta a{color:#F5EFE5;text-decoration:none}.ft-r{text-align:right;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,239,229,.75);line-height:1.7}.ft-r b{color:#B09438;font-weight:600;font-size:11px}";
+  var h='<!DOCTYPE html><html lang="'+LANG+'"><head><meta charset="UTF-8"><title>'+t('pdf_title')+'</title><meta name="viewport" content="width=1200,initial-scale=1"/><link href="'+GFONTS+'" rel="stylesheet"/><style>'+CSS+'</style></head><body>';
   h+='<button class="btn-print no-print" onclick="window.print()">'+(LANG==='en'?'Print / PDF':'Imprimer / PDF')+'</button>';
   h+='<div class="page">';
-  var propWord=LANG==='en'?'Proposal':'Proposition';
-  var hdrTitleA=LANG==='en'?'Office':'Sélection';
-  var hdrTitleB=LANG==='en'?'selection':'bureaux';
-  h+='<header class="hd"><div class="hd-l"><img class="hd-logo" src="'+logoUrl+'" alt="The Bureau"/><div class="hd-div"></div><div class="hd-title"><div class="eyebrow">Broker Lounge — '+propWord+'</div><h1>'+hdrTitleA+' <em>'+hdrTitleB+'</em></h1></div></div>';
+  h+='<header class="hd"><div class="hd-l"><img class="hd-logo" src="'+logoWhiteUrl+'" alt="The Bureau"/><div class="hd-div"></div><div class="hd-title"><div class="eyebrow">'+eyebrow+'</div><h1>'+(LANG==='en'?'Office <em>selection</em>':'Sélection <em>bureaux</em>')+'</h1></div></div>';
   h+='<div class="hd-r"><div class="date">'+dateStr+'</div><div class="sub">'+subLine+'</div></div></header>';
   h+='<main class="body">';
   var hasOpts=OPT_MODE&&OPTIONS.some(function(o){return o.refs.length>0});
   if(hasOpts){
+    h+='<div class="sec">'+(LANG==='en'?'Configurations to choose from':'Configurations au choix')+'<span class="eng">'+(LANG==='en'?'Displayed rate · ':'Tarif affiché · ')+defShort+'</span></div>';
     OPTIONS.forEach(function(opt,_oi){
       var optBureaux=selData.filter(function(b){return opt.refs.indexOf(b.ref)>=0});
       if(optBureaux.length===0)return;
       var telQty=opt.teletravail||0; var telSub=telQty*TELETRAV_PRIX;
       var optTotals={};activeTiers.forEach(function(tr){optTotals[tr.key]=optBureaux.reduce(function(s,b){return s+Math.round(b.prix*(1-tr.d))},0)+telSub});
-      var optNbLbl=LANG==='en'?(optBureaux.length>1?'offices':'office'):('bureau'+(optBureaux.length>1?'x':''));
-      var _custom=(opt.label&&opt.label!=='Texte personnalisé'&&opt.label!=='Custom text')?esc(opt.label)+' · ':'';h+='<div class="optblock"><div class="optband"><span class="optnum">Option '+(_oi+1)+'</span>'+_custom+optBureaux.length+' '+optNbLbl+'</div>';
-      h+='<table class="tbl" style="margin-top:0">'+tableHeader()+'<tbody>'+tableRows(optBureaux);
-      if(telQty>0) h+=telRowHtml(telQty);
-      var totOptLbl=(LANG==='en'?'Total ':'Total ')+'Option '+(_oi+1)+(LANG==='en'?' excl. VAT':' H.T.');
-      h+=totRow(totOptLbl, optTotals);
-      h+='</tbody></table></div>';
+      var custom=(opt.label&&opt.label!=='Texte personnalisé'&&opt.label!=='Custom text')?'<span class="opt-name">'+esc(opt.label)+'</span>':'';
+      h+='<div class="opt"><div class="opt-hd"><span class="opt-num">Option '+(_oi+1)+'</span>'+custom+'<span class="opt-tot"><div class="v">'+fmt(optTotals[_defKey])+'<span class="cur"> €</span></div><div class="l">'+(LANG==='en'?'excl. VAT/mo · ':'H.T./mois · ')+defShort+'</div></span></div>';
+      h+='<table class="otbl"><tbody>'+optRows(optBureaux)+(telQty>0?optTelRow(telQty):'')+'</tbody></table>';
+      h+=optFooter(optTotals);
+      h+='</div>';
     });
   } else {
-    h+='<table class="tbl">'+tableHeader()+'<tbody>'+tableRows(selData);
-    h+=totRow(t('pdf_total'), totals);
-    h+='</tbody></table>';
+    h+='<div class="sec">'+(LANG==='en'?'Your selection · ':'Votre sélection · ')+subLine+'<span class="eng">'+(LANG==='en'?'Displayed rate · ':'Tarif affiché · ')+defShort+'</span></div>';
+    h+='<table class="tbl">'+simpleHeader()+'<tbody>'+simpleRows(selData)+'</tbody></table>';
+    h+=recapTable(totals);
   }
-  h+='<div class="bottom">';
-  h+='<div class="box incl"><h3>'+t('pdf_services')+'</h3><ul>';
-  services.forEach(function(s){ h+='<li>'+s+'</li>'; });
-  h+='</ul></div>';
-  h+='<div class="box cond"><h3>'+t('pdf_conditions')+'</h3><ul>';
-  conditions.forEach(function(s){ h+='<li>'+s+'</li>'; });
-  h+='</ul></div></div></main>';
+  h+='<div class="bottom"><div class="box incl"><h3>'+t('pdf_services')+'</h3><ul>'+services.map(function(s){return '<li>'+s+'</li>';}).join('')+'</ul></div>';
+  h+='<div class="box cond"><h3>'+t('pdf_conditions')+'</h3><ul>'+conditions.map(function(s){return '<li>'+s+'</li>';}).join('')+'</ul></div></div></main>';
   h+='<footer class="ft"><div class="ft-l"><img class="ft-chev" src="'+chevronsUrl+'" alt=""/>';
   h+='<div class="ft-meta"><span class="ft-name">Thomas Bougeard</span> · '+t('pdf_footer_role')+'<br>+33 6 59 23 15 92 · <a href="mailto:thomasb@thebureau.paris">thomasb@thebureau.paris</a> · <a href="https://www.thebureau.paris">thebureau.paris</a></div></div>';
   h+='<div class="ft-r">'+t('pdf_footer_addr')+'<br><b>75002 · 75008</b></div></footer>';
