@@ -942,6 +942,19 @@ var TIERS = [
 ];
 var OPTIONS = [];
 var OPT_COUNTER = 0;
+/* Extras additionnels par option (quantité × prix, non remisés) */
+var ADDONS = [
+  {k:'domi',   fr:'Domiciliation',            en:'Business address',     p:60,  perFr:'/mois',       perEn:'/mo'},
+  {k:'parking',fr:'Place de parking',         en:'Parking space',        p:300, perFr:'/mois/place', perEn:'/mo/space'},
+  {k:'ev',     fr:'Place voiture électrique', en:'EV parking space',     p:400, perFr:'/mois/place', perEn:'/mo/space'},
+  {k:'moto',   fr:'Parking moto',             en:'Motorbike parking',    p:150, perFr:'/mois/place', perEn:'/mo/space'},
+  {k:'casier', fr:'Casier',                   en:'Locker',               p:30,  perFr:'/mois',       perEn:'/mo'},
+  {k:'signal', fr:'Signalétique',             en:'Signage',              p:30,  perFr:'/mois',       perEn:'/mo'}
+];
+function optExtrasTotal(opt){
+  if(!opt||!opt.extras) return 0;
+  var t=0; ADDONS.forEach(function(a){ t += (opt.extras[a.k]||0)*a.p; }); return t;
+}
 
 /* ============================================================
    HELPERS
@@ -1403,7 +1416,7 @@ function toggleOptMode(){
 
 function addOption(){
   OPT_COUNTER++;
-  OPTIONS.push({id:'opt'+OPT_COUNTER, label:(LANG==='en'?'Custom text':'Texte personnalisé'), refs:[], teletravail:0});
+  OPTIONS.push({id:'opt'+OPT_COUNTER, label:(LANG==='en'?'Custom text':'Texte personnalisé'), refs:[], teletravail:0, extras:{}});
   renderModal();
 }
 function removeOption(id){
@@ -1672,6 +1685,33 @@ function makeOptBlock(opt, selData, d){
   content.appendChild(telRow);
   content.appendChild(telDesc);
 
+  /* Extras additionnels */
+  if(!opt.extras) opt.extras={};
+  var exWrap = document.createElement('div');
+  exWrap.className='opt-extras';
+  exWrap.id='optextra_'+opt.id;
+  function renderExtras(){
+    var h='';
+    ADDONS.forEach(function(a){
+      var q=opt.extras[a.k]||0; if(q<=0) return;
+      h+='<div class="opt-telet-row"><span class="opt-row-label"><span class="opt-telet-tag">'+(LANG==='en'?a.en:a.fr)+'</span> '+a.p+' € '+(LANG==='en'?'excl. VAT'+a.perEn:'H.T.'+a.perFr)+'</span><span class="opt-telet-qty"><button type="button" class="opt-telet-dec" data-act="dec" data-k="'+a.k+'">−</button><span class="opt-telet-val">'+q+'</span><button type="button" class="opt-telet-inc" data-act="inc" data-k="'+a.k+'">+</button></span><span class="opt-row-price" style="margin-left:auto">'+fmt(q*a.p)+' €</span></div>';
+    });
+    var chips='';
+    ADDONS.forEach(function(a){ if(!(opt.extras[a.k]>0)) chips+='<button type="button" data-act="add" data-k="'+a.k+'" style="background:rgba(176,148,56,.12);color:#7A6015;border:1px solid rgba(176,148,56,.32);border-radius:50px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;margin:0 6px 6px 0">+ '+(LANG==='en'?a.en:a.fr)+'</button>'; });
+    if(chips) h+='<div style="display:flex;flex-wrap:wrap;margin-top:6px">'+chips+'</div>';
+    exWrap.innerHTML=h;
+  }
+  exWrap.addEventListener('click', function(e){
+    var btn=e.target.closest('button[data-act]'); if(!btn) return; e.stopPropagation();
+    var k=btn.getAttribute('data-k'), act=btn.getAttribute('data-act');
+    var q=opt.extras[k]||0;
+    if(act==='inc'||act==='add') q++; else if(act==='dec') q=Math.max(0,q-1);
+    opt.extras[k]=Math.max(0,Math.min(50,q));
+    renderExtras(); updateOptTotals(); updateCommission();
+  });
+  renderExtras();
+  content.appendChild(exWrap);
+
   /* Total for option */
   var totDiv = document.createElement('div');
   totDiv.className='opt-total';
@@ -1693,10 +1733,11 @@ function makeOptBlock(opt, selData, d){
 function refreshOptTotal(el, opt, selData, d){
   var optBureaux = selData.filter(function(b){ return opt.refs.indexOf(b.ref)>=0; });
   var telQty = (opt && opt.teletravail) || 0;
-  var tot = optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-d)); },0) + telQty*TELETRAV_PRIX;
+  var _ex = optExtrasTotal(opt);
+  var tot = optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-d)); },0) + telQty*TELETRAV_PRIX + _ex;
   if(tot>0){
-    var detail = telQty>0
-      ? ' <span style="font-size:10px;color:var(--gris)">(dont t\u00e9l\u00e9travail '+fmt(telQty*TELETRAV_PRIX)+'\u00a0\u20ac)</span>'
+    var detail = (telQty>0||_ex>0)
+      ? ' <span style="font-size:10px;color:var(--gris)">(dont options '+fmt(telQty*TELETRAV_PRIX+_ex)+'\u00a0\u20ac)</span>'
       : '';
     el.innerHTML = 'Total option : <strong style="color:var(--orAA)">'+fmt(tot)+'\u00a0\u20ac</strong> <span style="font-size:10px;color:var(--gris)">H.T./mois</span>'+detail;
   } else {
@@ -1708,10 +1749,11 @@ function renderOptTiersInline(el, opt, selData){
   el.innerHTML='';
   var optBureaux = selData.filter(function(b){ return opt.refs.indexOf(b.ref)>=0; });
   var telQty = (opt && opt.teletravail) || 0;
-  if(optBureaux.length===0 && telQty===0) return;
+  var _ex = optExtrasTotal(opt);
+  if(optBureaux.length===0 && telQty===0 && _ex===0) return;
   var paliers=[{label:'Mensuel',d:0,idx:0},{label:'12 mois -5%',d:0.05,idx:1},{label:'24 mois -10%',d:0.10,idx:2},{label:'36 mois -15%',d:0.15,idx:3}].filter(function(p){ return TIER_SEL[p.idx]; });
   paliers.forEach(function(p){
-    var tot=optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-p.d)); },0) + telQty*TELETRAV_PRIX;
+    var tot=optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-p.d)); },0) + telQty*TELETRAV_PRIX + _ex;
     var row=document.createElement('div');
     row.style.cssText='display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid var(--cf);font-size:11px';
     row.innerHTML='<span style="color:var(--gris)">'+p.label+'</span><span style="font-weight:600;color:var(--encre)">'+fmt(tot)+'\u00a0\u20ac <span style="font-weight:400;color:var(--gris);font-size:10px">H.T./mois</span></span>';
@@ -1872,7 +1914,7 @@ function encodeSelectionHash(){
   if(OPT_MODE) parts.push('optmode=1');
   if(OPTIONS && OPTIONS.length){
     try {
-      var optsMin = OPTIONS.map(function(o){ return {i:o.id, l:o.label, r:o.refs||[], t:o.teletravail||0}; });
+      var optsMin = OPTIONS.map(function(o){ return {i:o.id, l:o.label, r:o.refs||[], t:o.teletravail||0, x:o.extras||{}}; });
       parts.push('opts='+encodeURIComponent(JSON.stringify(optsMin)));
     } catch(e){}
   }
@@ -1934,7 +1976,7 @@ function restoreFromHash(){
     try {
       var parsed = JSON.parse(obj.opts);
       if(Array.isArray(parsed)){
-        OPTIONS = parsed.map(function(o){ return { id:o.i, label:o.l, refs:Array.isArray(o.r)?o.r:[], teletravail: parseInt(o.t)||0 }; });
+        OPTIONS = parsed.map(function(o){ return { id:o.i, label:o.l, refs:Array.isArray(o.r)?o.r:[], teletravail: parseInt(o.t)||0, extras:(o.x&&typeof o.x==='object')?o.x:{} }; });
         /* Resynchroniser OPT_COUNTER sur le max pour eviter collisions sur nouvel ajout */
         var maxN = 0;
         OPTIONS.forEach(function(o){ var m = /^opt(\d+)$/.exec(o.id); if(m){ var n=parseInt(m[1]); if(n>maxN) maxN=n; } });
@@ -2121,6 +2163,19 @@ function exportPDF(){
   function simpleTwRow(qty){
     return '<tr><td class="ctr"><span class="tw-tag">'+(LANG==='en'?'Telework':'Télétravail')+'</span></td><td><span class="site">'+(LANG==='en'?'Telework offer':'Offre Télétravail')+'<span class="bdesc">'+(LANG==='en'?'Additional access, alternating presence of one collaborator at a time.':'Accès supplémentaire, présence alternée d’un seul collaborateur à la fois.')+'</span></span></td><td class="ctr muted">—</td><td class="num muted">—</td><td class="ctr meta">'+qty+'</td><td class="dispo-now">'+(LANG==='en'?'Immediate':'Immédiate')+'</td><td class="num"><span class="price">'+fmt(qty*TELETRAV_PRIX)+'<span class="cur"> €</span></span></td></tr>';
   }
+  function extraRows(opt){
+    if(!opt.extras) return '';
+    var o='';
+    ADDONS.forEach(function(a){
+      var q=opt.extras[a.k]||0; if(q<=0) return;
+      o+='<tr><td class="ctr"><span class="tw-tag">Extra</span></td>';
+      o+='<td><span class="site">'+(LANG==='en'?a.en:a.fr)+'<span class="bdesc">'+a.p+' € '+(LANG==='en'?'excl. VAT'+a.perEn:'H.T.'+a.perFr)+'</span></span></td>';
+      o+='<td class="ctr muted">—</td><td class="num muted">—</td><td class="ctr meta">'+q+'</td>';
+      o+='<td class="dispo-now">'+(LANG==='en'?'Immediate':'Immédiate')+'</td>';
+      o+='<td class="num"><span class="price">'+fmt(q*a.p)+'<span class="cur"> €</span></span></td></tr>';
+    });
+    return o;
+  }
   function optRows(list){
     var out='';
     list.forEach(function(b){
@@ -2160,11 +2215,11 @@ function exportPDF(){
     OPTIONS.forEach(function(opt,_oi){
       var optBureaux=selData.filter(function(b){return opt.refs.indexOf(b.ref)>=0});
       if(optBureaux.length===0)return;
-      var telQty=opt.teletravail||0; var telSub=telQty*TELETRAV_PRIX;
+      var telQty=opt.teletravail||0; var telSub=telQty*TELETRAV_PRIX+optExtrasTotal(opt);
       var optTotals={};activeTiers.forEach(function(tr){optTotals[tr.key]=optBureaux.reduce(function(s,b){return s+Math.round(b.prix*(1-tr.d))},0)+telSub});
       var custom=(opt.label&&opt.label!=='Texte personnalisé'&&opt.label!=='Custom text')?'<span class="opt-name">'+esc(opt.label)+'</span>':'';
       h+='<div class="opt"><div class="opt-hd"><span class="opt-num">Option '+(_oi+1)+'</span>'+custom+'<span class="opt-tot"><div class="v">'+fmt(optTotals[_defKey])+'<span class="cur"> €</span></div><div class="l">'+(LANG==='en'?'excl. VAT/mo · ':'H.T./mois · ')+defShort+'</div></span></div>';
-      h+='<table class="tbl">'+simpleHeader()+'<tbody>'+simpleRows(optBureaux)+(telQty>0?simpleTwRow(telQty):'')+'</tbody></table>';
+      h+='<table class="tbl">'+simpleHeader()+'<tbody>'+simpleRows(optBureaux)+(telQty>0?simpleTwRow(telQty):'')+extraRows(opt)+'</tbody></table>';
       h+=optFooter(optTotals);
       h+='</div>';
     });
