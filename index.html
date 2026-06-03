@@ -1710,41 +1710,37 @@ function makeOptBlock(opt, selData, d, num){
   });
   content.appendChild(pool);
 
-  /* Télétravail add-on */
+  /* Télétravail add-on (stepper visible uniquement si activé) */
   if(typeof opt.teletravail !== 'number') opt.teletravail = 0;
+  if(!opt.extras) opt.extras={};
   var telRow = document.createElement('div');
-  telRow.className = 'opt-telet-row';
   telRow.id = 'opttel_'+opt.id;
   function renderTelRow(){
     var qty = opt.teletravail||0;
+    if(qty<=0){ telRow.className=''; telRow.style.display='none'; telRow.innerHTML=''; return; }
+    telRow.className = 'opt-telet-row'; telRow.style.display='';
     var sub = qty * TELETRAV_PRIX;
-    if(qty<=0){
-      telRow.innerHTML = '<button type="button" class="exchip" data-teladd="1">+ Offre Télétravail</button>'+(opt.refs.length===0?'<span class="opt-telet-hint">Sélectionnez au moins un bureau</span>':'');
-      var addb=telRow.querySelector('[data-teladd]');
-      if(addb) addb.addEventListener('click', function(e){ e.stopPropagation(); if(opt.refs.length===0) return; opt.teletravail=1; renderTelRow(); renderTelDesc(); updateOptTotals(); updateCommission(); });
-    } else {
-      telRow.innerHTML =
-        '<span class="opt-row-label"><span class="opt-telet-tag">Télétravail</span> 170 € H.T./mois / pers.</span>'+
-        '<span class="opt-telet-qty">'+
-          '<button type="button" class="opt-telet-dec" aria-label="Diminuer">−</button>'+
-          '<span class="opt-telet-val">'+qty+'</span>'+
-          '<button type="button" class="opt-telet-inc" aria-label="Augmenter">+</button>'+
-        '</span>'+
-        '<span class="opt-row-price" style="margin-left:auto">'+fmt(sub)+' €</span>'+
-        '<button type="button" data-telrm="1" title="Retirer" style="margin-left:6px;background:none;border:none;color:var(--gris);cursor:pointer;font-size:16px;line-height:1">×</button>';
-      telRow.querySelector('.opt-telet-dec').addEventListener('click', function(e){
-        e.stopPropagation();
-        opt.teletravail=Math.max(0,opt.teletravail-1); renderTelRow(); renderTelDesc(); updateOptTotals(); updateCommission();
-      });
-      telRow.querySelector('.opt-telet-inc').addEventListener('click', function(e){
-        e.stopPropagation();
-        opt.teletravail++; renderTelRow(); renderTelDesc(); updateOptTotals(); updateCommission();
-      });
-      telRow.querySelector('[data-telrm]').addEventListener('click', function(e){
-        e.stopPropagation();
-        opt.teletravail=0; renderTelRow(); renderTelDesc(); updateOptTotals(); updateCommission();
-      });
-    }
+    telRow.innerHTML =
+      '<span class="opt-row-label"><span class="opt-telet-tag">'+(LANG==='en'?'Telework':'Télétravail')+'</span> 170 € H.T./mois / pers.</span>'+
+      '<span class="opt-telet-qty">'+
+        '<button type="button" class="opt-telet-dec" aria-label="Diminuer">−</button>'+
+        '<span class="opt-telet-val">'+qty+'</span>'+
+        '<button type="button" class="opt-telet-inc" aria-label="Augmenter">+</button>'+
+      '</span>'+
+      '<span class="opt-row-price" style="margin-left:auto">'+fmt(sub)+' €</span>'+
+      '<button type="button" data-telrm="1" title="Retirer" style="margin-left:6px;background:none;border:none;color:var(--gris);cursor:pointer;font-size:16px;line-height:1">×</button>';
+    telRow.querySelector('.opt-telet-dec').addEventListener('click', function(e){
+      e.stopPropagation();
+      opt.teletravail=Math.max(0,opt.teletravail-1); renderTelRow(); renderTelDesc(); renderExtras(); updateOptTotals(); updateCommission();
+    });
+    telRow.querySelector('.opt-telet-inc').addEventListener('click', function(e){
+      e.stopPropagation();
+      opt.teletravail++; renderTelRow(); renderTelDesc(); updateOptTotals(); updateCommission();
+    });
+    telRow.querySelector('[data-telrm]').addEventListener('click', function(e){
+      e.stopPropagation();
+      opt.teletravail=0; renderTelRow(); renderTelDesc(); renderExtras(); updateOptTotals(); updateCommission();
+    });
   }
   var telDesc = document.createElement('div');
   telDesc.className = 'opt-telet-desc';
@@ -1758,11 +1754,8 @@ function makeOptBlock(opt, selData, d, num){
       telDesc.innerHTML = '';
     }
   }
-  renderTelRow();
-  content.appendChild(telRow);
 
-  /* Extras additionnels */
-  if(!opt.extras) opt.extras={};
+  /* Extras additionnels (+ chip télétravail dans la même rangée de chips) */
   var exWrap = document.createElement('div');
   exWrap.className='opt-extras';
   exWrap.id='optextra_'+opt.id;
@@ -1773,18 +1766,26 @@ function makeOptBlock(opt, selData, d, num){
       h+='<div class="opt-telet-row"><span class="opt-row-label"><span class="opt-telet-tag">'+(LANG==='en'?a.en:a.fr)+'</span> '+a.p+' € '+(LANG==='en'?'excl. VAT'+a.perEn:'H.T.'+a.perFr)+'</span><span class="opt-telet-qty"><button type="button" class="opt-telet-dec" data-act="dec" data-k="'+a.k+'">−</button><span class="opt-telet-val">'+q+'</span><button type="button" class="opt-telet-inc" data-act="inc" data-k="'+a.k+'">+</button></span><span class="opt-row-price" style="margin-left:auto">'+fmt(q*a.p)+' €</span></div>';
     });
     var chips='';
+    if((opt.teletravail||0)<=0) chips+='<button type="button" class="exchip" data-act="teladd">+ '+(LANG==='en'?'Telework offer':'Offre Télétravail')+'</button>';
     ADDONS.forEach(function(a){ if(!(opt.extras[a.k]>0)) chips+='<button type="button" class="exchip" data-act="add" data-k="'+a.k+'">+ '+(LANG==='en'?a.en:a.fr)+'</button>'; });
-    if(chips) h+='<div style="display:flex;flex-wrap:wrap;margin-top:6px">'+chips+'</div>';
+    if(chips) h+='<div style="display:flex;flex-wrap:wrap;margin-top:8px">'+chips+'</div>';
     exWrap.innerHTML=h;
   }
   exWrap.addEventListener('click', function(e){
     var btn=e.target.closest('button[data-act]'); if(!btn) return; e.stopPropagation();
-    var k=btn.getAttribute('data-k'), act=btn.getAttribute('data-act');
+    var act=btn.getAttribute('data-act');
+    if(act==='teladd'){
+      if(opt.refs.length===0) return;
+      opt.teletravail=1; renderTelRow(); renderTelDesc(); renderExtras(); updateOptTotals(); updateCommission(); return;
+    }
+    var k=btn.getAttribute('data-k');
     var q=opt.extras[k]||0;
     if(act==='inc'||act==='add') q++; else if(act==='dec') q=Math.max(0,q-1);
     opt.extras[k]=Math.max(0,Math.min(50,q));
     renderExtras(); updateOptTotals(); updateCommission();
   });
+  renderTelRow();
+  content.appendChild(telRow);
   renderExtras();
   content.appendChild(exWrap);
 
