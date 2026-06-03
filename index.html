@@ -1550,6 +1550,9 @@ function renderModal(){
     });
   }
 
+  /* Re-place TARIFICATION (chips) APRÈS la liste des bureaux (comme la maquette) */
+  left.appendChild(_tarifLbl); left.appendChild(tierWrap); left.appendChild(_hint);
+
   /* --- Price tiers table --- */
   if(!OPT_MODE){
     renderTiersTable(left, selData);
@@ -1729,9 +1732,7 @@ function makeOptBlock(opt, selData, d){
     }
   }
   renderTelRow();
-  renderTelDesc();
   content.appendChild(telRow);
-  content.appendChild(telDesc);
 
   /* Extras additionnels */
   if(!opt.extras) opt.extras={};
