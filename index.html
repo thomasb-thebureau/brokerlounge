@@ -425,6 +425,7 @@ body.dark .ec-toggle{color:#F5EFE5}
 .brk-rtable td.hl{background:#fbf2d8;border-left:2px solid var(--or);border-right:2px solid var(--or)}
 body.dark .brk-rtable th{background:#23362e;color:#cfe2d6}
 body.dark .brk-rtable td{background:#1c2a24;color:#eaf2ee}
+.opt-num-badge{background:var(--or);color:#fff;border-radius:50px;padding:3px 11px;font-size:9px;font-weight:700;letter-spacing:.06em;flex-shrink:0;margin-right:8px;white-space:nowrap}
 .tier-picker label{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:50px;border:1px solid var(--cf);font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--encre);cursor:pointer;user-select:none;transition:all .2s;background:var(--creme)}
 .tier-picker label:has(input:checked){background:var(--vert);color:#F5EFE5;border-color:var(--vert)}
 .tier-picker input{accent-color:var(--or);cursor:pointer;width:13px;height:13px}
@@ -1565,7 +1566,7 @@ function renderModal(){
     optHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px';
     optHdr.innerHTML='<div class="sm-sect" style="margin:0">Options</div><button class="btn-add-opt" onclick="addOption()">+ Nouvelle option</button>';
     left.appendChild(optHdr);
-    OPTIONS.forEach(function(opt,_oi){ left.appendChild(makeOptBlock(opt, selData, d)); });
+    OPTIONS.forEach(function(opt,_oi){ left.appendChild(makeOptBlock(opt, selData, d, _oi+1)); });
   }
 
   /* Update commission panel */
@@ -1642,11 +1643,13 @@ function renderBrkOptions(parent){
   sec.innerHTML=h;
   parent.appendChild(sec);
 }
-function makeOptBlock(opt, selData, d){
+function makeOptBlock(opt, selData, d, num){
   var wrap = document.createElement('div');
   wrap.className='opt-block'; wrap.id='optblock_'+opt.id;
   var hdr = document.createElement('div');
   hdr.className='opt-block-hdr';
+  var badge = document.createElement('span');
+  badge.className='opt-num-badge'; badge.textContent=(LANG==='en'?'Option ':'Option ')+(num||'');
   var inp = document.createElement('input');
   inp.type='text'; inp.className='opt-label-inp'; inp.value=opt.label;
   inp.setAttribute('aria-label','Nom de l\u2019option');
@@ -1655,7 +1658,7 @@ function makeOptBlock(opt, selData, d){
   var delBtn = document.createElement('button');
   delBtn.className='btn-del-opt'; delBtn.innerHTML='&times; Supprimer';
   delBtn.addEventListener('click', function(){ removeOption(opt.id); });
-  hdr.appendChild(inp); hdr.appendChild(delBtn);
+  hdr.appendChild(badge); hdr.appendChild(inp); hdr.appendChild(delBtn);
 
   var content = document.createElement('div');
   content.className='opt-block-content';
