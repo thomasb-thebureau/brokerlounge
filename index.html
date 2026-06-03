@@ -278,16 +278,19 @@ body.dark .mdesc{color:rgba(255,255,255,.7)}
 /* Options panel */
 .opt-panel{background:rgba(201,169,110,.05);border:1px solid rgba(201,169,110,.15);border-radius:4px;padding:12px 14px;margin-top:12px}
 .opt-panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.opt-block{background:var(--blanc);border:1px solid var(--cf);border-radius:3px;margin-bottom:8px;overflow:hidden}
+.opt-block{background:#fff;border:1px solid var(--cf);border-left:4px solid var(--or);border-radius:12px;margin-bottom:12px;overflow:hidden}
 .opt-block:last-child{margin-bottom:0}
-.opt-block-hdr{background:var(--encre);padding:7px 12px;display:flex;align-items:center;justify-content:space-between}
-.opt-label-inp{background:transparent;border:none;outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--or);width:120px;cursor:text}
-.opt-block-content{padding:8px 12px;display:flex;flex-direction:column;gap:4px}
+.opt-block-hdr{background:var(--creme);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--cf)}
+.opt-label-inp{background:transparent;border:none;border-bottom:1px dashed rgba(15,15,15,.22);outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--encre);width:160px;cursor:text;padding:1px 2px 3px}
+.opt-label-inp:focus{border-bottom-color:var(--or)}
+.opt-block-content{padding:12px 14px;display:flex;flex-direction:column;gap:6px}
 .opt-row{display:flex;align-items:center;gap:6px}
 .opt-row input[type=checkbox]{accent-color:var(--or2);cursor:pointer}
 .opt-row-label{font-size:11px;color:var(--encre)}
 .opt-row-price{font-size:11px;color:var(--gris);margin-left:auto}
-.opt-total{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;color:var(--encre);text-align:right;padding:6px 0 0;border-top:1px solid var(--cf);margin-top:4px}
+.opt-total{font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:baseline;justify-content:space-between;font-size:16px;color:var(--encre);padding:8px 0 0;border-top:1px solid var(--cf);margin-top:6px}
+.opt-total .opt-total-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);font-weight:600}
+.opt-total .opt-total-val{font-weight:700;color:var(--vert)}
 .btn-add-opt{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:50px;border:1px solid var(--orAA);background:transparent;color:var(--orAA);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;font-weight:600}
 .btn-add-opt:hover{background:var(--orAA);color:var(--blanc)}
 .opt-telet-row{display:flex;align-items:center;gap:8px;padding:8px 0 6px;border-top:1px dashed var(--cf);margin-top:4px}
@@ -304,7 +307,7 @@ body.dark .mdesc{color:rgba(255,255,255,.7)}
 .opt-telet-hint{font-size:10px;color:var(--gris);font-style:italic;margin-left:4px}
 .opt-telet-desc{font-size:10px;line-height:1.5;color:var(--gris);background:rgba(201,169,110,.06);border-left:2px solid var(--or2);padding:8px 10px;margin-top:4px;border-radius:0 3px 3px 0}
 .opt-telet-desc strong{display:block;color:var(--or2);font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:4px;font-family:'Plus Jakarta Sans',sans-serif}
-.btn-del-opt{background:none;border:none;cursor:pointer;color:#D4B870;font-size:11px;font-weight:600;transition:color .15s;letter-spacing:.04em}
+.btn-del-opt{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--gris);font-size:10px;font-weight:600;transition:color .15s;letter-spacing:.04em;text-transform:uppercase}
 .btn-del-opt:hover{color:#e55a4a}
 .btn-opt-mode{font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;border-radius:50px;border:1px solid var(--cf);background:var(--creme);color:var(--gris);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s}
 .btn-opt-mode.on{background:var(--encre);color:var(--or);border-color:var(--encre)}
@@ -1810,11 +1813,11 @@ function refreshOptTotal(el, opt, selData, d){
   var tot = optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-d)); },0) + telQty*TELETRAV_PRIX + _ex;
   if(tot>0){
     var detail = (telQty>0||_ex>0)
-      ? ' <span style="font-size:10px;color:var(--gris)">(dont options '+fmt(telQty*TELETRAV_PRIX+_ex)+'\u00a0\u20ac)</span>'
+      ? ' <span style="font-size:9px;color:var(--gris);font-weight:500">(dont options '+fmt(telQty*TELETRAV_PRIX+_ex)+'\u00a0\u20ac)</span>'
       : '';
-    el.innerHTML = 'Total option : <strong style="color:var(--orAA)">'+fmt(tot)+'\u00a0\u20ac</strong> <span style="font-size:10px;color:var(--gris)">H.T./mois</span>'+detail;
+    el.innerHTML = '<span class="opt-total-lbl">Total option \u00b7 H.T./mois</span><span class="opt-total-val">'+fmt(tot)+'\u00a0\u20ac'+detail+'</span>';
   } else {
-    el.innerHTML = 'Aucun bureau s\u00e9lectionn\u00e9';
+    el.innerHTML = '<span class="opt-total-lbl">Aucun bureau s\u00e9lectionn\u00e9</span>';
   }
 }
 
@@ -1824,12 +1827,18 @@ function renderOptTiersInline(el, opt, selData){
   var telQty = (opt && opt.teletravail) || 0;
   var _ex = optExtrasTotal(opt);
   if(optBureaux.length===0 && telQty===0 && _ex===0) return;
+  var _ft = (typeof getDefaultTier==='function') ? getDefaultTier() : 1;
+  var lbl=document.createElement('div');
+  lbl.style.cssText='font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);font-weight:600;margin:2px 0 4px';
+  lbl.textContent = LANG==='en'?'According to commitment':'Selon l\u2019engagement';
+  el.appendChild(lbl);
   var paliers=[{label:'Mensuel',d:0,idx:0},{label:'12 mois -5%',d:0.05,idx:1},{label:'24 mois -10%',d:0.10,idx:2},{label:'36 mois -15%',d:0.15,idx:3}].filter(function(p){ return TIER_SEL[p.idx]; });
   paliers.forEach(function(p){
     var tot=optBureaux.reduce(function(s,b){ return s+Math.round(b.prix*(1-p.d)); },0) + telQty*TELETRAV_PRIX + _ex;
+    var isF = p.idx===_ft;
     var row=document.createElement('div');
-    row.style.cssText='display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid var(--cf);font-size:11px';
-    row.innerHTML='<span style="color:var(--gris)">'+p.label+'</span><span style="font-weight:600;color:var(--encre)">'+fmt(tot)+'\u00a0\u20ac <span style="font-weight:400;color:var(--gris);font-size:10px">H.T./mois</span></span>';
+    row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-radius:6px;font-size:11px;'+(isF?'background:rgba(176,148,56,.1)':'');
+    row.innerHTML='<span style="color:'+(isF?'var(--orAA)':'var(--gris)')+';font-weight:'+(isF?'700':'400')+'">'+(isF?'\u2605 ':'')+p.label+'</span><span style="font-weight:'+(isF?'700':'600')+';color:'+(isF?'var(--orAA)':'var(--encre)')+'">'+fmt(tot)+'\u00a0\u20ac <span style="font-weight:400;color:var(--gris);font-size:10px">H.T./mois</span></span>';
     el.appendChild(row);
   });
 }
