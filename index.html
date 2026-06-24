@@ -879,10 +879,10 @@ var I18N = {
       'All-Inclusive : électricité, ménage, charges, climatisation, chauffage.'
     ],
     conditions:[
-      '3 mois d\'engagement minimum puis contrat renouvelé au mois le mois jusqu\'au préavis.',
+      '3 mois minimum, puis renouvellement de 3 mois successifs.',
       'Dépôt de garantie : 2 mois d\'abonnement H.T.',
       'Frais d\'installation : 100€ H.T. par poste capacitaire.',
-      'Préavis de départ : un mois plus le mois en cours.'
+      'Préavis : 2 mois plus le mois en cours.'
     ]
   },
   en: {
@@ -910,10 +910,10 @@ var I18N = {
       'All-Inclusive: electricity, cleaning, utilities, AC, heating.'
     ],
     conditions:[
-      '3-month minimum term then month-to-month until notice.',
+      '3-month minimum, then renewed for successive 3-month periods.',
       'Security deposit: 2 months of rent excl. VAT.',
       'Set-up fee: €100 excl. VAT per desk.',
-      'Notice period: one month plus the current month.'
+      'Notice period: two months plus the current month.'
     ]
   }
 };
@@ -2255,7 +2255,7 @@ function exportPDF(){
   var GFONTS_OLD='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap';
 
   var legalFR='<u><strong>Tous les tarifs sont indiqu\u00e9s H.T. et incluent\u00a0:</strong></u><br>\u2022 Acc\u00e8s 24h/24 et 7j/7 dans l\u2019arrondissement choisi, et du lundi au vendredi de 8h00 \u00e0 19h00 aux autres espaces The Bureau sur pr\u00e9sentation de son badge \u00e0 la conciergerie.<br>\u2022 Acc\u00e8s \u00e0 l\u2019ensemble des espaces communs\u00a0: coworking, espace restauration, patio, douches, salle de sport et cabines t\u00e9l\u00e9phoniques.<br>\u2022 Domiciliation et rangement tiroir inclus (sauf Itinérant).<br>\u2022 T\u00e9l\u00e9phone fixe, communications France et monde incluses (fixe et portable).<br>\u2022 Forfait impression\u00a0: 200 copies N&B et 25 couleurs par mois et par personne.<br>\u2022 Acc\u00e8s illimit\u00e9 aux tisaneries\u00a0: caf\u00e9, th\u00e9, eau filtr\u00e9e et fruits frais \u00e0 discr\u00e9tion.<br>\u2022 Programmation \u00e9v\u00e9nementielle\u00a0: soir\u00e9es, vernissages, partenariats et ap\u00e9ritivo du jeudi.<br>\u2022 Mobilier\u00a0: bureau, chaise et caisson.<br>\u2022 Conciergerie\u00a0: accueil clients, courrier, taxis, r\u00e9servations de salles.<br>\u2022 Global Collective\u00a0: 2 jours/mois dans les espaces partenaires (globalcollective.co).<br>\u2022 All-inclus\u00a0: \u00e9lectricit\u00e9, m\u00e9nage, charges, climatisation, chauffage.';
-  var ccItems=['3 mois d\u2019engagement minimum puis contrat renouvel\u00e9 au mois le mois jusqu\u2019au pr\u00e9avis.','D\u00e9p\u00f4t de garantie\u00a0: 2 mois d\u2019abonnement H.T. (pr\u00e9cis\u00e9 dans le contrat).','Frais d\u2019installation\u00a0: 100\u20ac H.T. par poste capacitaire.','Pr\u00e9avis de d\u00e9part\u00a0: un mois plus le mois en cours.'];
+  var ccItems=['3 mois minimum, puis renouvellement de 3 mois successifs.','D\u00e9p\u00f4t de garantie\u00a0: 2 mois d\u2019abonnement H.T. (pr\u00e9cis\u00e9 dans le contrat).','Frais d\u2019installation\u00a0: 100\u20ac H.T. par poste capacitaire.','Pr\u00e9avis\u00a0: 2 mois plus le mois en cours.'];
   var ccList=ccItems.map(function(i){ return '<li style="margin:0 0 4px;font-size:11px;color:rgba(244,239,230,0.65);font-family:Plus Jakarta Sans,Arial,sans-serif">'+i+'</li>'; }).join('');
 
   var paliers=[
