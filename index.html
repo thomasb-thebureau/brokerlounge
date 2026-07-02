@@ -1049,7 +1049,7 @@ function dtLbl(d){
   if(!d) return '';
   var p=d.split('-');
   var moFR=['jan.','f\u00e9v.','mars','avr.','mai','juin','juil.','ao\u00fbt','sept.','oct.','nov.','d\u00e9c.'];
-  var moEN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var moEN=['Jan.','Feb.','Mar.','Apr.','May','Jun.','Jul.','Aug.','Sep.','Oct.','Nov.','Dec.'];
   var mo = LANG==='en' ? moEN : moFR;
   return p[2].replace(/^0/,'')+'\u00a0'+mo[parseInt(p[1])-1]+'\u00a0'+p[0];
 }
