@@ -1,4 +1,4 @@
-const CACHE="brk-v39",ASSETS=["/logo.svg?v=11","/logo-white.svg?v=11","/favicon.svg","/favicon.ico","/favicon-96x96.png","/apple-touch-icon.png","/theme.css?v=1","/core.js?v=1"];
+const CACHE="brk-v40",ASSETS=["/logo.svg?v=11","/logo-white.svg?v=11","/favicon.svg","/favicon.ico","/favicon-96x96.png","/apple-touch-icon.png","/theme.css?v=1","/core.js?v=1"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",e=>{

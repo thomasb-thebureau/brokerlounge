@@ -629,6 +629,8 @@ body.dark .af-chip button{background:rgba(92,184,138,.2);color:#7fce9f}
 .af-clear{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--orAA);background:none;border:none;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(176,148,56,.3)}
 .af-clear:hover{color:var(--or)}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -2149,6 +2151,30 @@ function exportCSV(){
 /* ============================================================
    PDF EXPORT
 ============================================================ */
+/* Rasterise un SVG en PNG data-URI (évite que html2canvas teinte le canvas → logo garanti dans le PDF) */
+function rasterizeSvg(url, cssH){
+  var SCALE=4;
+  return fetch(url).then(function(r){ return r.text(); }).then(function(txt){
+    if(!/viewBox=/i.test(txt)){
+      var wm=txt.match(/\bwidth="([\d.]+)"/), hm=txt.match(/\bheight="([\d.]+)"/);
+      if(wm&&hm) txt=txt.replace(/<svg\b/i,'<svg viewBox="0 0 '+wm[1]+' '+hm[1]+'"');
+    }
+    var svgBlob=new Blob([txt],{type:'image/svg+xml;charset=utf-8'});
+    var burl=URL.createObjectURL(svgBlob);
+    return new Promise(function(res){
+      var img=new Image();
+      img.onload=function(){
+        var ratio=(img.naturalWidth&&img.naturalHeight)?(img.naturalWidth/img.naturalHeight):4.4;
+        var H=Math.round(cssH*SCALE), W=Math.round(H*ratio);
+        var c=document.createElement('canvas'); c.width=W; c.height=H;
+        try{ c.getContext('2d').drawImage(img,0,0,W,H); URL.revokeObjectURL(burl); res(c.toDataURL('image/png')); }
+        catch(e){ URL.revokeObjectURL(burl); res(null); }
+      };
+      img.onerror=function(){ URL.revokeObjectURL(burl); res(null); };
+      img.src=burl;
+    });
+  }).catch(function(){ return null; });
+}
 function exportPDF(){
   var selData = getSelData();
   if(selData.length===0) return;
@@ -2306,21 +2332,67 @@ function exportPDF(){
   h+='<div class="ft-r">'+t('pdf_footer_addr')+'<br><b>75002 · 75008</b></div></footer>';
   h+='</div></body></html>';
 
-  /* Use Blob URL (document.write in a popup is unreliable on mobile Safari/Chrome) */
-  var blob = new Blob([h], {type:'text/html;charset=utf-8'});
-  var url = URL.createObjectURL(blob);
-  var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if(isMobile){
-    /* Mobile : <a target=_blank> click is treated as user gesture ; window.open is blocked */
-    var a = document.createElement('a');
-    a.href = url; a.target = '_blank'; a.rel = 'noopener';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  } else {
-    var win = window.open(url, '_blank');
-    if(!win){ window.location.href = url; }
+  /* ===== Génération d'un vrai PDF (html2canvas + jsPDF), repli HTML si indispo ===== */
+  var isEN = (LANG==='en');
+  var fileName = 'The Bureau - Broker Lounge.pdf';
+  var pdfTitle = t('pdf_title');
+  function openHtmlFallback(){
+    var blob=new Blob([h],{type:'text/html;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var isMob=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if(isMob){ var a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+    else { var win=window.open(url,'_blank'); if(!win) window.location.href=url; }
+    setTimeout(function(){URL.revokeObjectURL(url)},60000);
   }
-  /* Revoke after a delay so the new tab has time to load */
-  setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+  function downloadPdf(pdfBlob){
+    var purl=URL.createObjectURL(pdfBlob);
+    var a=document.createElement('a'); a.href=purl; a.download=fileName; a.rel='noopener';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(purl)},60000);
+    showToast(isEN?'PDF ready':'PDF prêt');
+  }
+  function deliverPdf(pdfBlob){
+    try{
+      var file=new File([pdfBlob],fileName,{type:'application/pdf'});
+      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:pdfTitle})
+          .then(function(){ showToast(isEN?'PDF shared':'PDF partagé'); })
+          .catch(function(e){ if(e&&e.name==='AbortError') return; downloadPdf(pdfBlob); });
+        return;
+      }
+    }catch(e){}
+    downloadPdf(pdfBlob);
+  }
+  var jsPDFLib = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
+  if(typeof html2canvas!=='function' || !jsPDFLib){ openHtmlFallback(); return; }
+  showToast(isEN?'Generating PDF…':'Génération du PDF…');
+  Promise.all([ rasterizeSvg(logoWhiteUrl,34), rasterizeSvg(chevronsUrl,28) ]).then(function(imgs){
+    h = h.replace(logoWhiteUrl, function(){ return imgs[0]||''; });
+    h = h.replace(chevronsUrl,  function(){ return imgs[1]||''; });
+    var frame=document.createElement('iframe');
+    frame.style.cssText='position:fixed;left:-9999px;top:0;width:1123px;height:10px;opacity:0;pointer-events:none';
+    document.body.appendChild(frame);
+    var fdoc=frame.contentDocument; fdoc.open(); fdoc.write(h); fdoc.close();
+    setTimeout(function(){
+      try{ var bp=fdoc.querySelector('.btn-print'); if(bp) bp.parentNode.removeChild(bp); }catch(e){}
+      var pageEl=fdoc.querySelector('.page')||fdoc.body;
+      var w=Math.round(pageEl.getBoundingClientRect().width)||1123;
+      var ht=Math.max(pageEl.scrollHeight, fdoc.body.scrollHeight)||794;
+      frame.style.height=ht+'px';
+      setTimeout(function(){
+        html2canvas(pageEl,{scale:2,useCORS:true,logging:false,backgroundColor:'#ffffff',width:w,height:ht,windowWidth:w}).then(function(canvas){
+          var orient=(canvas.width>=canvas.height)?'l':'p';
+          var pdf=new jsPDFLib({unit:'px',format:[w,ht],orientation:orient});
+          var pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
+          pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,pw,ph);
+          try{ pdf.setProperties&&pdf.setProperties({title:pdfTitle}); }catch(e){}
+          var pdfBlob=pdf.output('blob');
+          try{ document.body.removeChild(frame); }catch(e){}
+          deliverPdf(pdfBlob);
+        }).catch(function(){ try{document.body.removeChild(frame);}catch(e){} openHtmlFallback(); });
+      },700);
+    },500);
+  });
   return;
   /* === LEGACY CODE BELOW (deprecated) === */
   var engLabel = {mensuel:'Mensuel (3 mois min.)', '12m':'12 mois', '24m':'24 mois', '36m':'36 mois'}[ST.eng]||ST.eng;
