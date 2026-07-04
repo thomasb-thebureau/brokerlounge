@@ -2,7 +2,7 @@ name: Update bureau data
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -19,7 +19,7 @@ jobs:
           python3 << 'PYEOF2'
           import csv, re, json, io, urllib.request
 
-          URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQb6cYJyF8leoIASCx3SnpaZAJyhmV3easzUYoRfo5LQ9-VKZudCfJz94scDoveEQ/pub?gid=150731932&single=true&output=csv"
+          URL = "https://docs.google.com/spreadsheets/d/1tdZKwCZt8k5oVZXOFIJGO6iQdkAMUtTBF4_-cAqHG60/export?format=csv"
           import time
           raw = None
           for attempt in range(3):
@@ -35,9 +35,13 @@ jobs:
               exit(0)
           reader = csv.reader(io.StringIO(raw))
           rows = list(reader)
-          while rows and all(c.strip()=='' for c in rows[0]):
-              rows.pop(0)
-          headers = [h.strip().lower() for h in rows[0]]
+          # Détecte la vraie ligne d'en-têtes (ignore la bannière de titre en haut du Sheet)
+          hdr_idx = 0
+          for i, r in enumerate(rows[:12]):
+              low = [c.strip().lower() for c in r]
+              if 'site' in low and any('bureau' in c for c in low) and any('prix' in c for c in low):
+                  hdr_idx = i; break
+          headers = [h.strip().lower() for h in rows[hdr_idx]]
 
           def col(row, kw):
               for i,h in enumerate(headers):
@@ -45,7 +49,7 @@ jobs:
               return ''
 
           offices = []
-          for row in rows[1:]:
+          for row in rows[hdr_idx+1:]:
               if len(row) < 8: continue
               dispo_raw = col(row,'dispo').upper()
               is_available = 'TRUE' in dispo_raw or 'VRAI' in dispo_raw
@@ -62,7 +66,7 @@ jobs:
               site = 'IV' if 'IV' in site_raw else 'III' if 'III' in site_raw else 'II' if 'II' in site_raw else 'I'
               surf_raw = col(row,'m\u00b2')
               surface = float(re.sub(r'[^0-9,.]','',surf_raw).replace(',','.')) if surf_raw else None
-              date_raw = col(row,'lib\u00e9ration') or col(row,'liberation')
+              date_raw = col(row,'libre') or col(row,'lib\u00e9ration') or col(row,'liberation')
               date_norm = None
               if date_raw and len(date_raw) >= 8:
                   dp = date_raw.split('/')
