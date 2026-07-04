@@ -1138,7 +1138,7 @@ function resetApp(){
   if(!confirm(t('reset_confirm'))) return;
   /* Vider la config et le dark mode conserves */
   try {
-    ['brk_config'].forEach(function(k){ localStorage.removeItem(k); });
+    ['brk_config','brk_lang'].forEach(function(k){ localStorage.removeItem(k); });
     /* Purger les caches SW pour forcer une recharge fraiche */
     if(window.caches && caches.keys){
       caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){return caches.delete(k);})); }).finally(doReload);
