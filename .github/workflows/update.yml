@@ -53,8 +53,6 @@ jobs:
               if len(row) < 8: continue
               dispo_raw = col(row,'dispo').upper()
               is_available = 'TRUE' in dispo_raw or 'VRAI' in dispo_raw
-              # Broker : on n'affiche que les bureaux disponibles (col H cochée)
-              if not is_available: continue
               prix_raw = col(row,'prix')
               prix = int(re.sub(r'[^0-9]', '', prix_raw.replace('\u202f','').replace('\xa0',''))) if re.sub(r'[^0-9]', '', prix_raw) else 0
               if not prix or prix > 500000: continue
@@ -71,6 +69,8 @@ jobs:
               if date_raw and len(date_raw) >= 8:
                   dp = date_raw.split('/')
                   if len(dp)==3: date_norm = dp[2]+'-'+dp[1].zfill(2)+'-'+dp[0].zfill(2)
+              # Broker : garde les dispos (col H cochée) + les bureaux avec date de libération (bientôt disponibles)
+              if not is_available and not date_norm: continue
               desc_raw = col(row,'description (fr)') or col(row,'description')
               desc = re.sub(r'\s+',' ', desc_raw).strip()[:500]
               desc_en_raw = col(row,'description (en)')
