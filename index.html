@@ -604,6 +604,30 @@ body.dark .selbar{background:#1a3a30;border-top-color:rgba(245,239,229,.1)}
 body.dark .sel-cnt{color:#F5EFE5}
 body.dark .sel-cnt strong{color:var(--or)}
 body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba(92,184,138,.3)}
+/* ===== Portage TeamLounge : toasts, bandeau MAJ, alerte données, chips filtres ===== */
+@keyframes toastIn{from{opacity:0;transform:translateX(80px)}to{opacity:1;transform:none}}
+.tb-toast{position:fixed;top:80px;right:20px;z-index:9999;background:var(--vert);color:#F5EFE5;padding:10px 18px;border-radius:4px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:toastIn .3s ease}
+.data-warn{display:none;align-items:center;gap:5px;background:rgba(192,120,48,.12);border:1px solid rgba(192,120,48,.4);color:#a5611f;border-radius:50px;padding:3px 11px;font-size:10.5px;font-weight:600;letter-spacing:.02em;white-space:nowrap;margin-left:10px}
+.data-warn.on{display:inline-flex}
+body.dark .data-warn{background:rgba(192,120,48,.16);color:#e0954f;border-color:rgba(192,120,48,.5)}
+#tbUpdateBar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);z-index:900;display:flex;align-items:center;gap:14px;background:var(--vert);color:#F5EFE5;border:1px solid rgba(176,148,56,.4);border-radius:50px;padding:9px 10px 9px 20px;box-shadow:0 12px 40px rgba(0,0,0,.28);font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;opacity:0;transition:opacity .3s,transform .3s;max-width:calc(100% - 32px)}
+#tbUpdateBar.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#tbUpdateBar .tbu-txt{display:flex;align-items:center;gap:8px;white-space:nowrap}
+#tbUpdateBar .tbu-txt::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--or);flex-shrink:0;animation:pulse 2.5s infinite}
+#tbUpdateBar button{background:#F5EFE5;color:var(--vert);border:none;border-radius:50px;padding:8px 18px;font:700 11px 'Plus Jakarta Sans',sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .2s;white-space:nowrap}
+#tbUpdateBar button:hover{background:#fff}
+#tbUpdateBar .tbu-close{background:none;color:rgba(245,239,229,.6);padding:6px 8px;font-size:15px;letter-spacing:0}
+#tbUpdateBar .tbu-close:hover{background:none;color:#fff}
+@media(max-width:480px){#tbUpdateBar{bottom:auto;top:66px;font-size:11.5px;padding:8px 8px 8px 16px}}
+.active-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 48px 4px}
+.active-filters:empty{display:none}
+.af-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;padding:4px 6px 4px 11px;border-radius:50px;background:var(--vp);border:1px solid rgba(30,64,53,.2);color:var(--vert);white-space:nowrap}
+.af-chip button{background:rgba(30,64,53,.12);border:none;color:var(--vert);width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;transition:background .2s}
+.af-chip button:hover{background:rgba(30,64,53,.28)}
+body.dark .af-chip{background:rgba(74,154,122,.16);color:#7fce9f;border-color:rgba(92,184,138,.3)}
+body.dark .af-chip button{background:rgba(92,184,138,.2);color:#7fce9f}
+.af-clear{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--orAA);background:none;border:none;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(176,148,56,.3)}
+.af-clear:hover{color:var(--or)}
 </style>
 </head>
 <body>
@@ -628,6 +652,7 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
     <div class="status"><div class="sdot" id="sdot"></div><span class="stxt" id="stxt" data-i18n="status_loading">Chargement…</span></div>
     <button class="refresh-btn" onclick="fetchData()" data-i18n="refresh" data-i18n-aria="refresh_aria" aria-label="Actualiser les données">↻ Actualiser</button>
     <span class="dlabel" id="dlabel"></span>
+    <span class="data-warn" id="dataWarn" role="status" data-i18n="data_warn">⚠ Données de secours · hors ligne</span>
   </div>
 </div>
 
@@ -736,6 +761,7 @@ body.dark .echip{background:rgba(74,154,122,.18);color:#5cb88a;border-color:rgba
 </div>
 
 <!-- GRID -->
+<div class="active-filters" id="activeFilters" aria-live="polite"></div>
 <div class="grid" id="grid" role="main" tabindex="-1"><a id="main" tabindex="-1"></a>
   <div class="empty" id="empty">
     <h3 id="emptyTitle">Aucun bureau ne correspond à vos critères.</h3>
@@ -846,7 +872,7 @@ var LANG = (function(){
 var I18N = {
   fr: {
     /* Header */
-    status_loading:'Chargement…', status_live:'Données en direct', status_fallback:'Données hors ligne', status_error:'Erreur', refresh:'↻ Actualiser', refresh_aria:'Actualiser les données', dark_aria:'Basculer le mode sombre', dark_title:'Mode sombre', reset_aria:'Reinitialiser et rafraichir', reset_title:'Reinitialiser la recherche et vider le cache',
+    status_loading:'Chargement…', status_live:'Données en direct', status_fallback:'Données hors ligne', data_warn:'⚠ Données de secours · hors ligne', status_error:'Erreur', refresh:'↻ Actualiser', refresh_aria:'Actualiser les données', dark_aria:'Basculer le mode sombre', dark_title:'Mode sombre', reset_aria:'Reinitialiser et rafraichir', reset_title:'Reinitialiser la recherche et vider le cache',
     /* Config banner */
     cb_loc:'Localisation', cb_postes:'Postes max', cb_duree:'Durée', cb_eng:'Engagement appliqué', cb_all_sites:'Tous sites', cb_all:'Tous', cb_none:'Non renseignée', cb_p2:'Paris 2e (TB III & IV)', cb_p8:'Paris 8e (TB I & II)', cb_postes_max:'%n postes max', cb_mois:'%n mois', cb_edit:'Modifier la recherche',
     /* Hero */
@@ -886,7 +912,7 @@ var I18N = {
     ]
   },
   en: {
-    status_loading:'Loading…', status_live:'Live data', status_fallback:'Offline data', status_error:'Error', refresh:'↻ Refresh', refresh_aria:'Refresh data', dark_aria:'Toggle dark mode', dark_title:'Dark mode', reset_aria:'Reset and refresh', reset_title:'Reset search and clear cache',
+    status_loading:'Loading…', status_live:'Live data', status_fallback:'Offline data', data_warn:'⚠ Fallback data · offline', status_error:'Error', refresh:'↻ Refresh', refresh_aria:'Refresh data', dark_aria:'Toggle dark mode', dark_title:'Dark mode', reset_aria:'Reset and refresh', reset_title:'Reset search and clear cache',
     cb_loc:'Location', cb_postes:'Max desks', cb_duree:'Term', cb_eng:'Applied term', cb_all_sites:'All sites', cb_all:'All', cb_none:'Not set', cb_p2:'Paris 2nd (TB III & IV)', cb_p8:'Paris 8th (TB I & II)', cb_postes_max:'%n max desks', cb_mois:'%n months', cb_edit:'Edit search',
     hero_eyebrow:'Paris — 75002 & 75008', hero_h1a:'Offices', hero_h1b:'available', hero_subtitle_a:'%n addresses · private offices · real-time data', hero_broker_badge:'BROKER AREA · CONFIDENTIAL',
     fp_sites:'Sites', fp_engagement:'Term', fp_dispo:'Availability', fp_postes:'Max desks', fp_duree:'Duration', fp_tri:'Sort', fp_ref:'Ref', fp_clear:'Clear filters', eng_monthly:'Monthly', eng_12m:'12 months', eng_24m:'24 months', eng_36m:'36 months', dispo_all:'All', dispo_imm:'Immediate', dispo_future:'Upcoming', sort_ref:'Reference', sort_price_asc:'Price ↑', sort_price_desc:'Price ↓', sort_surface:'Surface', sort_postes:'Desks',
@@ -984,6 +1010,9 @@ const FALLBACK = [{"site": "I", "label": "The Bureau I", "adresse": "28, Cours A
    STATE
 ============================================================ */
 var DATA = FALLBACK.slice();
+var PREV_DATA = [];
+/* Toast transitoire (retour visuel) */
+function showToast(msg,dur){dur=dur||3000;var t=document.createElement('div');t.className='tb-toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(function(){t.remove()},300)},dur)}
 var BROKER = { localisation: null, postes_max: null, duree_mois: null };
 var ST = { sites:{all:true}, eng:'mensuel', cmin:'', cmax:'', dispo:'all', sort:'nom', search:'' };
 var ITIN_PRIX = 499;
@@ -1338,7 +1367,51 @@ function makeItinCard(){
   return div;
 }
 
+/* Synchronise l'état visuel des chips de site (groupes arrondissement) */
+function _syncSiteChips(){
+  var all=!!ST.sites.all;
+  var g8=(!all)&&(ST.sites.I||ST.sites.II);
+  var g2=(!all)&&(ST.sites.III||ST.sites.IV);
+  document.querySelectorAll('.sc').forEach(function(c){
+    var s=c.dataset.site;
+    if(s==='all') c.classList.toggle('on', all);
+    else if(s==='75008') c.classList.toggle('on', !!g8);
+    else if(s==='75002') c.classList.toggle('on', !!g2);
+  });
+}
+/* Chips récapitulatifs des filtres actifs (cliquables pour retirer) */
+function renderActiveFilters(){
+  var el=document.getElementById('activeFilters'); if(!el) return;
+  var chips=[];
+  if(!ST.sites.all){
+    if(ST.sites.I||ST.sites.II) chips.push({label:'TB I & II · 75008', act:function(){ delete ST.sites.I; delete ST.sites.II; if(Object.keys(ST.sites).length===0) ST.sites={all:true}; _syncSiteChips(); }});
+    if(ST.sites.III||ST.sites.IV) chips.push({label:'TB III & IV · 75002', act:function(){ delete ST.sites.III; delete ST.sites.IV; if(Object.keys(ST.sites).length===0) ST.sites={all:true}; _syncSiteChips(); }});
+  }
+  if(ST.cmin!=='' || ST.cmax!==''){
+    chips.push({label:(LANG==='en'?'Desks ':'Postes ')+(ST.cmin!==''?ST.cmin:'…')+'–'+(ST.cmax!==''?ST.cmax:'…'), act:function(){ ST.cmin='';ST.cmax=''; ['cmin','cmax','fdMin','fdMax'].forEach(function(id){var e=document.getElementById(id); if(e)e.value='';}); }});
+  }
+  if(ST.dispo && ST.dispo!=='all'){
+    var dL={immediate:(LANG==='en'?'Immediate':'Immédiate'),future:(LANG==='en'?'Upcoming':'À venir')}[ST.dispo]||ST.dispo;
+    chips.push({label:(LANG==='en'?'Avail.: ':'Dispo : ')+dL, act:function(){ ST.dispo='all'; document.querySelectorAll('[data-dispo]').forEach(function(x){x.classList.toggle('on',x.dataset.dispo==='all');}); }});
+  }
+  if(ST.search){
+    chips.push({label:(LANG==='en'?'Ref. « ':'Réf. « ')+ST.search+' »', act:function(){ ST.search=''; ['search','fdSearch'].forEach(function(id){var e=document.getElementById(id); if(e)e.value='';}); }});
+  }
+  el.innerHTML='';
+  if(!chips.length) return;
+  chips.forEach(function(c){
+    var s=document.createElement('span'); s.className='af-chip';
+    s.appendChild(document.createTextNode(c.label+' '));
+    var btn=document.createElement('button'); btn.type='button'; btn.setAttribute('aria-label',(LANG==='en'?'Remove filter ':'Retirer le filtre ')+c.label); btn.textContent='×';
+    btn.addEventListener('click',function(){ c.act(); render(); if(typeof refreshDrawerCnt==='function'){ try{refreshDrawerCnt();}catch(e){} } });
+    s.appendChild(btn); el.appendChild(s);
+  });
+  var clr=document.createElement('button'); clr.className='af-clear'; clr.textContent=(LANG==='en'?'Clear all':'Tout effacer');
+  clr.addEventListener('click',function(){ if(typeof resetFilters==='function') resetFilters(); });
+  el.appendChild(clr);
+}
 function render(){
+  renderActiveFilters();
   var cmin = ST.cmin!==''?parseInt(ST.cmin):0;
   var cmax = ST.cmax!==''?parseInt(ST.cmax):Infinity;
   var allSites = !!ST.sites.all;
@@ -2553,8 +2626,12 @@ function fetchData(){
       try{
         var offices=JSON.parse(xhr.responseText);
         if(!offices||offices.length<3) throw new Error('empty');
+        /* Notif dispo temps réel : bureau passé à « immediate » depuis le dernier fetch */
+        if(PREV_DATA.length>0){offices.forEach(function(o){var prev=PREV_DATA.find(function(p){return p.ref===o.ref});if(prev&&prev.dispo!=='immediate'&&o.dispo==='immediate'){showToast((LANG==='en'?'Office ':'Bureau ')+o.ref+(LANG==='en'?' now available':' maintenant disponible'),5000);}});}
+        PREV_DATA=JSON.parse(JSON.stringify(offices));
         DATA=offices;
         setStatus('live',t('status_live'));
+        var _dw=document.getElementById('dataWarn'); if(_dw) _dw.classList.remove('on');
         var lm=xhr.getResponseHeader?xhr.getResponseHeader('Last-Modified'):null;
         if(lm){ var dd=new Date(lm); if(!isNaN(dd)){ document.getElementById('dlabel').textContent='MAJ\u00a0'+dd.getDate().toString().padStart(2,'0')+'/'+(dd.getMonth()+1).toString().padStart(2,'0')+' - '+dd.getHours().toString().padStart(2,'0')+'h'+dd.getMinutes().toString().padStart(2,'0'); } }
         /* Reconcile any shared refs that weren't in FALLBACK */
@@ -2567,7 +2644,7 @@ function fetchData(){
   };
   xhr.onerror=function(){ clearTimeout(timer); if(!done){ done=true; onFail('network'); } };
   xhr.open('GET',DATA_URL+'?t='+Date.now(),true); xhr.send();
-  function onFail(r){ console.warn('[BrokerLounge] fetch failed:',r); DATA=FALLBACK.slice(); setStatus('fallback',t('status_fallback')); render(); }
+  function onFail(r){ console.warn('[BrokerLounge] fetch failed:',r); DATA=FALLBACK.slice(); setStatus('fallback',t('status_fallback')); var dw=document.getElementById('dataWarn'); if(dw) dw.classList.add('on'); render(); }
 }
 
 /* ============================================================
@@ -2625,18 +2702,33 @@ setInterval(fetchData, REFRESH_MS);
 /* ============================================================
    SERVICE WORKER
 ============================================================ */
+/* Bandeau « nouvelle version disponible » (propose de recharger au lieu de forcer) */
+function showUpdateBanner(){
+  if(document.getElementById('tbUpdateBar')) return;
+  var bar=document.createElement('div'); bar.id='tbUpdateBar';
+  var txt=(LANG==='en'?'New version available':'Nouvelle version disponible');
+  var reload=(LANG==='en'?'Reload':'Recharger');
+  bar.innerHTML='<span class="tbu-txt">'+txt+'</span><button id="tbUpdateReload" type="button">'+reload+'</button><button class="tbu-close" id="tbUpdateClose" type="button" aria-label="Ignorer">×</button>';
+  document.body.appendChild(bar);
+  requestAnimationFrame(function(){ bar.classList.add('on'); });
+  document.getElementById('tbUpdateReload').addEventListener('click', function(){ location.reload(); });
+  document.getElementById('tbUpdateClose').addEventListener('click', function(){ bar.classList.remove('on'); setTimeout(function(){ if(bar.parentNode) bar.parentNode.removeChild(bar); }, 300); });
+}
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
     navigator.serviceWorker.register('/sw.js').then(function(reg){
-      /* Force update check on each load */
-      reg.update();
+      /* Nouvelle version détectée → propose de recharger */
+      reg.addEventListener('updatefound', function(){
+        var nw=reg.installing; if(!nw) return;
+        nw.addEventListener('statechange', function(){
+          if(nw.state==='installed' && navigator.serviceWorker.controller) showUpdateBanner();
+        });
+      });
+      /* Vérifie les mises à jour au retour sur l'onglet et périodiquement */
+      var check=function(){ try{ reg.update(); }catch(e){} };
+      document.addEventListener('visibilitychange', function(){ if(!document.hidden) check(); });
+      setInterval(check, 15*60*1000);
     }).catch(function(e){ console.warn('[SW] register failed:',e); });
-    /* Auto-reload once when a new SW takes control (ensures shared links get latest code) */
-    var refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', function(){
-      if(refreshing) return; refreshing = true;
-      window.location.reload();
-    });
   });
 }
 </script>
