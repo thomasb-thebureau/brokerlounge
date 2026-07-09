@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write
 
+# Sérialise les exécutions : jamais deux runs qui poussent en même temps (évite les conflits sur updated_at.txt)
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -98,5 +103,11 @@ jobs:
           git add data.json updated_at.txt
           git diff --cached --quiet && echo 'No changes' && exit 0
           git commit -m "Update disponibilites $(date -u '+%Y-%m-%d %H:%M UTC')"
-          git pull --rebase origin main
-          git push
+          # Push résilient : en cas de rejet (autre commit entre-temps), rebase en gardant nos fichiers générés (updated_at.txt/data.json), puis retente
+          for i in 1 2 3 4 5; do
+            if git push; then echo "pushed"; exit 0; fi
+            echo "push rejeté — rebase et nouvelle tentative ($i)"
+            git fetch origin main
+            git rebase -X theirs origin/main || git rebase --abort
+          done
+          echo "échec du push après 5 tentatives"; exit 1
