@@ -2352,15 +2352,19 @@ function exportPDF(){
     showToast(isEN?'PDF ready':'PDF prêt');
   }
   function deliverPdf(pdfBlob){
-    try{
-      var file=new File([pdfBlob],fileName,{type:'application/pdf'});
-      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-        navigator.share({files:[file],title:pdfTitle})
-          .then(function(){ showToast(isEN?'PDF shared':'PDF partagé'); })
-          .catch(function(e){ if(e&&e.name==='AbortError') return; downloadPdf(pdfBlob); });
-        return;
-      }
-    }catch(e){}
+    /* Partage natif uniquement sur mobile (sur desktop c'est la boîte de partage Windows, agaçante) → desktop = téléchargement direct */
+    var isMob = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if(isMob){
+      try{
+        var file=new File([pdfBlob],fileName,{type:'application/pdf'});
+        if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:pdfTitle})
+            .then(function(){ showToast(isEN?'PDF shared':'PDF partagé'); })
+            .catch(function(e){ if(e&&e.name==='AbortError') return; downloadPdf(pdfBlob); });
+          return;
+        }
+      }catch(e){}
+    }
     downloadPdf(pdfBlob);
   }
   var jsPDFLib = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
