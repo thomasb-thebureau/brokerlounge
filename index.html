@@ -2176,215 +2176,201 @@ function rasterizeSvg(url, cssH){
   }).catch(function(){ return null; });
 }
 function exportPDF(){
+  var isEN = (typeof LANG!=='undefined' && LANG==='en');
+  /* ===== Tokens ===== */
+  var WHITE='#FAFAFA', IVORY='#F5EFE5', RELIEF='#F2F2F2', INK='#0F0F0F', SLATE='#1E4035', GOLD='#B09438', GOLDAA='#8A6A18', GOLDLT='#D4B870';
+  var SEP='rgba(15,15,15,0.12)';
+  /* ===== Sélection ===== */
   var selData = getSelData();
-  if(selData.length===0) return;
-  var activeTiers = TIERS.filter(function(_,i){ return TIER_SEL[i]; });
-  if(activeTiers.length===0) activeTiers = [TIERS[1]];
-  var _defKey=TIERS[getDefaultTier()]?TIERS[getDefaultTier()].key:null;
-  if(!activeTiers.some(function(t){return t.key===_defKey;})) _defKey=activeTiers[activeTiers.length-1].key;
-  var OR='#B09438', OR2='#7A6015', JADE='#1E4035', INK='#0F0F0F', CR='#F5EFE5', GR='#5a5248', LIGHT='#faf8f4';
-  var GFONTS='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap';
-  var today = new Date();
-  var dateStr = (LANG==='en')
-    ? (today.getMonth()+1).toString().padStart(2,'0')+'/'+today.getDate().toString().padStart(2,'0')+'/'+today.getFullYear()
-    : today.getDate().toString().padStart(2,'0')+'/'+(today.getMonth()+1).toString().padStart(2,'0')+'/'+today.getFullYear();
-  var fmtEur = function(n){ return fmt(n)+'\u00a0\u20ac'; };
-  var etStr = function(e){
-    if(LANG==='en'){ if(e===0) return 'Ground'; if(e===1) return '1st'; if(e===2) return '2nd'; if(e===3) return '3rd'; return e+'th'; }
-    return e===0?'RDC':e===1?'1er':e+'e';
-  };
-  var dispoStr = function(b){
-    if(b.dispo==='immediate') return LANG==='en' ? 'Immediate' : 'Immédiate';
-    return (LANG==='en' ? 'From ' : 'À partir du ') + dtLbl(b.date);
-  };
-
-  /* Services & conditions (langue) */
-  var services = t('services');
-  var conditions = t('conditions');
-
-  /* Totals per tier */
-  var _brkOpt = (typeof getBrkOptionsTotal==='function') ? getBrkOptionsTotal() : 0;
-  var totals = {};
-  activeTiers.forEach(function(t){
-    totals[t.key] = selData.reduce(function(s,b){ return s + Math.round(b.prix*(1-t.d)); }, 0) + _brkOpt;
+  if(!selData || selData.length===0){ showToast(isEN?'Select offices':'Sélectionnez des bureaux'); return; }
+  var validOpts = (typeof OPT_MODE!=='undefined'&&OPT_MODE&&typeof OPTIONS!=='undefined'&&OPTIONS) ? OPTIONS.filter(function(o){return o.refs&&o.refs.length>0;}) : [];
+  var hasOpts = validOpts.length > 0;
+  /* ===== Durées / remises (paliers Broker) ===== */
+  var TLBL = isEN?['Monthly','12 months','24 months','36 months']:['Mensuel','12 mois','24 mois','36 mois'];
+  var allTiers = TIERS.map(function(tr,i){
+    return { key:tr.key, label:TLBL[i], sub:(i===0?(isEN?'3 months min.':'3 mois min.'):'−'+(Math.round(tr.d*100))+' %'), coef:1-tr.d, idx:i };
   });
-
-  var logoOrigin = window.location.origin;
-  var logoUrl = logoOrigin + '/logo.svg';
-  var chevronsUrl = logoOrigin + '/chevrons.svg';
-  var IVORY='#F5EFE5';
-
-  var nbLbl = LANG==='en' ? (selData.length>1?'offices':'office') : ('bureau'+(selData.length>1?'x':''));
-  var subLine = selData.length+' '+nbLbl;
-  var _tierIdxOf={'3m':0,'12m':1,'24m':2,'36m':3};
-  var _defIdx=_tierIdxOf[_defKey];
-  var defD=TIERS[_defIdx].d;
-  var _shortLabels=LANG==='en'?['Monthly','12 months','24 months','36 months']:['Mensuel','12 mois','24 mois','36 mois'];
-  var defShort=_shortLabels[_defIdx];
-  var pickLbl=LANG==='en'?'★ DISPLAYED RATE':'★ TARIF AFFICHÉ';
-  var baseRecap=selData.reduce(function(s,b){return s+b.prix;},0)+_brkOpt;
-  function simpleHeader(){
-    return '<thead><tr><th class="ctr" style="width:64px">'+t('pdf_cols_ref')+'</th><th>'+(LANG==='en'?'Office':'Bureau')+'</th><th class="ctr" style="width:52px">'+t('pdf_cols_etage')+'</th><th class="num" style="width:48px">'+t('pdf_cols_m2')+'</th><th class="ctr" style="width:56px">'+t('pdf_cols_postes')+'</th><th style="width:150px">'+t('pdf_cols_dispo')+'</th><th class="num" style="width:128px">'+(LANG==='en'?'Price excl. VAT/mo':'Prix H.T./mois')+'</th></tr></thead>';
+  var activeIdx=[]; TIER_SEL.forEach(function(s,i){ if(s) activeIdx.push(i); });
+  if(activeIdx.length===0) activeIdx=[1];
+  var durs = allTiers.filter(function(t){ return activeIdx.indexOf(t.idx)>-1; });
+  if(durs.length===0) durs=[allTiers[1]];
+  var _defIdx = getDefaultTier();
+  var hiKey = allTiers[_defIdx]?allTiers[_defIdx].key:'12m';
+  if(!durs.some(function(t){return t.key===hiKey;})) hiKey=durs[durs.length-1].key;
+  var hiT = allTiers.filter(function(t){return t.key===hiKey;})[0];
+  var hiCoef = hiT.coef;
+  var hiDur = (hiT.idx?(isEN?'commitment ':'engagement '):'')+hiT.label;
+  var hiLabelHTML = (isEN?'excl. VAT/mo':'H.T./mois')+' · <span style="color:'+SLATE+';">'+hiDur+'</span>';
+  var hiLabelLight = (isEN?'excl. VAT/mo':'H.T./mois')+' · '+hiDur;
+  var pillText = (isEN?'Displayed rate · ':'Tarif affiché · ')+hiT.label;
+  /* ===== Helpers ===== */
+  var etStr=function(e){return e===0?(isEN?'GF':'RDC'):e===1?(isEN?'1st':'1er'):(isEN?e+'th':e+'e')};
+  var isItinB=function(b){return !!b.isItin || b.site===null || b.ref==='ITIN';};
+  var dispoStr=function(b){return b.dispo==='immediate'?(isEN?'Immediate':'Immédiate'):((isEN?'From ':'À partir du ')+dtLbl(b.date))};
+  var today=new Date();
+  var dateFr=today.getDate().toString().padStart(2,'0')+'/'+(today.getMonth()+1).toString().padStart(2,'0')+'/'+today.getFullYear();
+  var logoUrl=window.location.origin+'/logo.svg';
+  var chevronsUrl=window.location.origin+'/chevrons.svg';
+  var GFONTS='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Spectral:ital,wght@0,300;0,400;0,500;1,300&display=swap';
+  /* Bâtiments (accès / annexes) — mêmes immeubles que TeamLounge */
+  var BLD={
+    I:{zone:isEN?'Paris 8th · Golden Triangle':'Paris VIIIᵉ · Triangle d’Or', metro:['M1','M9','RER C'], bus:'42 · 72 · 80'},
+    II:{zone:isEN?'Paris 8th · Golden Triangle':'Paris VIIIᵉ · Triangle d’Or', metro:['M1','M9','RER C'], bus:'42 · 72 · 80'},
+    III:{zone:isEN?'Paris 2nd · Opéra':'Paris IIᵉ · Opéra', metro:['M3','M7','M8','RER A'], bus:'20 · 29 · 39'},
+    IV:{zone:isEN?'Paris 2nd · Bourse':'Paris IIᵉ · Bourse', metro:['M3','M8','M9','RER A'], bus:'20 · 39 · 74'}
+  };
+  function ratp(m){
+    var L={M1:['#FFCD00','#0F0F0F'],M3:['#837902','#FAFAFA'],M7:['#FA9ABA','#0F0F0F'],M8:['#E19BDF','#0F0F0F'],M9:['#B6BD00','#0F0F0F'],'RER A':['#E2231A','#FAFAFA'],'RER C':['#FFCD00','#0F0F0F']};
+    var c=L[m]||[SLATE,IVORY], isR=m.indexOf('RER')===0;
+    return '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:'+(isR?'3px':'10px')+';background:'+c[0]+';color:'+c[1]+';font-size:8px;font-weight:700;letter-spacing:0.02em;white-space:nowrap;">'+(isR?m.replace('RER ',''):m)+'</span>';
   }
-  function simpleRows(list){
-    var out='';
-    list.forEach(function(b){
-      var price=Math.round(b.prix*(1-defD));
-      var d=esc(cleanDesc(getDesc(b)||''));
-      var addr=(!b.isItin&&b.adresse)?'<span class="baddr"> · '+esc(b.adresse)+'</span>':'';
-      out+='<tr>';
-      out+='<td class="ctr"><span class="refb">'+esc(b.ref)+'</span></td>';
-      out+='<td><span class="site">'+esc(b.label||'')+addr+(d?'<span class="bdesc">'+d+'</span>':'')+'</span></td>';
-      out+='<td class="ctr meta">'+etStr(b.etage)+'</td>';
-      out+='<td class="num meta">'+(b.surface!=null?b.surface.toLocaleString('fr-FR'):'—')+'</td>';
-      out+='<td class="ctr meta">'+b.cap+'</td>';
-      out+='<td class="'+(b.dispo==='immediate'?'dispo-now':'muted')+'">'+dispoStr(b)+'</td>';
-      out+='<td class="num"><span class="price">'+fmt(price)+'<span class="cur"> €</span></span></td>';
-      out+='</tr>';
-    });
-    return out;
+  var INCLUS = (typeof t==='function') ? t('services') : [];
+  var CONDITIONS = (typeof t==='function') ? t('conditions') : [];
+  var CARTE = isEN ? [
+    ['Meeting room, 4 ppl','10 € / h'],['Premium room, 12 ppl','50 € / h'],['Business address','60 € / mo'],['Parking space','300 € / mo'],['EV parking space','400 € / mo'],['Motorbike space','150 € / mo'],['Locker','30 € / mo'],['Entrance signage','30 € / mo']
+  ] : [
+    ['Salle de réunion, 4 pers.','10 € / h'],['Salle premium, 12 pers.','50 € / h'],['Domiciliation','60 € / mois'],['Place de parking','300 € / mois'],['Place de parking électrique','400 € / mois'],['Place moto','150 € / mois'],['Casier','30 € / mois'],['Signalétique à l’entrée','30 € / mois']
+  ];
+  /* ===== Calculs ===== */
+  function offOf(ref){ return selData.filter(function(b){return b.ref===ref;})[0]; }
+  function optOffices(opt){ return opt.refs.map(offOf).filter(Boolean); }
+  function addonsFlat(opt){ return (opt.teletravail||0)*TELETRAV_PRIX + ((typeof optExtrasTotal==='function')?optExtrasTotal(opt):0); }
+  function optTotalAt(opt, coef){ return optOffices(opt).reduce(function(s,b){return s+Math.round(b.prix*coef);},0)+addonsFlat(opt); }
+  var _flatAddon = (typeof getBrkOptionsTotal==='function')?getBrkOptionsTotal():0;
+  function flatTotalAt(coef){ return selData.reduce(function(s,b){return s+Math.round(b.prix*coef);},0)+_flatAddon; }
+  function sumSeats(offs){ return offs.reduce(function(s,b){return s+(isItinB(b)?0:(b.cap||0));},0); }
+  function sumM2(offs){ var v=offs.reduce(function(s,b){return s+(isItinB(b)?0:(b.surface||0));},0); return v?v.toLocaleString('fr-FR',{maximumFractionDigits:1}):'—'; }
+  var clean=function(b){ return esc(cleanDesc(getDesc(b)||'')); };
+  var addrOf=function(b){ return (!isItinB(b)&&b.adresse)?esc(b.adresse):''; };
+  var EUR='<span style="font-size:9px; color:'+GOLD+';"> €</span>';
+  /* ===== Titre ===== */
+  var pdfTitle = isEN?'The Bureau - Broker Lounge - Proposal':'The Bureau - Broker Lounge - Proposition';
+  var nOff = selData.length;
+  var countLine = hasOpts ? (validOpts.length+(isEN?' configurations':' configurations')) : (nOff>1?(nOff+' '+(isEN?'offices':'bureaux')):(isEN?'1 office':'1 bureau'));
+  var sectionTitle = hasOpts ? (isEN?'Configurations to choose from':'Configurations au choix') : ((isEN?'Your selection · ':'Votre sélection · ')+countLine);
+  var ROWM='92px minmax(0,1fr) 56px 56px 56px 150px';
+  var ROWS='92px minmax(0,1fr) 56px 56px 56px 150px 110px';
+  /* ===== Office row ===== */
+  function officeRow(b, withPrice){
+    var it=isItinB(b);
+    var ref=it?(isEN?'Nomad':'Itin.'):esc(b.ref);
+    var nm=it?(isEN?'Nomad office':'Itinérant'):esc(b.label||'');
+    var addr=addrOf(b), desc=it?'':clean(b);
+    var floor=it?'—':etStr(b.etage);
+    var m2=it?'—':(b.surface!=null?b.surface.toLocaleString('fr-FR'):'—');
+    var seats=it?'—':b.cap;
+    var s='<div style="display:grid; grid-template-columns:'+(withPrice?ROWS:ROWM)+'; align-items:center; padding:12px 16px; border-top:0.5px solid '+SEP+';">';
+    s+='<div><span style="display:inline-block; background:'+SLATE+'; color:'+IVORY+'; font-size:9.5px; font-weight:700; letter-spacing:0.04em; padding:5px 10px; text-align:center; min-width:34px; white-space:nowrap; border-radius:12px;">'+ref+'</span></div>';
+    s+='<div style="padding-right:12px;"><div><span style="font-weight:700; font-size:12px;">'+nm+'</span>'+(addr?' <span style="color:'+GOLDAA+'; font-size:10.5px;">· '+addr+'</span>':'')+'</div>'+(desc?'<div style="font-family:Spectral,serif; font-style:italic; font-weight:300; font-size:12px; color:rgba(15,15,15,0.75);">'+desc+'</div>':'')+'</div>';
+    s+='<div style="text-align:center; font-family:Spectral,serif; font-size:13px;">'+floor+'</div>';
+    s+='<div style="text-align:center; font-family:Spectral,serif; font-size:13px;">'+m2+'</div>';
+    s+='<div style="text-align:center; font-family:Spectral,serif; font-size:13px;">'+seats+'</div>';
+    s+='<div style="font-size:10.5px; font-weight:300;">'+dispoStr(b)+'</div>';
+    if(withPrice){ var price=Math.round(b.prix*hiCoef); s+='<div style="text-align:right; white-space:nowrap;"><span style="font-weight:700; font-size:15px; color:'+SLATE+';">'+fmt(price)+'</span>'+EUR+'</div>'; }
+    s+='</div>';
+    return s;
   }
-  function recapTable(totsObj){
-    var ths='',tds='',svs='';
-    activeTiers.forEach(function(tr){
-      var hl=tr.key===_defKey, idx=_tierIdxOf[tr.key];
-      var sub=idx===0?(LANG==='en'?'3 months min.':'3 mois min.'):'−'+(Math.round(tr.d*100))+' %';
-      ths+='<th'+(hl?' class="hl"':'')+'>'+(hl?'<span class="pick">'+pickLbl+'</span>':'')+_shortLabels[idx]+'<span class="pct'+(!hl&&idx===0?' mono':'')+'">'+sub+'</span></th>';
-      tds+='<td'+(hl?' class="hl"':'')+'>'+fmt(totsObj[tr.key])+'<span class="cur"> €</span></td>';
-      var sv=Math.round((baseRecap-totsObj[tr.key])*12);
-      var svTxt=(idx===0||sv<=0)?'—':'−'+fmt(sv)+' €/'+(LANG==='en'?'yr':'an');
-      svs+='<td'+(hl?' class="hl"':'')+'>'+svTxt+'</td>';
-    });
-    return '<div class="recap"><div class="rt">'+(LANG==='en'?'Total monthly excl. VAT by commitment':'Total mensuel H.T. selon l’engagement')+'</div><table class="rtable"><tr>'+ths+'</tr><tr>'+tds+'</tr><tr class="sv">'+svs+'</tr></table></div>';
+  function addonRows(tw, extras, withPrice){
+    var s='';
+    if(tw>0){ s+='<div style="display:grid; grid-template-columns:'+(withPrice?ROWS:ROWM)+'; align-items:center; padding:12px 16px; border-top:0.5px solid '+SEP+';"><div><span style="display:inline-block; background:'+GOLD+'; color:#fff; font-size:8px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:5px 9px; white-space:nowrap;">'+(isEN?'Telework':'Télétravail')+'</span></div><div style="padding-right:12px;"><span style="font-weight:700; font-size:12px;">'+(isEN?'Telework offer':'Offre Télétravail')+'</span> <span style="font-family:Spectral,serif; font-style:italic; font-weight:300; font-size:12px; color:rgba(15,15,15,0.75);">'+tw+' × '+TELETRAV_PRIX+' € '+(isEN?'excl. VAT/mo/pers.':'H.T./mois/pers.')+'</span></div><div style="text-align:center;">—</div><div style="text-align:center;">—</div><div style="text-align:center; font-family:Spectral,serif; font-size:13px;">'+tw+'</div><div style="font-size:10.5px; font-weight:300;">'+(isEN?'Immediate':'Immédiate')+'</div>'+(withPrice?('<div style="text-align:right; white-space:nowrap;"><span style="font-weight:700; font-size:15px; color:'+SLATE+';">'+fmt(tw*TELETRAV_PRIX)+'</span>'+EUR+'</div>'):'')+'</div>'; }
+    if(extras){ ADDONS.forEach(function(a){ var q=extras[a.k]||0; if(q<=0) return; s+='<div style="display:grid; grid-template-columns:'+(withPrice?ROWS:ROWM)+'; align-items:center; padding:12px 16px; border-top:0.5px solid '+SEP+';"><div><span style="display:inline-block; background:'+GOLD+'; color:#fff; font-size:8px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:5px 9px; white-space:nowrap;">'+(isEN?a.en:a.fr)+'</span></div><div style="padding-right:12px;"><span style="font-family:Spectral,serif; font-style:italic; font-weight:300; font-size:12px; color:rgba(15,15,15,0.75);">'+q+' × '+a.p+' € '+(isEN?'excl. VAT'+a.perEn:'H.T.'+a.perFr)+'</span></div><div style="text-align:center;">—</div><div style="text-align:center;">—</div><div style="text-align:center; font-family:Spectral,serif; font-size:13px;">'+q+'</div><div style="font-size:10.5px; font-weight:300;">'+(isEN?'Immediate':'Immédiate')+'</div>'+(withPrice?('<div style="text-align:right; white-space:nowrap;"><span style="font-weight:700; font-size:15px; color:'+SLATE+';">'+fmt(q*a.p)+'</span>'+EUR+'</div>'):'')+'</div>'; }); }
+    return s;
   }
-  function simpleTwRow(qty){
-    return '<tr><td class="ctr"><span class="tw-tag">'+(LANG==='en'?'Telework':'Télétravail')+'</span></td><td><span class="site">'+(LANG==='en'?'Telework offer':'Offre Télétravail')+'<span class="bdesc">'+(LANG==='en'?'Additional access, alternating presence of one collaborator at a time.':'Accès supplémentaire, présence alternée d’un seul collaborateur à la fois.')+'</span></span></td><td class="ctr muted">—</td><td class="num muted">—</td><td class="ctr meta">'+qty+'</td><td class="dispo-now">'+(LANG==='en'?'Immediate':'Immédiate')+'</td><td class="num"><span class="price">'+fmt(qty*TELETRAV_PRIX)+'<span class="cur"> €</span></span></td></tr>';
-  }
-  function extraRows(opt){
-    if(!opt.extras) return '';
-    var o='';
-    ADDONS.forEach(function(a){
-      var q=opt.extras[a.k]||0; if(q<=0) return;
-      o+='<tr><td class="ctr"><span class="tw-tag">Extra</span></td>';
-      o+='<td><span class="site">'+(LANG==='en'?a.en:a.fr)+'<span class="bdesc">'+a.p+' € '+(LANG==='en'?'excl. VAT'+a.perEn:'H.T.'+a.perFr)+'</span></span></td>';
-      o+='<td class="ctr muted">—</td><td class="num muted">—</td><td class="ctr meta">'+q+'</td>';
-      o+='<td class="dispo-now">'+(LANG==='en'?'Immediate':'Immédiate')+'</td>';
-      o+='<td class="num"><span class="price">'+fmt(q*a.p)+'<span class="cur"> €</span></span></td></tr>';
-    });
-    return o;
-  }
-  function optRows(list){
-    var out='';
-    list.forEach(function(b){
-      var price=Math.round(b.prix*(1-defD));
-      var desc=esc(cleanDesc(getDesc(b)||''));
-      var info=[];
-      info.push(etStr(b.etage)+(LANG==='en'?' floor':' étage'));
-      if(b.surface) info.push(b.surface.toLocaleString('fr-FR')+' m²');
-      info.push(b.cap+(LANG==='en'?(b.cap>1?' desks':' desk'):(b.cap>1?' postes':' poste')));
-      info.push(dispoStr(b));
-      out+='<tr><td style="width:70px;vertical-align:top"><span class="orefb">'+esc(b.ref)+'</span></td>';
-      out+='<td><span class="osite">'+esc(b.label||'')+(desc?'<span class="d">'+desc+'</span>':'')+'<span class="i">'+info.join(' · ')+'</span></span></td>';
-      out+='<td class="oprice" style="width:130px;vertical-align:top">'+fmt(price)+'<span class="cur"> €</span></td></tr>';
-    });
-    return out;
-  }
-  function optTelRow(qty){
-    return '<tr><td style="width:70px;vertical-align:top"><span class="tw-tag">'+(LANG==='en'?'Telework':'Télétravail')+'</span></td><td><span class="osite">'+(LANG==='en'?'Telework offer':'Offre Télétravail')+'<span class="d">'+(LANG==='en'?'Additional access, alternating presence of one collaborator at a time.':'Accès supplémentaire, présence alternée d’un seul collaborateur à la fois.')+'</span><span class="i">'+qty+(LANG==='en'?(qty>1?' subscriptions':' subscription'):(qty>1?' abonnements':' abonnement'))+' · '+(LANG==='en'?'Immediate':'Immédiate')+'</span></span></td><td class="oprice" style="width:130px;vertical-align:top">'+fmt(qty*TELETRAV_PRIX)+'<span class="cur"> €</span></td></tr>';
-  }
-  function optFooter(optT){
-    var e='';
-    activeTiers.forEach(function(tr){ var hl=tr.key===_defKey, idx=_tierIdxOf[tr.key]; e+='<div class="e'+(hl?' hl':'')+'"><span class="lab">'+_shortLabels[idx]+'</span><b>'+fmt(optT[tr.key])+' €</b></div>'; });
-    return '<div class="opt-ft">'+e+'</div>';
-  }
-  var eyebrow=LANG==='en'?'Personalised proposal':'Proposition personnalisée';
-  var logoWhiteUrl=window.location.origin+'/logo-white.svg';
-  var CSS="@page{size:A4 landscape;margin:0}*{box-sizing:border-box;margin:0;padding:0}html,body{font-family:'Plus Jakarta Sans',Arial,sans-serif;color:#0F0F0F;background:#fff;font-size:10.5px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}.btn-print{position:fixed;top:12px;right:12px;background:#1E4035;color:#fff;border:none;border-radius:50px;padding:9px 20px;font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:999}@media print{.no-print{display:none!important}.page{border:none!important}}.page{position:relative;width:297mm;min-height:210mm;padding:13mm 14mm 11mm;display:flex;flex-direction:column;margin:0 auto;border:2px solid rgba(176,148,56,.6);border-radius:8px;overflow:hidden}.hd{display:flex;align-items:center;justify-content:space-between;gap:24px;background:#1E4035;margin:-13mm -14mm 0;padding:18px 14mm}.hd-l{display:flex;align-items:center;gap:16px}.hd-logo{height:34px;width:auto}.hd-div{width:1px;height:34px;background:rgba(176,148,56,.5)}.hd-title .eyebrow{font-size:8.5px;letter-spacing:.26em;text-transform:uppercase;color:#B09438;font-weight:700;margin-bottom:3px}.hd-title h1{font-size:20px;font-weight:300;color:#fff;line-height:1}.hd-title h1 em{font-style:normal;font-weight:700;color:#fff}.hd-r{text-align:right}.hd-r .date{font-size:13px;font-weight:700;color:#fff}.hd-r .sub{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,239,229,.7);margin-top:2px}main.body{flex:1;display:flex;flex-direction:column}.sec{display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#7A6015;font-weight:700;margin:16px 0 10px}.sec::before{content:'';width:18px;height:2px;background:#B09438}.sec .eng{margin-left:auto;background:#B09438;color:#fff;border-radius:50px;padding:3px 12px;font-size:8.5px;letter-spacing:.06em;font-weight:700}.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:10.5px;border:1px solid #e9e1d2;border-radius:10px;overflow:hidden}.tbl thead th{background:#1E4035;color:#F5EFE5;text-align:left;padding:9px 12px;font-weight:600;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase}.tbl thead th.num{text-align:right}.tbl thead th.ctr{text-align:center}.tbl tbody td{padding:10px 12px;border-top:1px solid #e9e1d2;vertical-align:middle}.tbl tbody tr:nth-child(even) td{background:#faf8f4}.tbl td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.tbl td.ctr{text-align:center}.refb{display:inline-block;background:#1E4035;color:#F5EFE5;padding:5px 12px;border-radius:50px;font-size:10px;font-weight:700}.site{font-weight:700;font-size:11px;color:#0F0F0F}.site .baddr{font-weight:500;font-size:9px;color:#7A6015;letter-spacing:.01em}.site .bdesc{display:block;color:#5a5248;font-size:9px;font-weight:400;margin-top:2px;line-height:1.4}.meta{color:#0F0F0F;font-weight:500}.muted{color:#5a5248}.dispo-now{color:#1E4035;font-weight:600}.price{font-size:14px;font-weight:700;color:#0F0F0F}.price .cur{color:#B09438;font-size:9px}.tw-tag{display:inline-block;background:rgba(176,148,56,.14);color:#7A6015;padding:4px 11px;border-radius:50px;font-size:9px;font-weight:700}.recap{margin-top:14px}.rt{display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#7A6015;font-weight:700;margin-bottom:8px}.rt::before{content:'';width:18px;height:2px;background:#B09438}.rtable{width:100%;border-collapse:collapse;border:1px solid #d3e6da;border-radius:10px;overflow:hidden}.rtable th{background:#dceae2;padding:8px 10px;text-align:center;font-size:11px;font-weight:600;color:#1E4035;border-left:1px solid #cfe2d6;line-height:1.3}.rtable th:first-child{border-left:none}.rtable th .pct{display:block;font-size:9px;color:#7A6015;font-weight:600;margin-top:2px}.rtable th .pct.mono{color:#5a5248;font-weight:400}.rtable td{background:#eef5f1;padding:10px;text-align:center;font-size:16px;font-weight:700;color:#1E4035;border-left:1px solid #cfe2d6;border-top:1px solid #d3e6da}.rtable td:first-child{border-left:none}.rtable td .cur{color:#B09438;font-size:10px}.rtable tr.sv td{font-size:9px;font-weight:600;color:#7A6015;padding:0 10px 8px;border-top:none}.rtable th.hl{background:#B09438;color:#fff;border-color:#B09438}.rtable th.hl .pick{display:block;font-size:7.5px;letter-spacing:.1em;color:#fff;font-weight:700;margin-bottom:2px}.rtable th.hl .pct{color:#fff}.rtable td.hl{background:#fbf2d8;color:#1E4035;border-left:2px solid #B09438;border-right:2px solid #B09438}.rtable tr.sv td.hl{border-left:2px solid #B09438;border-right:2px solid #B09438;border-bottom:2px solid #B09438;color:#7A6015}.opt{border:1px solid #e9e1d2;border-left:5px solid #B09438;border-radius:12px;overflow:hidden;margin-bottom:12px}.opt .tbl{border:none;border-radius:0;margin:0}.opt .tbl thead th{font-size:8px;padding:7px 12px}.opt-hd{display:flex;align-items:center;gap:10px;background:#faf8f4;padding:10px 16px;border-bottom:1px solid #e9e1d2}.opt-num{background:#B09438;color:#fff;border-radius:50px;padding:4px 13px;font-size:10px;font-weight:700;letter-spacing:.06em}.opt-name{font-size:13px;font-weight:700;color:#0F0F0F}.opt-tot{margin-left:auto;text-align:right}.opt-tot .v{font-size:17px;font-weight:700;color:#1E4035}.opt-tot .v .cur{color:#B09438;font-size:10px}.opt-tot .l{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:#5a5248}.otbl{width:100%;border-collapse:collapse}.otbl td{padding:9px 16px;border-top:1px solid #f1ede4;vertical-align:middle}.otbl tr:first-child td{border-top:none}.orefb{display:inline-block;background:#1E4035;color:#F5EFE5;padding:4px 11px;border-radius:50px;font-size:10px;font-weight:700}.osite{font-weight:700;font-size:11px;color:#0F0F0F}.osite .d{display:block;color:#5a5248;font-size:9px;font-weight:400;margin-top:2px;line-height:1.4}.osite .i{display:block;color:#7A6015;font-size:8.5px;font-weight:600;margin-top:3px;letter-spacing:.02em}.ometa{color:#5a5248;font-size:10px;text-align:center}.oprice{text-align:right;font-size:13px;font-weight:700;color:#0F0F0F;white-space:nowrap}.oprice .cur{color:#B09438;font-size:9px}.opt-ft{display:flex;background:#f3efe6;border-top:1px solid #e9e1d2}.opt-ft .e{flex:1;text-align:center;padding:7px 6px;border-left:1px solid #e9e1d2;font-size:9px;color:#5a5248}.opt-ft .e:first-child{border-left:none}.opt-ft .e .lab{display:block;text-transform:uppercase;letter-spacing:.06em;font-size:8px;margin-bottom:2px}.opt-ft .e b{font-size:11px;color:#1E4035}.opt-ft .e.hl{background:#B09438}.opt-ft .e.hl .lab{color:#fff}.opt-ft .e.hl b{color:#fff}.bottom{display:flex;flex-direction:column;gap:12px;margin-top:14px}.box{background:#faf8f4;border:1px solid #e9e1d2;border-radius:10px;padding:13px 16px}.box h3{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#7A6015;font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:8px}.box h3::before{content:'';width:16px;height:2px;background:#B09438}.box ul{list-style:none;column-count:2;column-gap:22px}.box li{position:relative;padding-left:17px;margin-bottom:5px;font-size:9px;color:#5a5248;line-height:1.4;break-inside:avoid}.box li::before{content:'✓';position:absolute;left:0;top:0;color:#1E4035;font-weight:700;font-size:9px}.ft{margin-top:14px;background:#1E4035;color:#F5EFE5;border-radius:10px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-top:3px solid #B09438}.ft-l{display:flex;align-items:center;gap:14px}.ft-chev{height:28px;opacity:.9}.ft-name{font-weight:700;color:#fff;font-size:12px}.ft-meta{font-size:10px;color:rgba(245,239,229,.85);line-height:1.6}.ft-meta a{color:#F5EFE5;text-decoration:none}.ft-r{text-align:right;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,239,229,.75);line-height:1.7}.ft-r b{color:#B09438;font-weight:600;font-size:11px}";
-  var h='<!DOCTYPE html><html lang="'+LANG+'"><head><meta charset="UTF-8"><title>'+t('pdf_title')+'</title><meta name="viewport" content="width=1200,initial-scale=1"/><link href="'+GFONTS+'" rel="stylesheet"/><style>'+CSS+'</style></head><body>';
-  h+='<button class="btn-print no-print" onclick="window.print()">'+(LANG==='en'?'Print / PDF':'Imprimer / PDF')+'</button>';
-  h+='<div class="page">';
-  h+='<header class="hd"><div class="hd-l"><img class="hd-logo" src="'+logoWhiteUrl+'" alt="The Bureau"/><div class="hd-div"></div><div class="hd-title"><div class="eyebrow">'+eyebrow+'</div><h1>'+(LANG==='en'?'Office <em>selection</em>':'Sélection <em>bureaux</em>')+'</h1></div></div>';
-  h+='<div class="hd-r"><div class="date">'+dateStr+'</div><div class="sub">'+subLine+'</div></div></header>';
-  h+='<main class="body">';
-  var hasOpts=OPT_MODE&&OPTIONS.some(function(o){return o.refs.length>0});
+  /* ===== Assemblage ===== */
+  var h='<!DOCTYPE html><html lang="'+(isEN?'en':'fr')+'"><head><meta charset="UTF-8"><title>'+esc(pdfTitle)+'</title><meta name="viewport" content="width=1200,initial-scale=1"/><link href="'+GFONTS+'" rel="stylesheet"/>';
+  h+='<style>*{box-sizing:border-box;margin:0;padding:0}.opt-block,.kt,tr{break-inside:avoid}a{color:'+GOLDAA+';text-decoration:none}</style></head>';
+  h+='<body style="margin:0;background:'+WHITE+';"><div class="page" style="width:297mm;background:'+WHITE+';padding:9mm;font-family:\'Plus Jakarta Sans\',sans-serif;color:'+INK+';font-size:11px;line-height:1.5;-webkit-font-smoothing:antialiased;">';
+  /* En-tête */
+  h+='<div style="display:flex; align-items:flex-end; justify-content:space-between; gap:24px; padding:6px 0 18px; border-bottom:1px solid '+GOLD+';">';
+  h+='<div style="display:flex; align-items:center; gap:22px;"><img src="'+logoUrl+'" alt="The Bureau" style="height:30px; width:auto; display:block;"><div style="width:0.5px; height:40px; background:rgba(15,15,15,0.18);"></div><div><div style="font-size:9px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+(isEN?'Personalised proposal':'Proposition personnalisée')+'</div><div style="font-size:28px; line-height:1.1; letter-spacing:-0.02em; margin-top:2px;"><span style="font-weight:200;">'+(isEN?'Office ':'Sélection ')+'</span><span style="font-weight:800; color:'+GOLD+';">'+(isEN?'selection':'bureaux')+'</span></div></div></div>';
+  h+='<div style="text-align:right;"><div style="font-family:Spectral,serif; font-size:22px; font-weight:400; line-height:1; color:'+INK+';">'+dateFr+'</div><div style="font-size:9px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:rgba(15,15,15,0.55); margin-top:6px;">'+esc(countLine)+'</div></div></div>';
+  /* Ligne de section */
+  h+='<div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin:22px 0 10px;"><div style="display:flex; align-items:center; gap:10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:10px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+esc(sectionTitle)+'</span></div><div style="font-size:9px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:rgba(15,15,15,0.5);">'+(isEN?'Prices excl. VAT, per month':'Prix hors taxes, par mois')+'</div></div>';
   if(hasOpts){
-    h+='<div class="sec">'+(LANG==='en'?'Configurations to choose from':'Configurations au choix')+'<span class="eng">'+(LANG==='en'?'Displayed rate · ':'Tarif affiché · ')+defShort+'</span></div>';
-    OPTIONS.forEach(function(opt,_oi){
-      var optBureaux=selData.filter(function(b){return opt.refs.indexOf(b.ref)>=0});
-      if(optBureaux.length===0)return;
-      var telQty=opt.teletravail||0; var telSub=telQty*TELETRAV_PRIX+optExtrasTotal(opt);
-      var optTotals={};activeTiers.forEach(function(tr){optTotals[tr.key]=optBureaux.reduce(function(s,b){return s+Math.round(b.prix*(1-tr.d))},0)+telSub});
-      var custom=(opt.label&&opt.label!=='Texte personnalisé'&&opt.label!=='Custom text')?'<span class="opt-name">'+esc(opt.label)+'</span>':'';
-      h+='<div class="opt"><div class="opt-hd"><span class="opt-num">Option '+(_oi+1)+'</span>'+custom+'<span class="opt-tot"><div class="v">'+fmt(optTotals[_defKey])+'<span class="cur"> €</span></div><div class="l">'+(LANG==='en'?'excl. VAT/mo · ':'H.T./mois · ')+defShort+'</div></span></div>';
-      h+='<table class="tbl">'+simpleHeader()+'<tbody>'+simpleRows(optBureaux)+(telQty>0?simpleTwRow(telQty):'')+extraRows(opt)+'</tbody></table>';
-      h+=optFooter(optTotals);
+    /* ===== OPTIONS — blocs détail (sans comparatif, sans reco) ===== */
+    h+='<div style="display:flex; flex-direction:column; gap:18px;">';
+    validOpts.forEach(function(opt,i){
+      var offs=optOffices(opt);
+      var _isCustom = opt.label && opt.label!=='Texte personnalisé' && opt.label!=='Custom text' && !/^option\s*\d+$/i.test(opt.label.trim());
+      var oLabel=_isCustom?opt.label:'';
+      var others=durs.filter(function(d){return d.key!==hiKey;}).map(function(d){return d.label+' '+fmt(optTotalAt(opt,d.coef))+' €';}).join(' · ');
+      h+='<div class="opt-block" style="border:0.5px solid rgba(176,148,56,0.45); border-left:3px solid '+GOLD+'; background:'+WHITE+';">';
+      h+='<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; background:'+IVORY+'; border-bottom:1px solid '+GOLD+';"><div style="display:flex; align-items:center; gap:14px;"><span style="background:'+GOLD+'; color:'+WHITE+'; font-size:9px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; padding:5px 10px;">Option '+(i+1)+'</span>'+(oLabel?'<span style="font-size:17px; letter-spacing:-0.01em; font-weight:600; color:'+INK+';">'+esc(oLabel)+'</span>':'')+'</div>';
+      h+='<div style="text-align:right; white-space:nowrap;"><span style="font-weight:700; font-size:24px; line-height:1; letter-spacing:-0.01em; color:'+SLATE+';">'+fmt(optTotalAt(opt,hiCoef))+'</span> <span style="font-size:11px; color:'+GOLD+';">€</span><span style="font-size:8px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(15,15,15,0.5); margin-left:8px;">'+hiLabelHTML+'</span>'+(others?('<div style="font-size:9px; font-weight:300; color:rgba(15,15,15,0.6); margin-top:3px;">'+others+'</div>'):'')+'</div></div>';
+      h+='<div style="display:grid; grid-template-columns:'+ROWM+'; align-items:center; padding:8px 16px; background:'+WHITE+'; color:'+GOLDAA+'; font-size:8px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; border-bottom:0.5px solid '+SEP+';"><div>'+(isEN?'Ref.':'Réf.')+'</div><div>'+(isEN?'Office':'Bureau')+'</div><div style="text-align:center;">'+(isEN?'Floor':'Étage')+'</div><div style="text-align:center;">m²</div><div style="text-align:center;">'+(isEN?'Desks':'Postes')+'</div><div>'+(isEN?'Avail.':'Dispo.')+'</div></div>';
+      offs.forEach(function(b){ h+=officeRow(b,false); });
+      h+=addonRows(opt.teletravail||0, opt.extras, false);
       h+='</div>';
     });
+    h+='</div>';
+    h+='<div style="display:flex; align-items:center; gap:8px; margin:16px 0 0; font-size:8.5px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:'+GOLDAA+';"><span style="display:block; width:10px; height:10px; background:'+GOLD+';"></span>'+pillText.toUpperCase()+'</div>';
   } else {
-    h+='<div class="sec">'+(LANG==='en'?'Your selection · ':'Votre sélection · ')+subLine+'<span class="eng">'+(LANG==='en'?'Displayed rate · ':'Tarif affiché · ')+defShort+'</span></div>';
-    h+='<table class="tbl">'+simpleHeader()+'<tbody>'+simpleRows(selData)+(BRK_TW>0?simpleTwRow(BRK_TW):'')+extraRows({extras:BRK_EXTRAS})+'</tbody></table>';
-    h+=recapTable(totals);
+    /* ===== SIMPLE ===== */
+    h+='<div class="opt-block" style="border:0.5px solid rgba(176,148,56,0.45); border-left:3px solid '+GOLD+'; background:'+WHITE+';">';
+    h+='<div style="display:grid; grid-template-columns:'+ROWS+'; align-items:center; padding:8px 16px; background:'+GOLD+'; color:'+WHITE+'; font-size:8px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase;"><div>'+(isEN?'Ref.':'Réf.')+'</div><div>'+(isEN?'Office':'Bureau')+'</div><div style="text-align:center;">'+(isEN?'Floor':'Étage')+'</div><div style="text-align:center;">m²</div><div style="text-align:center;">'+(isEN?'Desks':'Postes')+'</div><div>'+(isEN?'Avail.':'Dispo.')+'</div><div style="text-align:right;">'+(isEN?'Price excl. VAT/mo':'Prix H.T./mois')+'</div></div>';
+    selData.forEach(function(b){ h+=officeRow(b,true); });
+    h+=addonRows(BRK_TW, BRK_EXTRAS, true);
+    h+='</div>';
+    /* Grille d'engagement */
+    h+='<div style="display:flex; align-items:center; gap:10px; margin:24px 0 10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:10px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+(isEN?'Total monthly excl. VAT by commitment':'Total mensuel H.T. selon l’engagement')+'</span></div>';
+    h+='<div class="kt" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:2px;">';
+    var mensTot=flatTotalAt(allTiers[0].coef);
+    durs.forEach(function(d){
+      var on=d.key===hiKey, price=flatTotalAt(d.coef), sav=(mensTot-price)*12;
+      h+='<div style="background:'+(on?IVORY:WHITE)+'; border:1px solid '+(on?GOLD:'rgba(15,15,15,0.14)')+'; text-align:center;"><div style="padding:10px 18px 8px; background:'+(on?GOLD:'transparent')+';"><div style="font-size:9px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:'+(on?WHITE:SLATE)+';">'+(on?'★ '+pillText:d.label)+'</div><div style="font-size:9.5px; font-weight:300; color:'+(on?'rgba(250,250,250,0.85)':'rgba(15,15,15,0.55)')+'; margin-top:2px; min-height:14px;">'+d.sub+'</div></div><div style="padding:0 18px 16px;"><div style="margin-top:12px; font-weight:700; font-size:24px; letter-spacing:-0.01em; color:'+SLATE+'; white-space:nowrap;">'+fmt(price)+' <span style="font-size:11px; color:'+GOLD+'; font-weight:600;">€</span></div><div style="font-size:9.5px; color:'+GOLDAA+'; margin-top:4px; min-height:14px;">'+(sav>0?('−'+fmt(sav)+' €/'+(isEN?'yr':'an')):'—')+'</div></div></div>';
+    });
+    h+='</div>';
+    h+='<div style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:8.5px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:'+GOLDAA+';"><span style="display:block; width:10px; height:10px; background:'+GOLD+';"></span>'+pillText.toUpperCase()+'</div>';
   }
-  h+='<div class="bottom"><div class="box incl"><h3>'+t('pdf_services')+'</h3><ul>'+services.map(function(s){return '<li>'+s+'</li>';}).join('')+'</ul></div>';
-  h+='<div class="box cond"><h3>'+t('pdf_conditions')+'</h3><ul>'+conditions.map(function(s){return '<li>'+s+'</li>';}).join('')+'</ul></div></div></main>';
-  h+='<footer class="ft"><div class="ft-l"><img class="ft-chev" src="'+chevronsUrl+'" alt=""/>';
-  h+='<div class="ft-meta"><span class="ft-name">Thomas Bougeard</span> · '+t('pdf_footer_role')+'<br>+33 6 59 23 15 92 · <a href="mailto:thomasb@thebureau.paris">thomasb@thebureau.paris</a> · <a href="https://www.thebureau.paris">thebureau.paris</a></div></div>';
-  h+='<div class="ft-r">'+t('pdf_footer_addr')+'<br><b>75002 · 75008</b></div></footer>';
+  /* ===== Annexes ===== */
+  h+='<div class="kt" style="display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:2px; margin-top:26px;">';
+  h+='<div style="background:'+IVORY+'; padding:18px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+(isEN?'Everything on site':'Tout est sur place')+'</span></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 18px;">';
+  INCLUS.forEach(function(x){ h+='<div style="display:grid; grid-template-columns:10px minmax(0,1fr); gap:8px; align-items:baseline;"><span style="display:block; width:8px; height:1px; background:'+GOLD+'; transform:translateY(-3px);"></span><span style="font-weight:300; font-size:10px; line-height:1.4;">'+x+'</span></div>'; });
+  h+='</div></div>';
+  h+='<div style="background:'+IVORY+'; padding:18px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+(isEN?'À la carte, no commitment':'À la carte, sans engagement')+'</span></div><div style="display:flex; flex-direction:column; gap:5px;">';
+  CARTE.forEach(function(k){ h+='<div style="display:flex; justify-content:space-between; gap:10px; border-bottom:0.5px solid rgba(15,15,15,0.10); padding-bottom:4px;"><span style="font-weight:300; font-size:10px;">'+k[0]+'</span><span style="font-size:10px; font-weight:600; color:'+SLATE+'; white-space:nowrap;">'+k[1]+'</span></div>'; });
+  h+='</div><div style="font-size:8.5px; color:rgba(15,15,15,0.5); margin-top:8px; font-weight:300;">'+(isEN?'Billed on use, with or without subscription. Prices excl. VAT.':'Facturé à l’usage, avec ou sans abonnement. Prix hors taxes.')+'</div></div></div>';
+  /* Rangée 2 : conditions + accès */
+  var usedB=[]; selData.forEach(function(b){ if(!isItinB(b) && b.site && usedB.indexOf(b.site)<0) usedB.push(b.site); });
+  if(usedB.length===0) usedB=['I'];
+  var addrByB={}; selData.forEach(function(b){ if(b.site && b.adresse && !addrByB[b.site]) addrByB[b.site]=b.adresse; });
+  h+='<div class="kt" style="display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:2px; margin-top:2px;">';
+  h+='<div style="border:0.5px solid rgba(15,15,15,0.14); padding:16px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+(isEN?'Contractual conditions':'Conditions contractuelles')+'</span></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 20px;">';
+  CONDITIONS.forEach(function(x){ h+='<div style="display:grid; grid-template-columns:10px minmax(0,1fr); gap:8px; align-items:baseline;"><span style="display:block; width:8px; height:1px; background:'+GOLD+'; transform:translateY(-3px);"></span><span style="font-weight:300; font-size:10px; line-height:1.4;">'+x+'</span></div>'; });
+  h+='</div></div>';
+  h+='<div style="border:0.5px solid rgba(15,15,15,0.14); padding:16px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+(isEN?'Access':'Accès')+'</span></div><div style="display:flex; flex-direction:column; gap:7px;">';
+  usedB.forEach(function(bk){ var B=BLD[bk]||BLD.I; var ad=addrByB[bk]||''; h+='<div style="display:flex; align-items:center; justify-content:space-between; gap:12px;"><div style="min-width:0;"><div style="font-weight:600; font-size:10.5px;">'+esc(ad)+'</div><div style="font-size:8px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(15,15,15,0.5);">'+B.zone+'</div></div><div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">'+B.metro.map(ratp).join('')+'<span style="font-size:8.5px; color:rgba(15,15,15,0.55); margin-left:6px; white-space:nowrap;">Bus '+B.bus+'</span></div></div>'; });
+  h+='</div></div></div>';
+  /* ===== Pied de page ===== */
+  var sndTitle=(typeof t==='function')?t('pdf_footer_role'):(isEN?'Sales Director':'Directeur Commercial');
+  h+='<div class="kt" style="margin-top:22px; background:'+SLATE+'; color:'+IVORY+'; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:16px 22px; border-top:2px solid '+GOLD+';"><div style="display:flex; align-items:center; gap:16px;"><img src="'+chevronsUrl+'" alt="" style="height:28px; width:auto; display:block; opacity:0.95;"><div><div><span style="font-weight:700; font-size:12px;">Thomas Bougeard</span> <span style="font-weight:300; font-size:10.5px; color:rgba(245,239,229,0.75);">· '+esc(sndTitle)+'</span></div><div style="font-weight:300; font-size:10.5px; color:rgba(245,239,229,0.85);">+33 6 59 23 15 92 · <a href="mailto:thomasb@thebureau.paris">thomasb@thebureau.paris</a> · thebureau.paris</div></div></div><div style="text-align:right;"><div style="font-size:8.5px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:rgba(245,239,229,0.7);">The Bureau Paris</div><div style="font-family:Spectral,serif; font-size:15px; color:'+GOLDLT+'; letter-spacing:0.06em; margin-top:2px;">75002 · 75008</div></div></div>';
   h+='</div></body></html>';
 
-  /* ===== Génération d'un vrai PDF (html2canvas + jsPDF), repli HTML si indispo ===== */
-  var isEN = (LANG==='en');
-  var fileName = 'The Bureau - Broker Lounge.pdf';
-  var pdfTitle = t('pdf_title');
-  function openHtmlFallback(){
-    var blob=new Blob([h],{type:'text/html;charset=utf-8'});
-    var url=URL.createObjectURL(blob);
-    var isMob=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if(isMob){ var a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
-    else { var win=window.open(url,'_blank'); if(!win) window.location.href=url; }
-    setTimeout(function(){URL.revokeObjectURL(url)},60000);
-  }
-  function downloadPdf(pdfBlob){
-    var purl=URL.createObjectURL(pdfBlob);
-    var a=document.createElement('a'); a.href=purl; a.download=fileName; a.rel='noopener';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function(){URL.revokeObjectURL(purl)},60000);
-    showToast(isEN?'PDF ready':'PDF prêt');
-  }
-  function deliverPdf(pdfBlob){
-    /* Partage natif uniquement sur mobile (sur desktop c'est la boîte de partage Windows, agaçante) → desktop = téléchargement direct */
-    var isMob = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if(isMob){
-      try{
-        var file=new File([pdfBlob],fileName,{type:'application/pdf'});
-        if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-          navigator.share({files:[file],title:pdfTitle})
-            .then(function(){ showToast(isEN?'PDF shared':'PDF partagé'); })
-            .catch(function(e){ if(e&&e.name==='AbortError') return; downloadPdf(pdfBlob); });
-          return;
-        }
-      }catch(e){}
-    }
-    downloadPdf(pdfBlob);
-  }
+  /* ===== Génération PDF (html2canvas + jsPDF), repli HTML ===== */
+  var fileBase=pdfTitle.replace(/[^0-9A-Za-zÀ-ſ .-]/g,'').trim().replace(/\s+/g,'_');
+  var fileName=fileBase+'.pdf';
+  function openHtmlFallback(){ var blob=new Blob([h],{type:'text/html;charset=utf-8'}); var url=URL.createObjectURL(blob); var isMob=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent); if(isMob){ var a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); document.body.removeChild(a); } else { var win=window.open(url,'_blank'); if(!win) window.location.href=url; } setTimeout(function(){URL.revokeObjectURL(url)},60000); }
+  function downloadPdf(pdfBlob){ var purl=URL.createObjectURL(pdfBlob); var a=document.createElement('a'); a.href=purl; a.download=fileName; a.rel='noopener'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(purl)},60000); showToast(isEN?'PDF ready':'PDF prêt'); }
+  function deliverPdf(pdfBlob){ var isMob=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent); if(isMob){ try{ var file=new File([pdfBlob],fileName,{type:'application/pdf'}); if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){ navigator.share({files:[file],title:pdfTitle}).then(function(){ showToast(isEN?'PDF shared':'PDF partagé'); }).catch(function(e){ if(e&&e.name==='AbortError') return; downloadPdf(pdfBlob); }); return; } }catch(e){} } downloadPdf(pdfBlob); }
   var jsPDFLib = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
   if(typeof html2canvas!=='function' || !jsPDFLib){ openHtmlFallback(); return; }
   showToast(isEN?'Generating PDF…':'Génération du PDF…');
-  Promise.all([ rasterizeSvg(logoWhiteUrl,34), rasterizeSvg(chevronsUrl,28) ]).then(function(imgs){
-    h = h.replace(logoWhiteUrl, function(){ return imgs[0]||''; });
-    h = h.replace(chevronsUrl,  function(){ return imgs[1]||''; });
+  Promise.all([ rasterizeSvg(logoUrl,30), rasterizeSvg(chevronsUrl,28) ]).then(function(imgs){
+    h = h.replace(logoUrl, function(){ return imgs[0]||logoUrl; });
+    h = h.replace(chevronsUrl, function(){ return imgs[1]||chevronsUrl; });
     var frame=document.createElement('iframe');
     frame.style.cssText='position:fixed;left:-9999px;top:0;width:1123px;height:10px;opacity:0;pointer-events:none';
     document.body.appendChild(frame);
     var fdoc=frame.contentDocument; fdoc.open(); fdoc.write(h); fdoc.close();
-    setTimeout(function(){
-      try{ var bp=fdoc.querySelector('.btn-print'); if(bp) bp.parentNode.removeChild(bp); }catch(e){}
+    var _ran=false;
+    var go=function(){
+      if(_ran) return; _ran=true;
       var pageEl=fdoc.querySelector('.page')||fdoc.body;
       var w=Math.round(pageEl.getBoundingClientRect().width)||1123;
       var ht=Math.max(pageEl.scrollHeight, fdoc.body.scrollHeight)||794;
       frame.style.height=ht+'px';
       setTimeout(function(){
-        html2canvas(pageEl,{scale:2,useCORS:true,logging:false,backgroundColor:'#ffffff',width:w,height:ht,windowWidth:w}).then(function(canvas){
+        html2canvas(pageEl,{scale:2,useCORS:true,logging:false,backgroundColor:'#FAFAFA',width:w,height:ht,windowWidth:w}).then(function(canvas){
           var orient=(canvas.width>=canvas.height)?'l':'p';
           var pdf=new jsPDFLib({unit:'px',format:[w,ht],orientation:orient});
           var pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
@@ -2394,126 +2380,12 @@ function exportPDF(){
           try{ document.body.removeChild(frame); }catch(e){}
           deliverPdf(pdfBlob);
         }).catch(function(){ try{document.body.removeChild(frame);}catch(e){} openHtmlFallback(); });
-      },700);
-    },500);
+      },400);
+    };
+    var fw=frame.contentWindow;
+    if(fw && fw.document && fw.document.fonts && fw.document.fonts.ready){ fw.document.fonts.ready.then(function(){ setTimeout(go,250); }); setTimeout(go,1500); }
+    else setTimeout(go,900);
   });
-  return;
-  /* === LEGACY CODE BELOW (deprecated) === */
-  var engLabel = {mensuel:'Mensuel (3 mois min.)', '12m':'12 mois', '24m':'24 mois', '36m':'36 mois'}[ST.eng]||ST.eng;
-  var OR='#c9a96e', OR2_OLD='#B09438', INK_OLD='#303030', CR_OLD='#f5f0e8', GR_OLD='#7a6e5e';
-  var GFONTS_OLD='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap';
-
-  var legalFR='<u><strong>Tous les tarifs sont indiqu\u00e9s H.T. et incluent\u00a0:</strong></u><br>\u2022 Acc\u00e8s 24h/24 et 7j/7 dans l\u2019arrondissement choisi, et du lundi au vendredi de 8h00 \u00e0 19h00 aux autres espaces The Bureau sur pr\u00e9sentation de son badge \u00e0 la conciergerie.<br>\u2022 Acc\u00e8s \u00e0 l\u2019ensemble des espaces communs\u00a0: coworking, espace restauration, patio, douches, salle de sport et cabines t\u00e9l\u00e9phoniques.<br>\u2022 Domiciliation et rangement tiroir inclus (sauf Itinérant).<br>\u2022 T\u00e9l\u00e9phone fixe, communications France et monde incluses (fixe et portable).<br>\u2022 Forfait impression\u00a0: 200 copies N&B et 25 couleurs par mois et par personne.<br>\u2022 Acc\u00e8s illimit\u00e9 aux tisaneries\u00a0: caf\u00e9, th\u00e9, eau filtr\u00e9e et fruits frais \u00e0 discr\u00e9tion.<br>\u2022 Programmation \u00e9v\u00e9nementielle\u00a0: soir\u00e9es, vernissages, partenariats et ap\u00e9ritivo du jeudi.<br>\u2022 Mobilier\u00a0: bureau, chaise et caisson.<br>\u2022 Conciergerie\u00a0: accueil clients, courrier, taxis, r\u00e9servations de salles.<br>\u2022 Global Collective\u00a0: 2 jours/mois dans les espaces partenaires (globalcollective.co).<br>\u2022 All-inclus\u00a0: \u00e9lectricit\u00e9, m\u00e9nage, charges, climatisation, chauffage.';
-  var ccItems=['3 mois minimum, puis renouvellement de 3 mois successifs.','D\u00e9p\u00f4t de garantie\u00a0: 2 mois d\u2019abonnement H.T. (pr\u00e9cis\u00e9 dans le contrat).','Frais d\u2019installation\u00a0: 100\u20ac H.T. par poste capacitaire.','Pr\u00e9avis\u00a0: 2 mois plus le mois en cours.'];
-  var ccList=ccItems.map(function(i){ return '<li style="margin:0 0 4px;font-size:11px;color:rgba(244,239,230,0.65);font-family:Plus Jakarta Sans,Arial,sans-serif">'+i+'</li>'; }).join('');
-
-  var paliers=[
-    {label:'Mensuel (3 mois minimum)',d:0},
-    {label:'12 mois \u2014 5%',d:0.05},
-    {label:'24 mois \u2014 10%',d:0.10},
-    {label:'36 mois \u2014 15%',d:0.15}
-  ];
-  var CAL_URL='https://calendar.app.google/TpzHDUHnLvaxVLL59';
-
-  var h='';
-  h+='<html><head><meta charset="UTF-8"><link href="'+GFONTS+'" rel="stylesheet"/>';
-  h+='<style>@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}.no-print{display:block}.btn-print{position:fixed;top:16px;right:16px;background:'+OR2+';color:#fff;border:none;border-radius:50px;padding:10px 22px;font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:999}@media print{.no-print{display:none!important}}</style>';
-  h+='</head><body style="margin:0;padding:0;background:#f0ebe3">';
-  h+='<button class="btn-print no-print" onclick="window.print()">Imprimer / PDF</button>';
-  h+='<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f0ebe3;padding:32px 0"><tr><td align="center">';
-  h+='<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">';
-
-  /* Header */
-  h+='<tr><td style="background:'+INK+';padding:20px 36px 14px;border-bottom:3px solid '+OR+';border-radius:4px 4px 0 0">';
-  h+='<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>';
-  h+='<td><img src="data:image/png;base64,'+LOGO_B64+'" alt="The Bureau" height="30" style="display:block"/></td>';
-  h+='<td align="right" style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(201,169,110,0.85);font-family:Plus Jakarta Sans,Arial,sans-serif;vertical-align:middle">PROPOSITION COMMERCIALE</td>';
-  h+='</tr></table></td></tr>';
-
-  /* Intro */
-  h+='<tr><td style="background:#ffffff;padding:24px 36px 20px;border-bottom:1px solid #ece5d6">';
-  h+='<p style="margin:0 0 8px;font-family:Plus Jakarta Sans,sans-serif;font-size:22px;font-weight:300;color:'+INK+'">S\u00e9lection de bureaux disponibles</p>';
-  h+='<p style="margin:0;font-size:12px;color:'+GR+';line-height:1.65;font-family:Plus Jakarta Sans,Arial,sans-serif">Suite \u00e0 nos \u00e9changes, veuillez trouver ci-dessous notre s\u00e9lection de bureaux disponibles au sein de The Bureau.</p>';
-  h+='</td></tr>';
-
-  /* Bureaux */
-  h+='<tr><td style="background:#ffffff;padding:0 36px 20px">';
-  selData.forEach(function(b,bi){
-    var etStr=b.etage===0?'Rez-de-chauss\u00e9e':b.etage===1?'1er \u00e9tage':b.etage+'e \u00e9tage';
-    var siteUrls={'I':'https://thebureau.paris/fr/28-cours-albert-1-er','II':'https://thebureau.paris/fr/16-cours-albert-1-er','III':'https://thebureau.paris/fr/25-rue-iv-septembre','IV':'https://thebureau.paris/fr/42-rue-notre-dame-des-victoires'};
-    var siteUrl=siteUrls[b.site]||'https://thebureau.paris';
-    var dispo_color=b.dispo==='immediate'?'#4a7a55':'#c07830';
-    var dispo_label=b.dispo==='immediate'?'Disponible imm\u00e9diatement':'A partir du '+dtLbl(b.date);
-    var desc=(b.desc||'').replace(/^[A-Z]\d{3}[^:]*:\s*/,'').trim();
-    h+='<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;border:2px solid '+OR2+';border-radius:4px;overflow:hidden">';
-    /* Bureau header */
-    h+='<tr><td style="background:'+INK+';padding:8px 20px;border-bottom:2px solid '+OR+'">';
-    h+='<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>';
-    h+='<td><span style="display:block;font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:'+CR+'">'+b.ref+'</span>';
-    h+='<span style="display:block;margin-top:1px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(201,169,110,0.5);font-family:Plus Jakarta Sans,Arial,sans-serif">'+b.label.toUpperCase()+' \u00b7 <span style="font-weight:300;text-transform:none;letter-spacing:.3px">'+b.adresse+'</span></span></td>';
-    h+='<td align="right" style="vertical-align:middle"><a href="'+siteUrl+'" target="_blank" style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:'+OR+';text-decoration:none;border:1px solid rgba(201,169,110,0.4);border-radius:50px;padding:4px 12px;font-family:Plus Jakarta Sans,Arial,sans-serif;white-space:nowrap">Voir le site &rsaquo;</a></td>';
-    h+='</tr></table></td></tr>';
-    /* Bureau body */
-    h+='<tr><td style="background:#fdfcf9;padding:12px 20px 10px">';
-    h+='<div style="margin-bottom:8px">';
-    h+='<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:50px;border:1px solid #ece5d6;background:#f5f0e8;font-size:11px;font-family:Plus Jakarta Sans,Arial,sans-serif;margin-right:4px">'+etStr+'</span>';
-    if(b.surface) h+='<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:50px;border:1px solid #ece5d6;background:#f5f0e8;font-size:11px;font-family:Plus Jakarta Sans,Arial,sans-serif;margin-right:4px">'+b.surface.toLocaleString('fr-FR')+'\u00a0m\u00b2</span>';
-    h+='<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:50px;border:1px solid #ece5d6;background:#f5f0e8;font-size:11px;font-family:Plus Jakarta Sans,Arial,sans-serif;margin-right:4px">'+b.cap+' poste'+(b.cap>1?'s':'')+'</span>';
-    h+='<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:50px;border:1px solid rgba('+(b.dispo==='immediate'?'74,122,85':'192,120,48')+',0.3);background:rgba('+(b.dispo==='immediate'?'74,122,85':'192,120,48')+',0.07);font-size:11px;font-family:Plus Jakarta Sans,Arial,sans-serif;font-weight:500;color:'+dispo_color+'">\u25cf\u00a0'+dispo_label+'</span>';
-    h+='</div>';
-    if(desc) h+='<p style="margin:0 0 10px;font-size:12px;color:#5a5248;line-height:1.55;font-family:Plus Jakarta Sans,Arial,sans-serif">'+desc+'</p>';
-    /* Tiers */
-    h+='<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #ece5d6">';
-    h+='<tr><td colspan="2" style="padding:6px 0 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:'+OR2+';font-family:Plus Jakarta Sans,Arial,sans-serif;font-weight:600">TARIF MENSUEL H.T.</td></tr>';
-    paliers.forEach(function(p,pi){
-      var tot=Math.round(b.prix*(1-p.d));
-      var save=Math.round((b.prix-tot)*12);
-      var chipHtml=pi>0&&save>0?'&nbsp;<span style="background:rgba(74,122,85,.1);border:1px solid rgba(74,122,85,.25);border-radius:50px;padding:1px 8px;font-size:9px;color:#4a7a55;font-family:Plus Jakarta Sans,Arial,sans-serif">\u2713 Eco. '+fmt(save)+'\u20ac/an</span>':'';
-      h+='<tr style="background:'+(pi===0?'#fafaf8':'#eef5f0')+'">';
-      h+='<td style="padding:5px 0;font-size:11px;color:'+GR+';font-family:Plus Jakarta Sans,Arial,sans-serif">'+p.label+chipHtml+'</td>';
-      h+='<td style="padding:5px 0;font-size:'+(pi===0?13:14)+'px;font-weight:'+(pi===0?400:600)+';text-align:right;white-space:nowrap;color:'+INK+';font-family:Plus Jakarta Sans,Arial,sans-serif">'+fmt(tot)+'\u00a0\u20ac <span style="font-size:10px;font-weight:300;color:'+GR+'">H.T./mois</span></td>';
-      h+='</tr>';
-    });
-    h+='</table></td></tr></table>';
-  });
-  h+='</td></tr>';
-
-  /* CTA */
-  h+='<tr><td style="background:#ffffff;padding:16px 36px;border-top:1px solid #ece5d6;text-align:center">';
-  h+='<a href="'+CAL_URL+'" target="_blank" style="display:inline-block;background:'+OR2+';color:#ffffff;text-decoration:none;font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:9px 22px;border-radius:50px">R\u00c9SERVER UNE VISITE</a>';
-  h+='</td></tr>';
-
-  /* Legal */
-  h+='<tr><td style="background:#ffffff;padding:10px 36px 14px;border-top:1px solid #ece5d6">';
-  h+='<p style="margin:0;font-size:10.5px;color:#9a8e80;line-height:1.5;font-family:Plus Jakarta Sans,Arial,sans-serif">'+legalFR+'</p>';
-  h+='</td></tr>';
-
-  /* Conditions contractuelles */
-  h+='<tr><td style="background:#2a2318;padding:10px 28px 12px;border-top:1px solid rgba(201,169,110,0.12)">';
-  h+='<p style="margin:0 0 5px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:'+OR+';font-family:Plus Jakarta Sans,Arial,sans-serif">CONDITIONS CONTRACTUELLES</p>';
-  h+='<ul style="margin:0;padding-left:14px">'+ccList+'</ul>';
-  h+='</td></tr>';
-
-  /* Footer contact */
-  h+='<tr><td style="background:'+INK+';padding:0;border-top:2px solid '+OR+';border-radius:0 0 4px 4px">';
-  h+='<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>';
-  h+='<td width="88" style="padding:12px 0 12px 12px;vertical-align:middle;text-align:center">';
-  h+='<img src="data:image/png;base64,'+CHEV_B64+'" alt="" width="38" style="display:block;opacity:0.5;margin:auto"/>';
-  h+='</td><td width="1" style="background:rgba(201,169,110,0.15)"></td>';
-  h+='<td style="padding:10px 18px;vertical-align:middle">';
-  h+='<p style="margin:0 0 2px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:'+OR+';font-family:Plus Jakarta Sans,Arial,sans-serif">Votre interlocuteur</p>';
-  h+='<p style="margin:0;font-family:Plus Jakarta Sans,sans-serif;font-size:16px;color:#f5f0e8">Thomas Bougeard</p>';
-  h+='<p style="margin:0 0 5px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(201,169,110,0.6);font-family:Plus Jakarta Sans,Arial,sans-serif">Directeur Commercial</p>';
-  h+='<p style="margin:0;font-size:11px;color:rgba(244,239,230,0.55);line-height:1.55;font-family:Plus Jakarta Sans,Arial,sans-serif">';
-  h+='<a href="tel:+33659231592" style="color:rgba(244,239,230,0.55);text-decoration:none">+33 6 59 23 15 92</a><br>';
-  h+='thomasb@thebureau.paris<br>';
-  h+='<a href="https://www.thebureau.paris" style="color:rgba(244,239,230,0.55);text-decoration:none">www.thebureau.paris</a>';
-  h+='</p></td></tr></table></td></tr>';
-
-  h+='</table></td></tr></table></body></html>';
-
-  var win=window.open('','_blank','width=700,height=900');
-  if(win){ win.document.write(h); win.document.close(); }
 }
 
 /* ============================================================
