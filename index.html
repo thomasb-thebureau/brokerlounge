@@ -2204,7 +2204,7 @@ function exportPDF(){
   var hiLabelLight = (isEN?'excl. VAT/mo':'H.T./mois')+' · '+hiDur;
   var pillText = (isEN?'Displayed rate · ':'Tarif affiché · ')+hiT.label;
   /* ===== Helpers ===== */
-  var etStr=function(e){return e===0?(isEN?'GF':'RDC'):e===1?(isEN?'1st':'1er'):(isEN?e+'th':e+'e')};
+  var etStr=function(e){ if(e===0) return isEN?'GF':'RDC'; if(isEN){ var s=['th','st','nd','rd'],v=e%100; return e+(s[(v-20)%10]||s[v]||s[0]); } return e===1?'1er':e+'e'; };
   var isItinB=function(b){return !!b.isItin || b.site===null || b.ref==='ITIN';};
   var dispoStr=function(b){return b.dispo==='immediate'?(isEN?'Immediate':'Immédiate'):((isEN?'From ':'À partir du ')+dtLbl(b.date))};
   var today=new Date();
