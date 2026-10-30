@@ -3012,7 +3012,8 @@ function buildPlainText(data) {
 
 /* Returns array of selected tier indices [0,1,2,3] from modal checkboxes */
 function getSelectedTiers() {
-  var checks = document.querySelectorAll('#tierChecks input[type=checkbox]');
+  var scope = document.querySelector('#sendov .sm-durs');
+  var checks = scope ? scope.querySelectorAll('input[type=checkbox]') : document.querySelectorAll('#tierChecks input[type=checkbox]');
   if (!checks.length) return [0,1,2,3];
   var sel = [];
   checks.forEach(function(c){ if(c.checked) sel.push(parseInt(c.value)); });
@@ -3020,9 +3021,11 @@ function getSelectedTiers() {
 }
 /* Durée d'engagement mise en avant (prix des cartes + total surligné) */
 function getDefaultTier() {
-  var r = document.querySelector('#defaultTierChecks input[type=radio]:checked');
   var sel = getSelectedTiers();
-  var d = r ? parseInt(r.value) : (sel.length ? sel[sel.length-1] : 0);
+  var r = document.querySelector('#sendov .sm-eng input[type=radio]:checked');
+  var d;
+  if (r) { d = parseInt(r.value); }
+  else { var _m={mensuel:0,'12m':1,'24m':2,'36m':3}; d = (typeof ST!=='undefined' && _m[ST.eng]!==undefined) ? _m[ST.eng] : (sel.length ? sel[sel.length-1] : 0); }
   if (sel.indexOf(d) === -1) d = sel.length ? sel[sel.length-1] : 0;
   return d;
 }
@@ -4678,7 +4681,7 @@ function exportPDF(){
     'Accès 24/7 dans nos bâtiments.','Espaces communs : coworking, restauration, patio, sport.','Domiciliation et rangement tiroir (sauf Itinérant).','Téléphone fixe, communications France et monde incluses.','Forfait impression : 200 N&B et 25 couleurs / mois.','Tisaneries illimitées : café, thé, fruits frais.','Programmation événementielle : soirées, vernissages, partenariats et apéritivo du jeudi.','Conciergerie : courrier, taxis, réservations de salles.','Global Collective : 2 jours/mois dans les espaces partenaires (globalcollective.co).','All-Inclusive : électricité, ménage, charges, climatisation, chauffage.'
   ];
   /* À la carte = exactement les options du bandeau droit (Télétravail + ADDONS) */
-  var CARTE = (function(){ var c=[[isEN?'Remote work':'Télétravail','170 € '+(isEN?'/mo/pers.':'/mois/pers.')]]; ADDONS.forEach(function(a){ c.push([isEN?a.en:a.fr, a.p+' € '+(isEN?a.perEn:a.perFr)]); }); return c; })();
+  var CARTE = (function(){ var c=[[isEN?'Remote work':'Télétravail','170 € '+(isEN?'/mo/pers.':'/mois/pers.')]]; ADDONS.forEach(function(a){ c.push([isEN?a.en:a.fr, a.p+' € '+(isEN?a.perEn:a.perFr)]); }); c.sort(function(a,b){ return String(a[0]).localeCompare(String(b[0]), isEN?'en':'fr'); }); return c; })();
   var CONDITIONS = isEN ? [
     '3-month minimum, then renewed for successive 3-month periods.','Security deposit: 2 months’ subscription excl. VAT (specified in the contract).','Installation fee: 100 € excl. VAT per workstation capacity.','Notice period: two months plus the current month.','Indexation capped at 3 % every twelve months.','Your footprint follows your headcount: priority on adjacent spaces.'
   ] : [
@@ -4722,7 +4725,7 @@ function exportPDF(){
     var m2=b.isItin?'—':(b.surface!=null?b.surface.toLocaleString('fr-FR'):'—');
     var seats=b.isItin?qv:b.cap;
     var s='<div style="display:grid; grid-template-columns:'+(withPrice?ROWS:ROWM)+'; align-items:center; padding:12px 16px; border-top:0.5px solid '+SEP+';">';
-    s+='<div><span style="display:inline-block; background:'+SLATE+'; color:'+IVORY+'; font-size:9.5px; font-weight:700; letter-spacing:0.04em; padding:5px 10px; text-align:center; min-width:34px; white-space:nowrap; border-radius:12px;">'+ref+'</span></div>';
+    s+='<div><span style="display:inline-block; box-sizing:border-box; background:'+SLATE+'; color:'+IVORY+'; font-size:9.5px; font-weight:700; letter-spacing:0.04em; padding:5px 8px; text-align:center; min-width:54px; white-space:nowrap; border-radius:2px;">'+ref+'</span></div>';
     s+='<div style="padding-right:12px;"><div><span style="font-weight:700; font-size:12px;">'+nm+'</span>'+(addr?' <span style="color:'+GOLDAA+'; font-size:10.5px;">· '+addr+'</span>':'')+'</div>'+(desc?'<div style="font-family:Spectral,serif; font-style:italic; font-weight:300; font-size:12px; color:rgba(15,15,15,0.75);">'+desc+'</div>':'')+'</div>';
     s+='<div style="text-align:center; font-family:Plus Jakarta Sans,sans-serif; font-size:10.5px;">'+floor+'</div>';
     s+='<div style="text-align:center; font-family:Plus Jakarta Sans,sans-serif; font-size:10.5px;">'+m2+'</div>';
@@ -4734,8 +4737,8 @@ function exportPDF(){
   }
   function addonRows(tw, extras, withPrice){
     var s='';
-    if(tw>0){ s+='<div style="display:grid; grid-template-columns:'+(withPrice?ROWS:ROWM)+'; align-items:center; padding:12px 16px; border-top:0.5px solid '+SEP+';"><div><span style="display:inline-block; background:'+GOLD+'; color:#fff; font-size:8px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:5px 9px; white-space:nowrap;">'+(isEN?'Telework':'Télétravail')+'</span></div><div style="padding-right:12px;"><span style="font-weight:700; font-size:12px;">'+(isEN?'Telework offer':'Offre Télétravail')+'</span> <span style="font-family:Spectral,serif; font-style:italic; font-weight:300; font-size:12px; color:rgba(15,15,15,0.75);">'+tw+' × 170 € '+(isEN?'excl. VAT/mo/pers.':'H.T./mois/pers.')+'</span></div><div style="text-align:center;">—</div><div style="text-align:center;">—</div><div style="text-align:center; font-family:Plus Jakarta Sans,sans-serif; font-size:10.5px;">'+tw+'</div><div style="font-size:10.5px; font-weight:300;">'+(isEN?'Immediate':'Immédiate')+'</div>'+(withPrice?('<div style="text-align:right; white-space:nowrap;"><span style="font-weight:700; font-size:15px; color:'+SLATE+';">'+fmt(tw*170)+'</span>'+EUR+'</div>'):'')+'</div>'; }
-    if(extras){ ADDONS.forEach(function(a){ var q=extras[a.k]||0; if(q<=0) return; s+='<div style="display:grid; grid-template-columns:'+(withPrice?ROWS:ROWM)+'; align-items:center; padding:12px 16px; border-top:0.5px solid '+SEP+';"><div><span style="display:inline-block; background:'+GOLD+'; color:#fff; font-size:8px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:5px 9px; white-space:nowrap;">'+(isEN?a.en:a.fr)+'</span></div><div style="padding-right:12px;"><span style="font-family:Spectral,serif; font-style:italic; font-weight:300; font-size:12px; color:rgba(15,15,15,0.75);">'+q+' × '+a.p+' € '+(isEN?'excl. VAT'+a.perEn:'H.T.'+a.perFr)+'</span></div><div style="text-align:center;">—</div><div style="text-align:center;">—</div><div style="text-align:center; font-family:Plus Jakarta Sans,sans-serif; font-size:10.5px;">'+q+'</div><div style="font-size:10.5px; font-weight:300;">'+(isEN?'Immediate':'Immédiate')+'</div>'+(withPrice?('<div style="text-align:right; white-space:nowrap;"><span style="font-weight:700; font-size:15px; color:'+SLATE+';">'+fmt(q*a.p)+'</span>'+EUR+'</div>'):'')+'</div>'; }); }
+    if(tw>0){ s+='<div style="display:grid; grid-template-columns:'+(withPrice?ROWS:ROWM)+'; align-items:center; padding:12px 16px; border-top:0.5px solid '+SEP+';"><div><span style="display:inline-block; box-sizing:border-box; background:'+GOLD+'; color:#fff; font-size:8px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:5px 8px; min-width:54px; text-align:center; white-space:nowrap; border-radius:2px;">'+(isEN?'Telework':'Télétravail')+'</span></div><div style="padding-right:12px;"><div style="font-weight:700; font-size:12px;">'+(isEN?'Telework offer':'Offre Télétravail')+'</div><div style="font-family:Spectral,serif; font-style:italic; font-weight:300; font-size:12px; color:rgba(15,15,15,0.75); white-space:nowrap;">'+tw+' × 170 € '+(isEN?'excl. VAT/mo/pers.':'H.T./mois/pers.')+'</div></div><div style="text-align:center;">—</div><div style="text-align:center;">—</div><div style="text-align:center; font-family:Plus Jakarta Sans,sans-serif; font-size:10.5px;">'+tw+'</div><div style="font-size:10.5px; font-weight:300;">'+(isEN?'Immediate':'Immédiate')+'</div>'+(withPrice?('<div style="text-align:right; white-space:nowrap;"><span style="font-weight:700; font-size:15px; color:'+SLATE+';">'+fmt(tw*170)+'</span>'+EUR+'</div>'):'')+'</div>'; }
+    if(extras){ ADDONS.forEach(function(a){ var q=extras[a.k]||0; if(q<=0) return; s+='<div style="display:grid; grid-template-columns:'+(withPrice?ROWS:ROWM)+'; align-items:center; padding:12px 16px; border-top:0.5px solid '+SEP+';"><div><span style="display:inline-block; box-sizing:border-box; background:'+GOLD+'; color:#fff; font-size:8px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:5px 8px; min-width:54px; text-align:center; white-space:nowrap; border-radius:2px;">'+(isEN?a.en:a.fr)+'</span></div><div style="padding-right:12px;"><div style="font-weight:700; font-size:12px;">'+(isEN?a.en:a.fr)+'</div><div style="font-family:Spectral,serif; font-style:italic; font-weight:300; font-size:12px; color:rgba(15,15,15,0.75); white-space:nowrap;">'+q+' × '+a.p+' € '+(isEN?'excl. VAT'+a.perEn:'H.T.'+a.perFr)+'</div></div><div style="text-align:center;">—</div><div style="text-align:center;">—</div><div style="text-align:center; font-family:Plus Jakarta Sans,sans-serif; font-size:10.5px;">'+q+'</div><div style="font-size:10.5px; font-weight:300;">'+(isEN?'Immediate':'Immédiate')+'</div>'+(withPrice?('<div style="text-align:right; white-space:nowrap;"><span style="font-weight:700; font-size:15px; color:'+SLATE+';">'+fmt(q*a.p)+'</span>'+EUR+'</div>'):'')+'</div>'; }); }
     return s;
   }
   /* ===== Assemblage ===== */
