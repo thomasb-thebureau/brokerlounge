@@ -1247,6 +1247,8 @@ body.dark .sm-btn-ghost{color:rgba(245,239,229,.65);border-color:rgba(255,255,25
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
 </head>
 <body>
 <div class="top-bar"><div class="logo-wrap"><a href="#" onclick="return askReset();" title="Nouvelle session" style="display:flex;align-items:center;line-height:0"><img class="logo-main" src="./logo.svg?v=11" alt="The Bureau"/><img class="logo-main-dark" src="./logo-white.svg?v=11" alt="The Bureau"/></a><div class="logo-div"></div><span class="logo-tag">BROKER LOUNGE</span><span class="brk-badge">Confidentiel</span></div><div class="top-right"><button class="sync-pill" id="syncPill" onclick="fetchData()" title="Actualiser les données"><span class="sdot" id="sdot"></span><span class="stxt" id="stxt">Chargement…</span></button><button class="hdr-btn" id="resetBtn" onclick="return askReset();"><span style="font-size:13px;line-height:1">↺</span> Réinitialiser</button><div class="lang-toggle" id="langToggleHeader"><button data-lang="fr" class="on">FR</button><button data-lang="en">EN</button></div><button class="dark-toggle hdr-icon" id="darkToggle" title="Mode jour / nuit"><span class="dark-emoji">🌙</span></button><span class="dlabel" id="dlabel" style="display:none"></span><button class="user-avatar" id="userAvatar" title="Changer d'expéditeur">TB</button></div></div>
@@ -1495,6 +1497,37 @@ var MODAL_SORT = 'custom';
 function fmt(n) {
   return Math.round(n).toLocaleString('fr-FR').replace(/\u202f/g,' ');
 }
+/* ===== Animations UI (GSAP) ===== */
+var PREFERS_REDUCED = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+try{ if(window.matchMedia){ var _mm=window.matchMedia('(prefers-reduced-motion: reduce)'); (_mm.addEventListener?_mm.addEventListener('change',function(e){PREFERS_REDUCED=e.matches;}):_mm.addListener(function(e){PREFERS_REDUCED=e.matches;})); } }catch(e){}
+var __countVals={};
+function animateCount(el, to, key){
+  if(!el) return;
+  to=Math.round(to||0);
+  var from=(typeof __countVals[key]==='number')?__countVals[key]:to;
+  __countVals[key]=to;
+  if(PREFERS_REDUCED || typeof gsap==='undefined' || from===to){ el.textContent=fmt(to); return; }
+  var o={v:from}; gsap.killTweensOf(o);
+  gsap.to(o,{v:to,duration:0.5,ease:'power2.out',onUpdate:function(){ el.textContent=fmt(o.v); }, onComplete:function(){ el.textContent=fmt(to); }});
+}
+function staggerIn(nodes){
+  if(!nodes||!nodes.length||PREFERS_REDUCED||typeof gsap==='undefined') return;
+  gsap.from(nodes,{opacity:0,y:8,duration:0.32,ease:'power2.out',stagger:0.04,clearProps:'opacity,transform'});
+}
+function animateOverlayIn(ov){
+  if(!ov||PREFERS_REDUCED||typeof gsap==='undefined') return;
+  var panel=ov.querySelector('.exmodal,.modal,.send-modal,.cmp-modal,.hist-modal')||ov.firstElementChild;
+  if(panel) gsap.from(panel,{opacity:0,y:14,scale:0.985,duration:0.3,ease:'power2.out',transformOrigin:'50% 40%',clearProps:'opacity,transform'});
+}
+function btnPress(el){
+  if(!el||PREFERS_REDUCED||typeof gsap==='undefined') return;
+  gsap.fromTo(el,{scale:0.96},{scale:1,duration:0.35,ease:'back.out(2.6)',clearProps:'transform'});
+}
+/* Micro-interaction sur les CTA (envoyer / aperçu / pdf) */
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('.prop-cta,.prop-cta2,.btn-pdf,.btn-csv,.sm-btn-send,.exm-done,.prop-opts-btn');
+  if(b) btnPress(b);
+},true);
 function etLbl(n) {
   if (n===0) return 'Rez-de-chauss\u00e9e';
   if (n===1) return '1er \u00e9tage';
@@ -2036,15 +2069,17 @@ function renderPropPanel(){
   html+='<button type="button" class="prop-opts-btn" id="propOptsBtn"><span class="pob-l">+ '+tlang('Options &amp; services','Options &amp; services')+'</span><span class="pob-r">'+tlang('Ajouter','Add')+'</span></button>';
   /* Total (dans le scroll) + encart commission broker — intégré au scroll (10 % du CA H.T. ; itinérant & co-résident inclus, télétravail/options hors assiette) */
   html+='<div class="prop-tot prop-tot-scroll"><div class="prop-tot-l"><div class="prop-tot-lbl">'+tlang('Total H.T. / mois','Total excl.VAT / mo')+' · <span id="propTier">—</span></div><div class="prop-sav" id="propSav"></div></div><span class="prop-tot-amt" id="propAmt">0 <span class="eu">€</span></span></div>';
+  var _commBig=null;
   if(ordered.length){
     var _monthly=(ST.eng==='mensuel');
     var _caMonth=ordered.reduce(function(s,b){ var q=b.isItin?(o.itinQty||1):1; return s+Math.round(b.prix*(1-dCoef))*q; },0);
     var _caYear=_caMonth*12;
     var _comm=_monthly?Math.round(_caMonth*0.10):Math.round(_caYear*0.10);
     var _per=_monthly?tlang(' /mois',' /mo'):'';
+    _commBig=_comm;
     html+='<div class="prop-comm">'
       +'<div class="pc-eye">'+tlang('Commission estimée','Estimated commission')+'</div>'
-      +'<div class="pc-big">'+fmt(_comm)+'<span class="eu"> €'+_per+'</span></div>'
+      +'<div class="pc-big"><span class="pc-n">'+fmt(_comm)+'</span><span class="eu"> €'+_per+'</span></div>'
       +'<div class="pc-break">'
         +'<div class="pc-r"><span>'+(_monthly?tlang('CA mensuel H.T.','Monthly revenue excl. VAT'):tlang('CA annuel H.T.','Annual revenue excl. VAT'))+'</span><b>'+fmt(_monthly?_caMonth:_caYear)+' €</b></div>'
         +'<div class="pc-r"><span>'+tlang('Taux commission','Commission rate')+'</span><b>10 %</b></div>'
@@ -2053,6 +2088,8 @@ function renderPropPanel(){
     +'</div>';
   }
   body.innerHTML=html;
+  staggerIn(body.querySelectorAll('.prow'));
+  if(_commBig!=null){ var _pn=body.querySelector('.pc-n'); if(_pn) animateCount(_pn, _commBig, 'comm'); }
   body.querySelectorAll('.prow-del').forEach(function(btn){
     btn.addEventListener('click',function(){ if(btn.dataset.exdel){ setExtraQty(o,btn.dataset.exdel,0); renderPropPanel(); return; } var r=btn.dataset.ref; if(btn.dataset.cores==='1'){ toggleCoresPoste(r); } else { toggleSel(r); } });
   });
@@ -2062,7 +2099,7 @@ function renderPropPanel(){
   var _ob=document.getElementById('propOptsBtn'); if(_ob) _ob.addEventListener('click', openExtraModal);
   var tot=optionTotalAt(o, dCoef);
   var baseM=optionTotalAt(o, remise);
-  var amtEl=document.getElementById('propAmt'); if(amtEl) amtEl.innerHTML=fmt(tot)+' <span class="eu">€</span>';
+  var amtEl=document.getElementById('propAmt'); if(amtEl){ amtEl.innerHTML='<span class="amt-n">'+fmt(tot)+'</span> <span class="eu">€</span>'; animateCount(amtEl.querySelector('.amt-n'), tot, 'propTotal'); }
   var tierEl=document.getElementById('propTier'); if(tierEl) tierEl.textContent=engShortL(ST.eng);
   var savEl=document.getElementById('propSav');
   if(savEl){ var savYr=Math.round((baseM-tot)*12); savEl.innerHTML = savYr>0 ? tlang('soit −'+fmt(savYr)+' € / an vs mensuel','i.e. −'+fmt(savYr)+' € / yr vs monthly') : tlang('Engagement 3 mois minimum','3-month minimum commitment'); }
@@ -2094,7 +2131,7 @@ function renderExtraCards(){
   grid.querySelectorAll('.exm-step button').forEach(function(b){ if(b.disabled) return; b.addEventListener('click',function(){ var k=b.dataset.exk; setExtraQty(o,k, extraQty(o,k)+(b.dataset.exd==='+'?1:-1)); renderExtraCards(); if(typeof renderPropPanel==='function') renderPropPanel(); }); });
   var t=document.getElementById('exmTot'); if(t) t.textContent=fmt((o.tw||0)*170+optExtrasTotal(o))+' €';
 }
-function openExtraModal(){ ensureExtraModal(); renderExtraCards(); document.getElementById('extraModal').classList.add('on'); }
+function openExtraModal(){ ensureExtraModal(); renderExtraCards(); var _ov=document.getElementById('extraModal'); _ov.classList.add('on'); animateOverlayIn(_ov); }
 function closeExtraModal(){ var ov=document.getElementById('extraModal'); if(ov) ov.classList.remove('on'); }
 function renderOptionTabs(dCoef){
   var el=document.getElementById('propTabs'); if(!el) return;
