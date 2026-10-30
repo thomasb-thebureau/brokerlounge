@@ -894,6 +894,13 @@ body.dark .prop-optedit-ic{color:#D4B870}
 .prop-optdel:hover{color:#9A5A1C}
 body.dark .prop-optdel{color:rgba(245,239,229,.6)}
 body.dark .prop-optdel:hover{color:#E0975A}
+.prop-optreco{background:none;border:1px solid rgba(176,148,56,.5);color:#8A6A18;border-radius:50px;padding:4px 9px;font:700 8px 'Plus Jakarta Sans',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:background .2s,border-color .2s,color .2s}
+.prop-optreco:hover{border-color:#B09438;color:#B09438}
+.prop-optreco.on{background:#B09438;border-color:#B09438;color:#fff}
+.prop-tab.reco{border-bottom-color:#B09438}
+.pt-star{color:#B09438}
+body.dark .prop-optreco{color:#D4B870;border-color:rgba(212,184,112,.4)}
+body.dark .prop-optreco.on{background:#B09438;color:#fff}
 .prow-tw{display:inline-flex;align-items:center;border:0.5px solid rgba(15,15,15,.2)}
 .prow-twcol{display:flex;flex-direction:column;align-items:flex-end;gap:6px;justify-self:end}
 .prow-tw .ptw-btn{width:22px;height:22px;background:none;border:0;cursor:pointer;color:#0F0F0F;font-size:13px;font-family:inherit}
@@ -902,9 +909,12 @@ body.dark .prop-optdel:hover{color:#E0975A}
 .prow-addopt{width:100%;margin-top:10px;border:1px dashed rgba(176,148,56,.55);background:rgba(176,148,56,.07);color:#8A6A18;padding:11px;font:600 10px 'Plus Jakarta Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .2s}
 .prow-addopt:hover{background:rgba(176,148,56,.14);border-color:#B09438}
 body.dark .prow-addopt{color:#D4B870;border-color:rgba(212,184,112,.4);background:rgba(212,184,112,.08)}
-.prop-opts-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:12px 14px;border:0.5px solid rgba(176,148,56,.5);background:rgba(176,148,56,.07);border-radius:2px;cursor:pointer;font:600 11px 'Plus Jakarta Sans',sans-serif;letter-spacing:.04em;color:#8A6A18;transition:all .2s}
-.prop-opts-btn:hover{background:rgba(176,148,56,.14);border-color:#B09438}
-.prop-opts-btn .pob-r{font-weight:700;color:#1E4035;white-space:nowrap}
+.prop-opts-btn{width:100%;display:flex;align-items:center;gap:11px;margin-top:12px;padding:11px 14px;border:1px dashed rgba(176,148,56,.5);background:transparent;border-radius:3px;cursor:pointer;font:600 11.5px 'Plus Jakarta Sans',sans-serif;letter-spacing:.02em;color:#8A6A18;transition:background .2s,border-color .2s}
+.prop-opts-btn::before{content:'+';display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#B09438;color:#fff;font-size:15px;font-weight:300;line-height:1;flex-shrink:0}
+.prop-opts-btn .pob-l{flex:1;text-align:left}
+.prop-opts-btn:hover{background:rgba(176,148,56,.09);border-color:#B09438}
+.prop-opts-btn .pob-r{font-weight:700;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#1E4035;white-space:nowrap;opacity:.7}
+.prop-opts-btn:hover .pob-r{opacity:1}
 .prop-opts-sum{margin-top:8px;font-size:11px;color:rgba(15,15,15,.6);line-height:1.5}
 body.dark .prop-opts-btn{color:#D4B870;border-color:rgba(212,184,112,.45);background:rgba(212,184,112,.08)}
 body.dark .prop-opts-btn .pob-r{color:#6FB392}
@@ -2036,9 +2046,11 @@ function renderPropPanel(){
   /* En-tête de l'option active : nom éditable + supprimer */
   var oh=document.getElementById('propOpthead');
   if(oh){
-    oh.innerHTML='<label class="prop-optedit" title="'+tlang('Renommer l’option','Rename option')+'"><svg class="prop-optedit-ic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><input class="prop-optname" id="propOptName" autocomplete="off" placeholder="'+tlang('Nommer cette option…','Name this option…')+'"></label><button class="prop-optdel" id="propOptDel">'+tlang('Supprimer','Remove')+'</button>';
+    var _recoBtnHtml=(OPTIONS.length>1)?('<button class="prop-optreco'+((typeof PROP_RECO!=='undefined'&&PROP_RECO===PROP_ACTIVE+1)?' on':'')+'" id="propOptReco">'+((typeof PROP_RECO!=='undefined'&&PROP_RECO===PROP_ACTIVE+1)?('★ '+tlang('Recommandée','Recommended')):('☆ '+tlang('Recommander','Recommend')))+'</button>'):'';
+    oh.innerHTML='<label class="prop-optedit" title="'+tlang('Renommer l’option','Rename option')+'"><svg class="prop-optedit-ic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><input class="prop-optname" id="propOptName" autocomplete="off" placeholder="'+tlang('Nommer cette option…','Name this option…')+'"></label>'+_recoBtnHtml+'<button class="prop-optdel" id="propOptDel">'+tlang('Supprimer','Remove')+'</button>';
     var inp=document.getElementById('propOptName'); if(inp){ inp.value=o.label||('Option '+optLetter(PROP_ACTIVE)); inp.addEventListener('input',function(){ o.label=this.value; renderOptionTabs(dCoef); }); }
     var del=document.getElementById('propOptDel'); if(del) del.addEventListener('click', removeActiveOption);
+    var _rb=document.getElementById('propOptReco'); if(_rb) _rb.addEventListener('click',function(){ PROP_RECO=(PROP_RECO===PROP_ACTIVE+1)?0:(PROP_ACTIVE+1); renderPropPanel(); });
   }
   var selData=DATA.filter(function(b){ return !!SEL[b.ref]; }); injectVirt(selData);
   var ordered=[]; (o.refs||[]).forEach(function(r){ var b=selData.find(function(x){return x.ref===r;}); if(b)ordered.push(b); });
@@ -2066,7 +2078,7 @@ function renderPropPanel(){
     var unit=x.p+' € '+tlang('H.T.'+x.perFr,'excl.VAT'+x.perEn);
     html+='<div class="prow tw"><span class="prow-ref tw-ref">'+esc(x.abbr)+'</span><div class="prow-info"><div class="prow-name">'+esc(tlang(x.fr,x.en))+'</div><div class="prow-meta">'+unit+'</div></div><div class="prow-twcol"><span class="prow-price">'+fmt(q*x.p)+'<span class="eu">€</span></span><div class="prow-tw"><button class="ptw-btn" data-exk="'+x.k+'" data-exd="-">−</button><span class="ptw-val">'+q+'</span><button class="ptw-btn" data-exk="'+x.k+'" data-exd="+">+</button></div></div><button class="prow-del" data-exdel="'+x.k+'" title="'+tlang('Retirer','Remove')+'">×</button></div>';
   });
-  html+='<button type="button" class="prop-opts-btn" id="propOptsBtn"><span class="pob-l">+ '+tlang('Options &amp; services','Options &amp; services')+'</span><span class="pob-r">'+tlang('Ajouter','Add')+'</span></button>';
+  html+='<button type="button" class="prop-opts-btn" id="propOptsBtn"><span class="pob-l">'+tlang('Options &amp; services','Options &amp; services')+'</span><span class="pob-r">'+tlang('Ajouter','Add')+'</span></button>';
   /* Total (dans le scroll) + encart commission broker — intégré au scroll (10 % du CA H.T. ; itinérant & co-résident inclus, télétravail/options hors assiette) */
   html+='<div class="prop-tot prop-tot-scroll"><div class="prop-tot-l"><div class="prop-tot-lbl">'+tlang('Total H.T. / mois','Total excl.VAT / mo')+' · <span id="propTier">—</span></div><div class="prop-sav" id="propSav"></div></div><span class="prop-tot-amt" id="propAmt">0 <span class="eu">€</span></span></div>';
   var _commBig=null;
@@ -2140,7 +2152,8 @@ function renderOptionTabs(dCoef){
     var nm=(o.label&&!/^option\s/i.test((o.label||'').trim()))?(optLetter(i)+' · '+o.label):('Option '+optLetter(i));
     var hasAny=(o.refs&&o.refs.length)||o.tw;
     var tot=hasAny?(fmt(optionTotalAt(o,dCoef))+' €'):'—';
-    html+='<button class="prop-tab'+(i===PROP_ACTIVE?' on':'')+'" data-opt="'+i+'"><span class="pt-name">'+esc(nm)+'</span><span class="pt-tot">'+tot+'</span></button>';
+    var _rc=(typeof PROP_RECO!=='undefined'&&PROP_RECO===i+1);
+    html+='<button class="prop-tab'+(i===PROP_ACTIVE?' on':'')+(_rc?' reco':'')+'" data-opt="'+i+'"><span class="pt-name">'+(_rc?'<span class="pt-star">★</span> ':'')+esc(nm)+'</span><span class="pt-tot">'+tot+'</span></button>';
   });
   html+='<button class="prop-tab-add" id="propTabAdd">+ Option</button>';
   el.innerHTML=html;
