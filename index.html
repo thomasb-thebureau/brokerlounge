@@ -2214,23 +2214,28 @@ function exportPDF(){
   var GFONTS='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Spectral:ital,wght@0,300;0,400;0,500;1,300&display=swap';
   /* Bâtiments (accès / annexes) — mêmes immeubles que TeamLounge */
   var BLD={
-    I:{zone:isEN?'Paris 8th · Golden Triangle':'Paris VIIIᵉ · Triangle d’Or', metro:['M1','M9','RER C'], bus:'42 · 72 · 80'},
-    II:{zone:isEN?'Paris 8th · Golden Triangle':'Paris VIIIᵉ · Triangle d’Or', metro:['M1','M9','RER C'], bus:'42 · 72 · 80'},
-    III:{zone:isEN?'Paris 2nd · Opéra':'Paris IIᵉ · Opéra', metro:['M3','M7','M8','RER A'], bus:'20 · 29 · 39'},
-    IV:{zone:isEN?'Paris 2nd · Bourse':'Paris IIᵉ · Bourse', metro:['M3','M8','M9','RER A'], bus:'20 · 39 · 74'}
+    I:{zone:isEN?'Paris 8th · Golden Triangle':'Paris VIIIᵉ · Triangle d’Or', metro:['M1','M9'], rer:['RER C'], bus:['42','72','80']},
+    II:{zone:isEN?'Paris 8th · Golden Triangle':'Paris VIIIᵉ · Triangle d’Or', metro:['M1','M9'], rer:['RER C'], bus:['42','72','80']},
+    III:{zone:isEN?'Paris 2nd · Opéra':'Paris IIᵉ · Opéra', metro:['M3','M7','M8'], rer:['RER A'], bus:['20','29','39']},
+    IV:{zone:isEN?'Paris 2nd · Bourse':'Paris IIᵉ · Bourse', metro:['M3','M8','M9'], rer:['RER A'], bus:['20','39','74']}
   };
-  function ratp(m){
-    var L={M1:['#FFCD00','#0F0F0F'],M3:['#837902','#FAFAFA'],M7:['#FA9ABA','#0F0F0F'],M8:['#E19BDF','#0F0F0F'],M9:['#B6BD00','#0F0F0F'],'RER A':['#E2231A','#FAFAFA'],'RER C':['#FFCD00','#0F0F0F']};
-    var c=L[m]||[SLATE,IVORY], isR=m.indexOf('RER')===0;
-    return '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:'+(isR?'3px':'10px')+';background:'+c[0]+';color:'+c[1]+';font-size:8px;font-weight:700;letter-spacing:0.02em;white-space:nowrap;">'+(isR?m.replace('RER ',''):m)+'</span>';
+  /* Badges IDFM — M (cercle) · lignes rondes, RER carré, BUS carrés colorés (identiques à TeamLounge) */
+  var LCOL={M1:['#FFCE00','#0F0F0F'],M3:['#837902','#FFFFFF'],M7:['#FA9ABA','#0F0F0F'],M8:['#E19BDF','#0F0F0F'],M9:['#B6BD00','#0F0F0F'],'RER A':['#E2231A','#FFFFFF'],'RER C':['#FFCE00','#0F0F0F']};
+  var BUSC={'42':['#FFCE00','#000'],'72':['#C51A2B','#fff'],'80':['#F4A3B6','#000'],'20':['#FFCE00','#000'],'29':['#C51A2B','#fff'],'39':['#C51A2B','#fff'],'74':['#F4A3B6','#000']};
+  function bPre(tx){ return '<span style="display:inline-block;height:16px;line-height:14px;padding:0 5px;border:1px solid #0F0F0F;border-radius:3px;color:#0F0F0F;font-size:7.5px;font-weight:700;letter-spacing:.03em;vertical-align:middle;">'+tx+'</span>'; }
+  function bM(){ return '<span style="display:inline-block;width:16px;height:16px;line-height:15px;text-align:center;border:1px solid #0F0F0F;border-radius:50%;color:#0F0F0F;font-size:8px;font-weight:800;vertical-align:middle;">M</span>'; }
+  function bLine(m,sq){ var c=LCOL[m]||[SLATE,IVORY]; var n=m.replace('RER ','').replace(/^M/,''); return sq?('<span style="display:inline-block;min-width:16px;height:16px;line-height:16px;padding:0 3px;text-align:center;background:'+c[0]+';color:'+c[1]+';border-radius:3px;font-size:8.5px;font-weight:800;vertical-align:middle;">'+n+'</span>'):('<span style="display:inline-block;width:16px;height:16px;line-height:16px;padding:0;text-align:center;background:'+c[0]+';color:'+c[1]+';border-radius:50%;font-size:8.5px;font-weight:800;vertical-align:middle;">'+n+'</span>'); }
+  function bBus(n){ var c=BUSC[n]||[SLATE,IVORY]; return '<span style="display:inline-block;min-width:18px;height:16px;line-height:16px;padding:0 3px;text-align:center;background:'+c[0]+';color:'+c[1]+';border-radius:3px;font-size:8px;font-weight:700;vertical-align:middle;">'+n+'</span>'; }
+  function accBadges(B){
+    var g='<span style="white-space:nowrap">'+bM()+' '+B.metro.map(function(m){return bLine(m,false);}).join(' ')+'</span>';
+    if(B.rer&&B.rer.length) g+=' &nbsp;<span style="white-space:nowrap">'+bPre('RER')+' '+B.rer.map(function(m){return bLine(m,true);}).join(' ')+'</span>';
+    if(B.bus&&B.bus.length) g+=' &nbsp;<span style="white-space:nowrap">'+bPre('BUS')+' '+B.bus.map(bBus).join(' ')+'</span>';
+    return g;
   }
   var INCLUS = (typeof t==='function') ? t('services') : [];
   var CONDITIONS = (typeof t==='function') ? t('conditions') : [];
-  var CARTE = isEN ? [
-    ['Meeting room, 4 ppl','10 € / h'],['Premium room, 12 ppl','50 € / h'],['Business address','60 € / mo'],['Parking space','300 € / mo'],['EV parking space','400 € / mo'],['Motorbike space','150 € / mo'],['Locker','30 € / mo'],['Entrance signage','30 € / mo']
-  ] : [
-    ['Salle de réunion, 4 pers.','10 € / h'],['Salle premium, 12 pers.','50 € / h'],['Domiciliation','60 € / mois'],['Place de parking','300 € / mois'],['Place de parking électrique','400 € / mois'],['Place moto','150 € / mois'],['Casier','30 € / mois'],['Signalétique à l’entrée','30 € / mois']
-  ];
+  /* À la carte = exactement les options du bandeau droit (Télétravail + ADDONS) */
+  var CARTE = (function(){ var c=[[isEN?'Remote work':'Télétravail','170 € '+(isEN?'/mo/pers.':'/mois/pers.')]]; ADDONS.forEach(function(a){ c.push([isEN?a.en:a.fr, a.p+' € '+(isEN?a.perEn:a.perFr)]); }); return c; })();
   /* ===== Calculs ===== */
   function offOf(ref){ return selData.filter(function(b){return b.ref===ref;})[0]; }
   function optOffices(opt){ return opt.refs.map(offOf).filter(Boolean); }
@@ -2285,7 +2290,7 @@ function exportPDF(){
   h+='<div style="display:flex; align-items:center; gap:22px;"><img src="'+logoUrl+'" alt="The Bureau" style="height:30px; width:auto; display:block;"><div style="width:0.5px; height:40px; background:rgba(15,15,15,0.18);"></div><div><div style="font-size:9px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+(isEN?'Personalised proposal':'Proposition personnalisée')+'</div><div style="font-size:28px; line-height:1.1; letter-spacing:-0.02em; margin-top:2px;"><span style="font-weight:200;">'+(isEN?'Office ':'Sélection ')+'</span><span style="font-weight:800; color:'+GOLD+';">'+(isEN?'selection':'bureaux')+'</span></div></div></div>';
   h+='<div style="text-align:right;"><div style="font-family:Spectral,serif; font-size:22px; font-weight:400; line-height:1; color:'+INK+';">'+dateFr+'</div><div style="font-size:9px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:rgba(15,15,15,0.55); margin-top:6px;">'+esc(countLine)+'</div></div></div>';
   /* Ligne de section */
-  h+='<div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin:22px 0 10px;"><div style="display:flex; align-items:center; gap:10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:10px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+esc(sectionTitle)+'</span></div><div style="font-size:9px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:rgba(15,15,15,0.5);">'+(isEN?'Prices excl. VAT, per month':'Prix hors taxes, par mois')+'</div></div>';
+  h+='<div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin:22px 0 10px;"><div style="display:flex; align-items:center; gap:10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:10px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+esc(sectionTitle)+'</span></div><div style="font-size:9px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:rgba(15,15,15,0.5);">'+(isEN?'Prices excl. VAT, per month':'Prix hors taxes, par mois')+'</div></div>';
   if(hasOpts){
     /* ===== OPTIONS — blocs détail (sans comparatif, sans reco) ===== */
     h+='<div style="display:flex; flex-direction:column; gap:18px;">';
@@ -2312,7 +2317,7 @@ function exportPDF(){
     h+=addonRows(BRK_TW, BRK_EXTRAS, true);
     h+='</div>';
     /* Grille d'engagement */
-    h+='<div style="display:flex; align-items:center; gap:10px; margin:24px 0 10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:10px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+(isEN?'Total monthly excl. VAT by commitment':'Total mensuel H.T. selon l’engagement')+'</span></div>';
+    h+='<div style="display:flex; align-items:center; gap:10px; margin:24px 0 10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:10px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+(isEN?'Total monthly excl. VAT by commitment':'Total mensuel H.T. selon l’engagement')+'</span></div>';
     h+='<div class="kt" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:2px;">';
     var mensTot=flatTotalAt(allTiers[0].coef);
     durs.forEach(function(d){
@@ -2324,10 +2329,10 @@ function exportPDF(){
   }
   /* ===== Annexes ===== */
   h+='<div class="kt" style="display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:2px; margin-top:26px;">';
-  h+='<div style="background:'+IVORY+'; padding:18px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+(isEN?'Everything on site':'Tout est sur place')+'</span></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 18px;">';
-  INCLUS.forEach(function(x){ h+='<div style="display:grid; grid-template-columns:10px minmax(0,1fr); gap:8px; align-items:baseline;"><span style="display:block; width:8px; height:1px; background:'+GOLD+'; transform:translateY(-3px);"></span><span style="font-weight:300; font-size:10px; line-height:1.4;">'+x+'</span></div>'; });
+  h+='<div style="background:'+IVORY+'; padding:18px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+(isEN?'Everything on site':'Tout est sur place')+'</span></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 18px;">';
+  INCLUS.forEach(function(x){ h+='<div style="display:grid; grid-template-columns:10px minmax(0,1fr); gap:8px; align-items:baseline;"><span style="color:'+GOLD+'; font-weight:700; font-size:11px; line-height:1.4;">›</span><span style="font-weight:300; font-size:10px; line-height:1.4;">'+x+'</span></div>'; });
   h+='</div></div>';
-  h+='<div style="background:'+IVORY+'; padding:18px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+(isEN?'À la carte, no commitment':'À la carte, sans engagement')+'</span></div><div style="display:flex; flex-direction:column; gap:5px;">';
+  h+='<div style="background:'+IVORY+'; padding:18px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+(isEN?'À la carte, no commitment':'À la carte, sans engagement')+'</span></div><div style="display:flex; flex-direction:column; gap:5px;">';
   CARTE.forEach(function(k){ h+='<div style="display:flex; justify-content:space-between; gap:10px; border-bottom:0.5px solid rgba(15,15,15,0.10); padding-bottom:4px;"><span style="font-weight:300; font-size:10px;">'+k[0]+'</span><span style="font-size:10px; font-weight:600; color:'+SLATE+'; white-space:nowrap;">'+k[1]+'</span></div>'; });
   h+='</div><div style="font-size:8.5px; color:rgba(15,15,15,0.5); margin-top:8px; font-weight:300;">'+(isEN?'Billed on use, with or without subscription. Prices excl. VAT.':'Facturé à l’usage, avec ou sans abonnement. Prix hors taxes.')+'</div></div></div>';
   /* Rangée 2 : conditions + accès */
@@ -2335,15 +2340,15 @@ function exportPDF(){
   if(usedB.length===0) usedB=['I'];
   var addrByB={}; selData.forEach(function(b){ if(b.site && b.adresse && !addrByB[b.site]) addrByB[b.site]=b.adresse; });
   h+='<div class="kt" style="display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:2px; margin-top:2px;">';
-  h+='<div style="border:0.5px solid rgba(15,15,15,0.14); padding:16px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+(isEN?'Contractual conditions':'Conditions contractuelles')+'</span></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 20px;">';
-  CONDITIONS.forEach(function(x){ h+='<div style="display:grid; grid-template-columns:10px minmax(0,1fr); gap:8px; align-items:baseline;"><span style="display:block; width:8px; height:1px; background:'+GOLD+'; transform:translateY(-3px);"></span><span style="font-weight:300; font-size:10px; line-height:1.4;">'+x+'</span></div>'; });
+  h+='<div style="border:0.5px solid rgba(15,15,15,0.14); padding:16px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+(isEN?'Contractual conditions':'Conditions contractuelles')+'</span></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 20px;">';
+  CONDITIONS.forEach(function(x){ h+='<div style="display:grid; grid-template-columns:10px minmax(0,1fr); gap:8px; align-items:baseline;"><span style="color:'+GOLD+'; font-weight:700; font-size:11px; line-height:1.4;">›</span><span style="font-weight:300; font-size:10px; line-height:1.4;">'+x+'</span></div>'; });
   h+='</div></div>';
-  h+='<div style="border:0.5px solid rgba(15,15,15,0.14); padding:16px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+SLATE+';">'+(isEN?'Access':'Accès')+'</span></div><div style="display:flex; flex-direction:column; gap:7px;">';
-  usedB.forEach(function(bk){ var B=BLD[bk]||BLD.I; var ad=addrByB[bk]||''; h+='<div style="display:flex; align-items:center; justify-content:space-between; gap:12px;"><div style="min-width:0;"><div style="font-weight:600; font-size:10.5px;">'+esc(ad)+'</div><div style="font-size:8px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(15,15,15,0.5);">'+B.zone+'</div></div><div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">'+B.metro.map(ratp).join('')+'<span style="font-size:8.5px; color:rgba(15,15,15,0.55); margin-left:6px; white-space:nowrap;">Bus '+B.bus+'</span></div></div>'; });
+  h+='<div style="border:0.5px solid rgba(15,15,15,0.14); padding:16px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+(isEN?'Access':'Accès')+'</span></div><div style="display:flex; flex-direction:column; gap:7px;">';
+  usedB.forEach(function(bk){ var B=BLD[bk]||BLD.I; var ad=addrByB[bk]||''; h+='<div style="display:flex; align-items:center; justify-content:space-between; gap:12px;"><div style="min-width:0;"><div style="font-weight:600; font-size:10.5px;">'+esc(ad)+'</div><div style="font-size:8px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(15,15,15,0.5);">'+B.zone+'</div></div><div style="flex-shrink:0; text-align:right;">'+accBadges(B)+'</div></div>'; });
   h+='</div></div></div>';
   /* ===== Pied de page ===== */
   var sndTitle=(typeof t==='function')?t('pdf_footer_role'):(isEN?'Sales Director':'Directeur Commercial');
-  h+='<div class="kt" style="margin-top:22px; background:'+SLATE+'; color:'+IVORY+'; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:16px 22px; border-top:2px solid '+GOLD+';"><div style="display:flex; align-items:center; gap:16px;"><img src="'+chevronsUrl+'" alt="" style="height:28px; width:auto; display:block; opacity:0.95;"><div><div><span style="font-weight:700; font-size:12px;">Thomas Bougeard</span> <span style="font-weight:300; font-size:10.5px; color:rgba(245,239,229,0.75);">· '+esc(sndTitle)+'</span></div><div style="font-weight:300; font-size:10.5px; color:rgba(245,239,229,0.85);">+33 6 59 23 15 92 · <a href="mailto:thomasb@thebureau.paris">thomasb@thebureau.paris</a> · thebureau.paris</div></div></div><div style="text-align:right;"><div style="font-size:8.5px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:rgba(245,239,229,0.7);">The Bureau Paris</div><div style="font-family:Spectral,serif; font-size:15px; color:'+GOLDLT+'; letter-spacing:0.06em; margin-top:2px;">75002 · 75008</div></div></div>';
+  h+='<div class="kt" style="margin-top:22px; background:'+SLATE+'; color:'+IVORY+'; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:16px 24px; border-top:2px solid '+GOLD+'; line-height:1.25;"><div style="display:flex; align-items:center; gap:16px;"><img src="'+chevronsUrl+'" alt="" style="height:26px; width:auto; display:block; opacity:0.95;"><div><div style="font-size:11.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; line-height:1.2;">Thomas Bougeard <span style="font-size:9px; font-weight:400; color:rgba(245,239,229,0.65); letter-spacing:0.09em;">· '+esc(sndTitle)+'</span></div><div style="font-size:10.5px; font-weight:300; color:rgba(245,239,229,0.68); line-height:1.1; margin-top:3px;">+33 6 59 23 15 92 · <a href="mailto:thomasb@thebureau.paris">thomasb@thebureau.paris</a> · thebureau.paris</div></div></div><div style="text-align:right;"><div style="font-size:8px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:rgba(245,239,229,0.6);">The Bureau Paris</div><div style="font-size:13px; font-weight:600; color:'+GOLDLT+'; margin-top:2px;">75002 · 75008</div></div></div>';
   h+='</div></body></html>';
 
   /* ===== Génération PDF (html2canvas + jsPDF), repli HTML ===== */
