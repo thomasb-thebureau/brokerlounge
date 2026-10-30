@@ -802,6 +802,11 @@ body.dark .af-chip button{background:rgba(92,184,138,.2);color:#7fce9f}
         <button class="mclose" id="smcls" data-i18n-aria="close" aria-label="Fermer"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
     </div>
+    <div class="smodal-client" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 20px;border-bottom:1px solid var(--cf)">
+      <span data-i18n="sel_client_lbl" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris);font-weight:700">Client</span>
+      <input id="brkClientName" type="text" data-i18n-ph="sel_client_name_ph" placeholder="Prénom Nom" oninput="updateCommission&&updateCommission()" style="flex:1;min-width:140px;font-size:13px;padding:7px 11px;border:1px solid var(--cf);border-radius:3px;background:var(--creme);color:var(--ink)">
+      <input id="brkClientComp" type="text" data-i18n-ph="sel_client_comp_ph" placeholder="Société" style="flex:1;min-width:140px;font-size:13px;padding:7px 11px;border:1px solid var(--cf);border-radius:3px;background:var(--creme);color:var(--ink)">
+    </div>
     <div class="smodal-body">
       <!-- LEFT -->
       <div class="sm-left" id="smLeft">
@@ -879,6 +884,7 @@ var I18N = {
     cb_loc:'Localisation', cb_postes:'Postes max', cb_duree:'Durée', cb_eng:'Engagement appliqué', cb_all_sites:'Tous sites', cb_all:'Tous', cb_none:'Non renseignée', cb_p2:'Paris 2e (TB III & IV)', cb_p8:'Paris 8e (TB I & II)', cb_postes_max:'%n postes max', cb_mois:'%n mois', cb_edit:'Modifier la recherche',
     /* Hero */
     hero_eyebrow:'Paris — 75002 & 75008', hero_h1a:'Bureaux', hero_h1b:'disponibles', hero_subtitle_a:'%n adresses · bureaux privatifs · données en temps réel', hero_broker_badge:'ESPACE BROKER · CONFIDENTIEL',
+    sel_client_lbl:'Client', sel_client_name_ph:'Prénom Nom', sel_client_comp_ph:'Société',
     /* Filter bar */
     fp_sites:'Sites', fp_engagement:'Engagement', fp_dispo:'Disponibilité', fp_postes:'Postes max', fp_duree:'Durée', fp_tri:'Tri', fp_ref:'Réf', fp_clear:'Effacer les filtres', eng_monthly:'Mensuel', eng_12m:'12 mois', eng_24m:'24 mois', eng_36m:'36 mois', dispo_all:'Toutes', dispo_imm:'Immédiate', dispo_future:'À venir', sort_ref:'Référence', sort_price_asc:'Prix croissant', sort_price_desc:'Prix décroissant', sort_surface:'Surface', sort_postes:'Postes',
     /* Drawer */
@@ -917,6 +923,7 @@ var I18N = {
     status_loading:'Loading…', status_live:'Live data', status_fallback:'Offline data', data_warn:'⚠ Fallback data · offline', status_error:'Error', refresh:'↻ Refresh', refresh_aria:'Refresh data', dark_aria:'Toggle dark mode', dark_title:'Dark mode', reset_aria:'Reset and refresh', reset_title:'Reset search and clear cache',
     cb_loc:'Location', cb_postes:'Max desks', cb_duree:'Term', cb_eng:'Applied term', cb_all_sites:'All sites', cb_all:'All', cb_none:'Not set', cb_p2:'Paris 2nd (TB III & IV)', cb_p8:'Paris 8th (TB I & II)', cb_postes_max:'%n max desks', cb_mois:'%n months', cb_edit:'Edit search',
     hero_eyebrow:'Paris — 75002 & 75008', hero_h1a:'Offices', hero_h1b:'available', hero_subtitle_a:'%n addresses · private offices · real-time data', hero_broker_badge:'BROKER AREA · CONFIDENTIAL',
+    sel_client_lbl:'Client', sel_client_name_ph:'First name Last name', sel_client_comp_ph:'Company',
     fp_sites:'Sites', fp_engagement:'Term', fp_dispo:'Availability', fp_postes:'Max desks', fp_duree:'Duration', fp_tri:'Sort', fp_ref:'Ref', fp_clear:'Clear filters', eng_monthly:'Monthly', eng_12m:'12 months', eng_24m:'24 months', eng_36m:'36 months', dispo_all:'All', dispo_imm:'Immediate', dispo_future:'Upcoming', sort_ref:'Reference', sort_price_asc:'Price ↑', sort_price_desc:'Price ↓', sort_surface:'Surface', sort_postes:'Desks',
     filters:'Filters', min:'min', max:'max', view:'View', reset:'Reset', apply:'Apply', close:'Close', cancel:'Cancel', ref_placeholder:'e.g. C113',
     card_dispo_now:'AVAILABLE', card_dispo_on:'FROM %d', card_etage_rdc:'Ground', card_etage_n:'%n floor', card_access_24_7:'24/7 access', card_large:'Large space', card_nb_people:'Up to %n people/desks.', card_postes:'%n desks', card_surface:'%n sqm', card_month:'excl. VAT / month', card_ref_price:'reference rate', card_engagement:'%dm term', card_economy_y:'Savings: %v / year',
@@ -1040,6 +1047,7 @@ var TIERS = [
 ];
 var OPTIONS = [];
 var OPT_COUNTER = 0;
+var PROP_RECO = 0;   /* Option recommandée (1-based, 0 = aucune) — comparatif/détail PDF */
 /* Extras additionnels par option (quantité × prix, non remisés) */
 var ADDONS = [
   {k:'domi',   fr:'Domiciliation',            en:'Business address',     p:60,  perFr:'/mois',       perEn:'/mo'},
@@ -1664,9 +1672,20 @@ function renderModal(){
   if(OPT_MODE){
     var optHdr = document.createElement('div');
     optHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px';
-    optHdr.innerHTML='<div class="brk-seclbl" style="margin:0">Options</div><button class="btn-add-opt" onclick="addOption()">+ Nouvelle option</button>';
+    optHdr.innerHTML='<div class="brk-seclbl" style="margin:0">Options</div><button class="btn-add-opt" onclick="addOption()">+ '+(LANG==='en'?'New option':'Nouvelle option')+'</button>';
     left.appendChild(optHdr);
     OPTIONS.forEach(function(opt,_oi){ left.appendChild(makeOptBlock(opt, selData, fd, _oi+1)); });
+    /* Sélecteur « Option recommandée » (comparatif/détail PDF) */
+    if(PROP_RECO>OPTIONS.length) PROP_RECO=0;
+    if(OPTIONS.length>1){
+      var recoWrap=document.createElement('div');
+      recoWrap.style.cssText='margin-top:14px;padding:11px 14px;background:var(--creme);border:1px solid var(--cf);border-radius:3px';
+      var _opts='<option value="0"'+(PROP_RECO?'':' selected')+'>'+(LANG==='en'?'None':'Aucune')+'</option>';
+      OPTIONS.forEach(function(o,i){ var _isc=o.label&&!/^(option|texte|custom)/i.test((o.label||'').trim()); _opts+='<option value="'+(i+1)+'"'+(PROP_RECO===i+1?' selected':'')+'>Option '+(i+1)+(_isc?' · '+esc(o.label):'')+'</option>'; });
+      recoWrap.innerHTML='<label style="display:block;margin-bottom:6px;font-size:11px;font-weight:700;color:var(--ink)">★ '+(LANG==='en'?'Recommended option':'Option recommandée')+' <span style="font-weight:400;color:var(--gris)">· '+(LANG==='en'?'highlighted in the PDF (optional)':'mise en avant dans le PDF (facultatif)')+'</span></label><select id="brkRecoSelect" style="width:100%;font-size:13px;padding:7px 11px;border:1px solid var(--cf);border-radius:3px;background:#fff;color:var(--ink)">'+_opts+'</select>';
+      left.appendChild(recoWrap);
+      recoWrap.querySelector('#brkRecoSelect').addEventListener('change', function(){ PROP_RECO=parseInt(this.value)||0; });
+    } else { PROP_RECO=0; }
   }
 
   /* Update commission panel */
@@ -2248,11 +2267,16 @@ function exportPDF(){
   var clean=function(b){ return esc(cleanDesc(getDesc(b)||'')); };
   var addrOf=function(b){ return (!isItinB(b)&&b.adresse)?esc(b.adresse):''; };
   var EUR='<span style="font-size:9px; color:'+GOLD+';"> €</span>';
+  /* ===== Client (saisi dans le modal) + reco ===== */
+  var _cliName=''; try{ _cliName=((document.getElementById('brkClientName')||{}).value||'').trim(); }catch(e){}
+  var _cliComp=''; try{ _cliComp=((document.getElementById('brkClientComp')||{}).value||'').trim(); }catch(e){}
+  var reco = (hasOpts && validOpts.length>1 && typeof PROP_RECO!=='undefined' && PROP_RECO) ? parseInt(PROP_RECO) : 0;
+  if(reco && (reco<1||reco>validOpts.length)) reco=0;
   /* ===== Titre ===== */
-  var pdfTitle = isEN?'The Bureau - Broker Lounge - Proposal':'The Bureau - Broker Lounge - Proposition';
+  var pdfTitle = (isEN?'The Bureau - Broker Lounge - Proposal':'The Bureau - Broker Lounge - Proposition') + ((_cliName||_cliComp)?((isEN?' for ':' pour ')+(_cliComp||_cliName)):'');
   var nOff = selData.length;
   var countLine = hasOpts ? (validOpts.length+(isEN?' configurations':' configurations')) : (nOff>1?(nOff+' '+(isEN?'offices':'bureaux')):(isEN?'1 office':'1 bureau'));
-  var sectionTitle = hasOpts ? (isEN?'Configurations to choose from':'Configurations au choix') : ((isEN?'Your selection · ':'Votre sélection · ')+countLine);
+  var sectionTitle = hasOpts ? (isEN?'Options comparison':'Comparatif des options') : ((isEN?'Your selection · ':'Votre sélection · ')+countLine);
   var ROWM='92px minmax(0,1fr) 56px 56px 56px 150px';
   var ROWS='92px minmax(0,1fr) 56px 56px 56px 150px 110px';
   /* ===== Office row ===== */
@@ -2285,30 +2309,67 @@ function exportPDF(){
   var h='<!DOCTYPE html><html lang="'+(isEN?'en':'fr')+'"><head><meta charset="UTF-8"><title>'+esc(pdfTitle)+'</title><meta name="viewport" content="width=1200,initial-scale=1"/><link href="'+GFONTS+'" rel="stylesheet"/>';
   h+='<style>*{box-sizing:border-box;margin:0;padding:0}.opt-block,.kt,tr{break-inside:avoid}a{color:'+GOLDAA+';text-decoration:none}</style></head>';
   h+='<body style="margin:0;background:'+WHITE+';"><div class="page" style="width:297mm;background:'+WHITE+';padding:9mm;font-family:\'Plus Jakarta Sans\',sans-serif;color:'+INK+';font-size:11px;line-height:1.5;-webkit-font-smoothing:antialiased;">';
-  /* En-tête */
-  h+='<div style="display:flex; align-items:flex-end; justify-content:space-between; gap:24px; padding:6px 0 18px; border-bottom:1px solid '+GOLD+';">';
-  h+='<div style="display:flex; align-items:center; gap:22px;"><img src="'+logoUrl+'" alt="The Bureau" style="height:30px; width:auto; display:block;"><div style="width:0.5px; height:40px; background:rgba(15,15,15,0.18);"></div><div><div style="font-size:9px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+(isEN?'Personalised proposal':'Proposition personnalisée')+'</div><div style="font-size:28px; line-height:1.1; letter-spacing:-0.02em; margin-top:2px;"><span style="font-weight:200;">'+(isEN?'Office ':'Sélection ')+'</span><span style="font-weight:800; color:'+GOLD+';">'+(isEN?'selection':'bureaux')+'</span></div></div></div>';
-  h+='<div style="text-align:right;"><div style="font-family:Spectral,serif; font-size:22px; font-weight:400; line-height:1; color:'+INK+';">'+dateFr+'</div><div style="font-size:9px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:rgba(15,15,15,0.55); margin-top:6px;">'+esc(countLine)+'</div></div></div>';
+  /* En-tête éditorial (client d'abord, date discrète) — aligné sur TeamLounge */
+  var _sitesH=[]; selData.forEach(function(b){ if(!isItinB(b)&&b.site&&_sitesH.indexOf(b.site)<0)_sitesH.push(b.site); });
+  var _zoneH=_sitesH.length===1?(BLD[_sitesH[0]]?BLD[_sitesH[0]].zone:''):(_sitesH.length>1?(_sitesH.length+(isEN?' sites':' sites')):'');
+  var _subH=countLine+(_zoneH?(' · '+_zoneH):'');
+  var _heroHTML;
+  if(!_cliName && !_cliComp){ _heroHTML='<b style="font-weight:800;">'+(isEN?'Dear Sir or Madam':'Madame, Monsieur')+'</b>'; }
+  else if(!_cliName && _cliComp){ _heroHTML=(isEN?'For ':'Pour ')+'<b style="font-weight:800;">'+esc(_cliComp)+'</b>'; }
+  else { _heroHTML=(isEN?'For ':'Pour ')+'<b style="font-weight:800;">'+esc(_cliName)+'</b>'+(_cliComp?' <span style="font-size:17px; font-weight:300; color:#5a5248;">· '+esc(_cliComp)+'</span>':''); }
+  h+='<div style="padding:6px 0 18px; border-bottom:1px solid '+GOLD+';">';
+  h+='<img src="'+logoUrl+'" alt="The Bureau" style="height:34px; width:auto; display:block;">';
+  h+='<div style="font-size:9px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:'+GOLDAA+'; margin-top:16px;">'+(isEN?'Personalised proposal':'Proposition personnalisée')+' <span style="color:rgba(15,15,15,0.5); font-weight:600; letter-spacing:0.06em;"> · '+dateFr+'</span></div>';
+  h+='<div style="font-size:30px; font-weight:200; letter-spacing:-0.02em; line-height:1.05; margin-top:8px;">'+_heroHTML+'</div>';
+  h+='<div style="font-size:9px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(15,15,15,0.55); margin-top:9px;">'+esc(_subH)+'</div>';
+  h+='</div>';
   /* Ligne de section */
   h+='<div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin:22px 0 10px;"><div style="display:flex; align-items:center; gap:10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:10px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+esc(sectionTitle)+'</span></div><div style="font-size:9px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:rgba(15,15,15,0.5);">'+(isEN?'Prices excl. VAT, per month':'Prix hors taxes, par mois')+'</div></div>';
   if(hasOpts){
-    /* ===== OPTIONS — blocs détail (sans comparatif, sans reco) ===== */
-    h+='<div style="display:flex; flex-direction:column; gap:18px;">';
-    validOpts.forEach(function(opt,i){
+    /* ===== OPTIONS — comparatif + détail (reco jade), aligné sur TeamLounge ===== */
+    var optData = validOpts.map(function(opt,i){
       var offs=optOffices(opt);
-      var _isCustom = opt.label && opt.label!=='Texte personnalisé' && opt.label!=='Custom text' && !/^option\s*\d+$/i.test(opt.label.trim());
-      var oLabel=_isCustom?opt.label:'';
-      var others=durs.filter(function(d){return d.key!==hiKey;}).map(function(d){return d.label+' '+fmt(optTotalAt(opt,d.coef))+' €';}).join(' · ');
-      h+='<div class="opt-block" style="border:0.5px solid rgba(176,148,56,0.45); border-left:3px solid '+GOLD+'; background:'+WHITE+';">';
-      h+='<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; background:'+IVORY+'; border-bottom:1px solid '+GOLD+';"><div style="display:flex; align-items:center; gap:14px;"><span style="background:'+GOLD+'; color:'+WHITE+'; font-size:9px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; padding:5px 10px;">Option '+(i+1)+'</span>'+(oLabel?'<span style="font-size:17px; letter-spacing:-0.01em; font-weight:600; color:'+INK+';">'+esc(oLabel)+'</span>':'')+'</div>';
-      h+='<div style="text-align:right; white-space:nowrap;"><span style="font-weight:700; font-size:24px; line-height:1; letter-spacing:-0.01em; color:'+SLATE+';">'+fmt(optTotalAt(opt,hiCoef))+'</span> <span style="font-size:11px; color:'+GOLD+';">€</span><span style="font-size:8px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(15,15,15,0.5); margin-left:8px;">'+hiLabelHTML+'</span>'+(others?('<div style="font-size:9px; font-weight:300; color:rgba(15,15,15,0.6); margin-top:3px;">'+others+'</div>'):'')+'</div></div>';
-      h+='<div style="display:grid; grid-template-columns:'+ROWM+'; align-items:center; padding:8px 16px; background:'+WHITE+'; color:'+GOLDAA+'; font-size:8px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; border-bottom:0.5px solid '+SEP+';"><div>'+(isEN?'Ref.':'Réf.')+'</div><div>'+(isEN?'Office':'Bureau')+'</div><div style="text-align:center;">'+(isEN?'Floor':'Étage')+'</div><div style="text-align:center;">m²</div><div style="text-align:center;">'+(isEN?'Desks':'Postes')+'</div><div>'+(isEN?'Avail.':'Dispo.')+'</div></div>';
-      offs.forEach(function(b){ h+=officeRow(b,false); });
-      h+=addonRows(opt.teletravail||0, opt.extras, false);
+      var _isCustom = opt.label && opt.label!=='Texte personnalisé' && opt.label!=='Custom text' && !/^option\s/i.test((opt.label||'').trim());
+      return { opt:opt, i:i, offs:offs, label:(_isCustom?opt.label:''),
+        refs:offs.map(function(b){return isItinB(b)?(isEN?'Nomad':'Itin.'):b.ref;}).join(' · '),
+        seats:sumSeats(offs), m2:sumM2(offs), reco:(reco===i+1) };
+    });
+    /* Comparatif */
+    var cmpCols='64px minmax(0,1fr) 52px 52px '+durs.map(function(){return '118px';}).join(' ');
+    h+='<div style="margin-bottom:8px;">';
+    h+='<div style="display:grid; grid-template-columns:'+cmpCols+'; border-left:3px solid transparent; border-bottom:1px solid '+GOLD+'; background:'+IVORY+'; color:'+GOLDAA+'; font-size:8.5px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase;"><div style="padding:9px 12px;">Option</div><div style="padding:9px 12px;">Configuration</div><div style="padding:9px 8px; text-align:center;">'+(isEN?'Desks':'Postes')+'</div><div style="padding:9px 8px; text-align:center;">m²</div>';
+    durs.forEach(function(d){ var on=d.key===hiKey; h+='<div style="padding:9px 14px; text-align:right; border-left:0.5px solid rgba(15,15,15,0.08); background:'+(on?GOLD:'transparent')+'; color:'+(on?WHITE:GOLDAA)+';">'+d.label.toUpperCase()+'<span style="display:block; opacity:0.75; font-weight:500; letter-spacing:0.08em; margin-top:1px;">'+d.sub+'</span></div>'; });
+    h+='</div>';
+    optData.forEach(function(O){
+      var isR=O.reco;
+      var rowBg=isR?SLATE:(O.i%2?RELIEF:WHITE);
+      var txtMain=isR?IVORY:INK, txtRef=isR?'rgba(245,239,229,0.6)':'rgba(15,15,15,0.55)';
+      h+='<div style="display:grid; grid-template-columns:'+cmpCols+'; background:'+rowBg+'; border-left:3px solid '+(isR?GOLD:'transparent')+'; border-bottom:1px solid '+(isR?'rgba(245,239,229,0.18)':'rgba(15,15,15,0.16)')+';">';
+      h+='<div style="display:flex; align-items:center; padding:9px 12px; white-space:nowrap;"><span style="display:inline-block; background:'+GOLD+'; color:'+WHITE+'; font-size:9px; font-weight:700; letter-spacing:0.06em; padding:3px 8px;">Option '+(O.i+1)+'</span></div>';
+      h+='<div style="display:flex; flex-direction:column; justify-content:center; padding:9px 12px;">'+(isR?'<div style="font-size:8px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:'+GOLDLT+'; margin-bottom:2px;">★ '+(isEN?'Our recommendation':'Notre recommandation')+'</div>':'')+(O.label?'<div style="font-weight:600; font-size:11.5px; color:'+txtMain+';">'+esc(O.label)+'</div>':'')+'<div style="font-size:9.5px; color:'+txtRef+';">'+esc(O.refs)+'</div></div>';
+      h+='<div style="display:flex; align-items:center; justify-content:center; padding:9px 8px; font-family:Spectral,serif; font-size:13px; color:'+txtMain+';">'+O.seats+'</div><div style="display:flex; align-items:center; justify-content:center; padding:9px 8px; font-family:Spectral,serif; font-size:13px; color:'+txtMain+';">'+O.m2+'</div>';
+      durs.forEach(function(d){ var on=d.key===hiKey; var cBg=isR?'transparent':(on?IVORY:'transparent'); var cCol=isR?(on?GOLDLT:IVORY):(on?SLATE:INK); var bl=isR?'rgba(245,239,229,0.12)':'rgba(15,15,15,0.08)'; var eu=isR?GOLDLT:GOLD; h+='<div style="display:flex; align-items:center; justify-content:flex-end; padding:9px 14px; border-left:0.5px solid '+bl+'; background:'+cBg+'; color:'+cCol+'; font-weight:'+(on?700:400)+'; font-size:'+(on?15:12.5)+'px; white-space:nowrap;">'+fmt(optTotalAt(O.opt,d.coef))+' <span style="font-size:9px; color:'+eu+'; margin-left:2px;">€</span></div>'; });
       h+='</div>';
     });
     h+='</div>';
-    h+='<div style="display:flex; align-items:center; gap:8px; margin:16px 0 0; font-size:8.5px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:'+GOLDAA+';"><span style="display:block; width:10px; height:10px; background:'+GOLD+';"></span>'+pillText.toUpperCase()+'</div>';
+    h+='<div style="display:flex; align-items:center; gap:8px; margin:0 0 26px; font-size:8.5px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:'+GOLDAA+';"><span style="display:block; width:10px; height:10px; background:'+GOLD+';"></span>'+pillText.toUpperCase()+'</div>';
+    h+='<div style="display:flex; align-items:center; gap:10px; margin:0 0 10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:10px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+(isEN?'Office detail':'Détail des bureaux')+'</span></div>';
+    /* Blocs option — reco en jade */
+    h+='<div style="display:flex; flex-direction:column; gap:18px;">';
+    optData.forEach(function(O){
+      var isR=O.reco;
+      var frame=isR?('1px solid '+GOLD):('0.5px solid rgba(176,148,56,0.45)');
+      h+='<div class="opt-block" style="border:'+frame+'; border-left:3px solid '+GOLD+'; background:'+WHITE+';">';
+      var others=durs.filter(function(d){return d.key!==hiKey;}).map(function(d){return d.label+' '+fmt(optTotalAt(O.opt,d.coef))+' €';}).join(' · ');
+      var hdBg=isR?SLATE:IVORY, hdLbl=isR?IVORY:INK, hdRef=isR?'rgba(245,239,229,0.6)':'rgba(15,15,15,0.5)', hdPrice=isR?GOLDLT:SLATE, hdEuro=isR?GOLDLT:GOLD, hdSub=isR?'rgba(245,239,229,0.6)':'rgba(15,15,15,0.5)', hdOth=isR?'rgba(245,239,229,0.55)':'rgba(15,15,15,0.6)', hdLine=isR?hiLabelLight:hiLabelHTML;
+      h+='<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; background:'+hdBg+'; border-bottom:1px solid '+GOLD+';"><div style="display:flex; align-items:center; gap:14px;"><span style="background:'+GOLD+'; color:'+WHITE+'; font-size:9px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; padding:5px 10px;">Option '+(O.i+1)+'</span>'+(O.label?'<span style="font-size:17px; letter-spacing:-0.01em; font-weight:600; color:'+hdLbl+';">'+esc(O.label)+'</span>':'')+(isR?'<span style="color:'+GOLDLT+'; font-size:14px;">★</span><span style="font-size:8.5px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:'+GOLDLT+';">'+(isEN?'Recommended':'Recommandé')+'</span>':'')+'<span style="font-size:9px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:'+hdRef+';">'+esc(O.refs)+'</span></div>';
+      h+='<div style="text-align:right; white-space:nowrap;"><span style="font-weight:700; font-size:24px; line-height:1; letter-spacing:-0.01em; color:'+hdPrice+';">'+fmt(optTotalAt(O.opt,hiCoef))+'</span> <span style="font-size:11px; color:'+hdEuro+';">€</span><span style="font-size:8px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:'+hdSub+'; margin-left:8px;">'+hdLine+'</span><div style="font-size:9px; font-weight:300; color:'+hdOth+'; margin-top:3px;">'+others+'</div></div></div>';
+      h+='<div style="display:grid; grid-template-columns:'+ROWM+'; align-items:center; padding:8px 16px; background:'+WHITE+'; color:'+GOLDAA+'; font-size:8px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; border-bottom:0.5px solid '+SEP+';"><div>'+(isEN?'Ref.':'Réf.')+'</div><div>'+(isEN?'Office':'Bureau')+'</div><div style="text-align:center;">'+(isEN?'Floor':'Étage')+'</div><div style="text-align:center;">m²</div><div style="text-align:center;">'+(isEN?'Desks':'Postes')+'</div><div>'+(isEN?'Avail.':'Dispo.')+'</div></div>';
+      O.offs.forEach(function(b){ h+=officeRow(b,false); });
+      h+=addonRows(O.opt.teletravail||0, O.opt.extras, false);
+      h+='</div>';
+    });
+    h+='</div>';
   } else {
     /* ===== SIMPLE ===== */
     h+='<div class="opt-block" style="border:0.5px solid rgba(176,148,56,0.45); border-left:3px solid '+GOLD+'; background:'+WHITE+';">';
