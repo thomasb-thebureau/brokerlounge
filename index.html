@@ -3693,8 +3693,8 @@ function resetSession() {
   Object.keys(localStorage).forEach(function(k){
     if (k.startsWith('tb_seen_')) localStorage.removeItem(k);
   });
-  /* Clear all modal form fields */
-  ['fp','fn','fs','fe','customMsg'].forEach(function(id){
+  /* Clear all modal + panel form fields (client prénom/nom/société inclus) */
+  ['fp','fn','fs','fe','customMsg','propClientName','propClientComp','needMin','needMax'].forEach(function(id){
     var el = document.getElementById(id); if (el) el.value = '';
   });
   /* Reset ITIN state */
