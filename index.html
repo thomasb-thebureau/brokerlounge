@@ -1594,6 +1594,15 @@ function accessSites(data){
   if(!u.length) u = SEL[ITIN_REF] ? ITIN_SITES.map(function(x){ return x.id; }) : ['I'];
   return u;
 }
+/* Libellé de comptage : « 2 bureaux », « 3 abonnements Itinérant », « 1 bureau · 2 abonnements Itinérant » */
+function selCountLabel(data,isEN){
+  var nOff=0, nAbo=0;
+  data.forEach(function(b){ if(b.isItin) nAbo+=(b.itinQty||1); else nOff++; });
+  var parts=[];
+  if(nOff) parts.push(nOff+' '+(isEN?(nOff>1?'offices':'office'):(nOff>1?'bureaux':'bureau')));
+  if(nAbo) parts.push(nAbo+' '+(isEN?('Nomad subscription'+(nAbo>1?'s':'')):('abonnement'+(nAbo>1?'s':'')+' Itinérant')));
+  return parts.join(' · ') || (isEN?'0 office':'0 bureau');
+}
 function accessAddr(data){
   var a={}; data.forEach(function(b){ if(!b.isItin && b.site && b.adresse && !a[b.site]) a[b.site]=b.adresse; });
   ITIN_SITES.forEach(function(x){ if(!a[x.id]) a[x.id]=x.adresse; });
@@ -4087,7 +4096,7 @@ function buildOptionsEmail(allData, isEN, civ, soc, customMsg, LOGO_B64, CHEV_B6
   /* ===== Sous-titre header : nb bureaux + zone(s) ===== */
   var _sites=[]; allData.forEach(function(b){ if(!b.isItin && b.site && _sites.indexOf(b.site)<0) _sites.push(b.site); }); itinSitesUsed().forEach(function(k){ if(_sites.indexOf(k)<0) _sites.push(k); });
   var _nOff=allData.length;
-  var _countTxt = isMulti ? (_nOpts+(isEN?' configurations':' configurations')) : (_nOff>1?(_nOff+' '+(isEN?'offices':'bureaux')):(isEN?'1 office':'1 bureau'));
+  var _countTxt = isMulti ? (_nOpts+(isEN?' configurations':' configurations')) : selCountLabel(allData,isEN);
   var _zoneTxt = _sites.length===1 ? (BLD[_sites[0]]?BLD[_sites[0]].zone:'') : (_sites.length>1 ? (_sites.length+(isEN?' sites':' sites')) : '');
   var _subTxt = _countTxt + (_zoneTxt?(' · '+_zoneTxt):'');
 
@@ -4822,7 +4831,7 @@ function exportPDF(){
   var clientName = soc || ((_pren+' '+_nom).trim());
   var pdfTitle = (isEN?'The Bureau - Proposal':'The Bureau - Proposition') + (clientName ? (isEN?' for ':' pour ')+clientName : '');
   var nOff = selData.length;
-  var countLine = isMulti ? (validOpts.length+(isEN?' configurations':' configurations')) : (nOff>1?(nOff+' '+(isEN?'offices':'bureaux')):(isEN?'1 office':'1 bureau'));
+  var countLine = isMulti ? (validOpts.length+(isEN?' configurations':' configurations')) : selCountLabel(selData,isEN);
   var clientLine = (clientName ? (countLine+(isEN?' · for ':' · pour ')+clientName) : countLine);
   var sectionTitle = isMulti ? (isEN?'Options comparison':'Comparatif des options') : ((isEN?'Your selection · ':'Votre sélection · ')+countLine);
   var ROWM='92px minmax(0,1fr) 56px 56px 56px 150px';
