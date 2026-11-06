@@ -1942,9 +1942,12 @@ function render() {
   }
   grid.appendChild(frag);
   var visibleCount = filtered.filter(function(b){ return b.dispo!=='occupied'; }).length;
-  document.getElementById('cnt').textContent = visibleCount;
-  document.getElementById('ps').textContent = visibleCount>1?tlang('x','s'):'';
-  document.getElementById('ps2').textContent = (visibleCount>1 && tlang('fr','en')==='fr')?'s':'';
+  /* Titre reconstruit en entier dans la langue courante (évite « officex availables ») */
+  var _pl = visibleCount>1;
+  var _ct = document.querySelector('.cat-title');
+  if (_ct) _ct.innerHTML = '<strong id="cnt">'+visibleCount+'</strong> '
+    + tlang('bureau'+(_pl?'x':''),'office'+(visibleCount!==1?'s':''))
+    + ' <em>'+tlang('disponible'+(_pl?'s':''),'available')+'</em>';
   /* Update occupied button label */
   var occBtn2 = document.getElementById('occBtn');
   if (occBtn2) {
@@ -3725,6 +3728,9 @@ function resetSession() {
   /* Reset langue de page (toggle d'en-tête) vers FR + purge la persistance */
   PAGE_LANG = 'fr';
   try { localStorage.removeItem('tb_page_lang'); } catch(e){}
+  /* Retraduit toute l'interface en FR (sinon les libellés restent en anglais) */
+  if (typeof applySiteLang === 'function') applySiteLang();
+  if (typeof render === 'function') render();
   var _lth = document.getElementById('langToggleHeader');
   if (_lth) _lth.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', b.dataset.lang === 'fr'); });
   /* Close modal if open */
@@ -4247,6 +4253,7 @@ function doReset() {
   document.querySelectorAll('#capBtns .cb').forEach(function(b){ b.classList.toggle('on',b.dataset.cap==='all'); });
   ['cmin','cmax','search'].forEach(function(id){ document.getElementById(id).value=''; }); ST.search='';
   document.getElementById('etf').value='all'; document.getElementById('srt').value='nom'; ST.sort='nom';
+  document.querySelectorAll('#srtBtns .sortb').forEach(function(b){ b.classList.toggle('on', b.dataset.sort==='nom'); });
   var _rr = document.getElementById('remiseInput'); if (_rr) _rr.value = '0';
   if (document.getElementById('mov') && document.getElementById('mov').classList.contains('on') && typeof updateModalTotal==='function') updateModalTotal();
   render();
