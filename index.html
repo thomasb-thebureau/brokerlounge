@@ -1166,6 +1166,7 @@ body.dark .cat-title strong{color:#6FB392}
 .sortb{padding:8px 12px;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;background:none;border:0.5px solid rgba(15,15,15,.2);color:#0F0F0F;cursor:pointer;transition:all .2s;font-family:inherit}
 .sortb:hover{border-color:rgba(15,15,15,.4)}
 .sortb.on{background:#0F0F0F;color:#FAFAFA;border-color:#0F0F0F}
+.sortb .sort-arr{margin-left:6px;vertical-align:-1px}
 .pdfprev-ov{display:none;position:fixed;inset:0;background:rgba(9,8,12,.82);z-index:200;flex-direction:column;align-items:center;padding:16px 16px 28px;overflow:auto}
 .pdfprev-top{width:100%;max-width:1123px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 14px}
 .pdfprev-title{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,239,229,.75);font-family:'Plus Jakarta Sans',sans-serif}
@@ -1889,6 +1890,7 @@ function sortData(arr) {
       case 'ca': return a.cap-b.cap;
       case 'cd': return b.cap-a.cap;
       case 'surface': return (b.surface||0)-(a.surface||0);
+      case 'sa': return (a.surface||0)-(b.surface||0);
       case 'dispo':
         if (a.dispo==='immediate'&&b.dispo!=='immediate') return -1;
         if (b.dispo==='immediate'&&a.dispo!=='immediate') return 1;
@@ -1942,6 +1944,7 @@ function render() {
   }
   grid.appendChild(frag);
   var visibleCount = filtered.filter(function(b){ return b.dispo!=='occupied'; }).length;
+  if (typeof syncSortBtns==='function') syncSortBtns();
   /* Titre reconstruit en entier dans la langue courante (évite « officex availables ») */
   var _pl = visibleCount>1;
   var _ct = document.querySelector('.cat-title');
@@ -1988,13 +1991,33 @@ function updateRailCounts(){
   window.__closeRail=closeRail;
 })();
 /* Boutons de tri (catalogue) */
+/* Tri par défaut au 1er clic → tri inverse au 2e clic */
+var SORT_PAIRS={pa:'pd',surface:'sa'};
+var SORT_DIR={pa:'up',pd:'down',surface:'down',sa:'up'};
+var SORT_ARROWS={
+  up:'<svg class="sort-arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 8.5v-7M2 4.5l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+  down:'<svg class="sort-arr" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1.5v7M2 5.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>'
+};
+function syncSortBtns(){
+  var L={nom:['Nom','Name'],pa:['Prix','Price'],surface:['Surface','Area'],dispo:['Disponibilité','Availability']};
+  document.querySelectorAll('#srtBtns .sortb').forEach(function(b){
+    var base=b.dataset.sort, alt=SORT_PAIRS[base];
+    var on = ST.sort===base || (alt && ST.sort===alt);
+    b.classList.toggle('on', !!on);
+    var lbl = L[base] ? tlang(L[base][0],L[base][1]) : b.textContent;
+    var dir = on && SORT_DIR[ST.sort];
+    b.innerHTML = lbl + (dir ? SORT_ARROWS[dir] : '');
+    if (dir) b.setAttribute('aria-label', lbl+' · '+(dir==='up'?tlang('croissant','ascending'):tlang('décroissant','descending')));
+    else b.removeAttribute('aria-label');
+  });
+}
 (function(){
   document.querySelectorAll('#srtBtns .sortb').forEach(function(btn){
     btn.addEventListener('click',function(){
-      document.querySelectorAll('#srtBtns .sortb').forEach(function(b){ b.classList.remove('on'); });
-      btn.classList.add('on');
-      ST.sort=btn.dataset.sort;
-      var sel=document.getElementById('srt'); if(sel) sel.value=btn.dataset.sort;
+      var base=btn.dataset.sort, alt=SORT_PAIRS[base];
+      /* 2e clic sur le tri actif (Prix, Surface) : inverse le sens */
+      ST.sort = (alt && (ST.sort===base||ST.sort===alt)) ? (ST.sort===base?alt:base) : base;
+      var sel=document.getElementById('srt'); if(sel && sel.querySelector('option[value="'+ST.sort+'"]')) sel.value=ST.sort;
       if(typeof render==='function') render();
     });
   });
