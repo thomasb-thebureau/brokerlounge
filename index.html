@@ -844,6 +844,17 @@ body.dark .nc-price .sub{color:rgba(245,239,229,.58)}
 .itin-ncard .nc-site{color:#D4B870}
 .itin-ncard .nc-optl{background:#B09438;color:#FAFAFA}
 .itin-ncard.sel .nc-band{background:#14281f}
+.itin-cfg{display:flex;flex-direction:column;gap:8px;margin:2px 0}
+.itin-lbl{font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#8A6A18;margin-bottom:5px}
+.itin-sites{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.itin-site{padding:6px 0;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;border:1px solid rgba(138,106,24,.45);border-radius:2px;background:rgba(255,255,255,.55);color:#5c4610;cursor:pointer}
+.itin-site:hover{background:rgba(176,148,56,.10)}
+.itin-site.on{background:rgba(176,148,56,.16);border-color:var(--or2);box-shadow:inset 0 0 0 1px var(--or2);font-weight:700}
+.itin-adr{font-size:10.5px;color:#5c4610;margin-top:5px}
+.itin-qty{display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(138,106,24,.45);border-radius:2px;background:rgba(255,255,255,.55);padding:1px 2px 1px 10px;font-size:11px;font-weight:600;color:#5c4610}
+.itin-qty div{display:flex;align-items:center}
+.itin-qty button{width:26px;height:24px;border:0;background:none;font-size:14px;cursor:pointer;color:#5c4610;font-family:inherit}
+.itin-qty b{min-width:18px;text-align:center;font-size:12px;color:#0F0F0F}
 /* Co-Résident — identité or (bande pleine, contraste net) */
 .cores-ncard .nc-band{background:#B09438;color:#FAFAFA}
 .cores-ncard .nc-ref,.cores-ncard .nc-floor{color:#FAFAFA}
@@ -1530,6 +1541,48 @@ function ensureOptions(){
 }
 function refInAnyOption(ref){ return OPTIONS.some(function(o){ return (o.refs||[]).indexOf(ref)>=0; }); }
 function itinSelObj(){ return { ref:ITIN_REF, site:null, label:'Itinérant', adresse:'', prix:ITIN_PRIX, base:ITIN_PRIX, itinQty:1, cap:1, etage:0, surface:null, dispo:'immediate', date:null, desc:'Accès en placement libre aux espaces partagés et services The Bureau. Accès 24/7. Formule all-incluse.', descEN:'Flexible access to shared spaces and The Bureau services. 24/7 access. All-inclusive.', isItin:true, virtLabel:'Itinérant', virtMeta:'Placement libre · tous nos sites', virtUnit:'abonnement', virtTag:'ITIN' }; }
+/* Itinérant : quantité + site de rattachement, portés par l'option active (et reflétés dans SEL) */
+function itinSiteInfo(id){ for(var k=0;k<ITIN_SITES.length;k++){ if(ITIN_SITES[k].id===id) return ITIN_SITES[k]; } return null; }
+function itinActiveOpt(){ return (typeof OPTIONS!=='undefined' && OPTIONS && OPTIONS[PROP_ACTIVE]) ? OPTIONS[PROP_ACTIVE] : null; }
+function itinWithOpt(b,opt){
+  var s=itinSiteInfo(opt&&opt.itinSite);
+  return Object.assign({},b,{itinQty:(opt&&opt.itinQty)||b.itinQty||1, site:s?s.id:null, adresse:s?s.adresse:''});
+}
+function syncItinSel(){
+  var o=itinActiveOpt(); if(!SEL[ITIN_REF]||!o) return;
+  var s=itinSiteInfo(o.itinSite);
+  SEL[ITIN_REF].itinQty=o.itinQty||1; SEL[ITIN_REF].site=s?s.id:null; SEL[ITIN_REF].adresse=s?s.adresse:'';
+}
+function setItinCfg(qty, site){
+  if(typeof ensureOptions==='function') ensureOptions();
+  var o=itinActiveOpt(); if(!o) return;
+  if(qty!=null) o.itinQty=Math.max(1,Math.min(20,qty||1));
+  if(site!==undefined) o.itinSite=(o.itinSite===site)?null:site;
+  syncItinSel();
+  if(typeof render==='function') render();
+  if(typeof updateSelBar==='function') updateSelBar();
+  if(typeof updateModalTotal==='function' && document.getElementById('mov') && document.getElementById('mov').classList.contains('on')) updateModalTotal();
+  if(typeof debounceSave==='function') debounceSave();
+}
+/* Sites de rattachement Itinérant utilisés dans la proposition (toutes options) */
+function itinSitesUsed(){
+  var r=[]; if(!SEL[ITIN_REF]) return r;
+  (OPTIONS||[]).forEach(function(o){ if(o.refs.indexOf(ITIN_REF)>=0 && o.itinSite && r.indexOf(o.itinSite)<0) r.push(o.itinSite); });
+  if(SEL[ITIN_REF].site && r.indexOf(SEL[ITIN_REF].site)<0) r.push(SEL[ITIN_REF].site);
+  return r;
+}
+/* Bâtiments du bloc Accès : sites des bureaux + sites Itinérant ; Itinérant sans site seul → les 4 sites */
+function accessSites(data){
+  var u=[]; data.forEach(function(b){ if(!b.isItin && b.site && u.indexOf(b.site)<0) u.push(b.site); });
+  itinSitesUsed().forEach(function(k){ if(u.indexOf(k)<0) u.push(k); });
+  if(!u.length) u = SEL[ITIN_REF] ? ITIN_SITES.map(function(x){ return x.id; }) : ['I'];
+  return u;
+}
+function accessAddr(data){
+  var a={}; data.forEach(function(b){ if(!b.isItin && b.site && b.adresse && !a[b.site]) a[b.site]=b.adresse; });
+  ITIN_SITES.forEach(function(x){ if(!a[x.id]) a[x.id]=x.adresse; });
+  return a;
+}
 /* Total d'une option au coefficient de remise d (bureaux remisés, télétravail non remisé) */
 function optionTotalAt(o, dd){
   var t=0;
@@ -1671,6 +1724,20 @@ function makeItinCard() {
       '<div class="nc-foot"><div class="nc-stat nc-stat-2l"><span>'+tlang('Accès 24/7','24/7 access')+'</span><span>Global Collective</span></div><div class="nc-price"><span class="amt">'+fmt(price)+'<span class="eu">€</span></span><div class="sub">'+tlang('H.T./mois/pers','excl.VAT/mo/pers')+' · <span style="white-space:nowrap">'+engShort+'</span></div></div></div>'+
     '</div>';
 
+  /* Configuration (site + abonnements) quand l'Itinérant est dans l'option active */
+  var _io=itinActiveOpt();
+  if (_io && _io.refs.indexOf(ITIN_REF)>=0) {
+    var _q=_io.itinQty||1, _sv=itinSiteInfo(_io.itinSite);
+    var cfg=document.createElement('div'); cfg.className='itin-cfg';
+    cfg.innerHTML='<div><div class="itin-lbl">'+tlang('Site de rattachement','Home site')+'</div><div class="itin-sites">'
+      + ITIN_SITES.map(function(x){ return '<button type="button" class="itin-site'+(_sv&&_sv.id===x.id?' on':'')+'" data-site="'+x.id+'" title="'+esc(x.label+' · '+x.adresse)+'">TB '+x.id+'</button>'; }).join('')
+      + '</div><div class="itin-adr">'+(_sv?esc(_sv.adresse):tlang('Tous nos sites · à préciser','All our sites · to be specified'))+'</div></div>'
+      + '<div class="itin-qty"><span>'+tlang('Abonnement'+(_q>1?'s':''),'Subscription'+(_q>1?'s':''))+'</span><div><button type="button" data-d="-1" aria-label="'+tlang('Moins','Less')+'">−</button><b>'+_q+'</b><button type="button" data-d="1" aria-label="'+tlang('Plus','More')+'">+</button></div></div>';
+    cfg.addEventListener('click', function(e){ e.stopPropagation(); });
+    cfg.querySelectorAll('.itin-site').forEach(function(bt){ bt.addEventListener('click', function(){ setItinCfg(null, bt.dataset.site); }); });
+    cfg.querySelectorAll('.itin-qty button').forEach(function(bt){ bt.addEventListener('click', function(){ setItinCfg(_q+parseInt(bt.dataset.d,10)); }); });
+    var _dsc=div.querySelector('.nc-desc'); if(_dsc) _dsc.parentNode.insertBefore(cfg, _dsc.nextSibling);
+  }
   div.addEventListener('click', function() {
     toggleSel(ITIN_REF); /* render() redessine la carte Itinérant */
   });
@@ -1743,6 +1810,7 @@ function makeCoresCard() {
 function setVirtAbo(ref, qty) {
   if (!SEL[ref]) return;
   SEL[ref].itinQty = Math.max(1, Math.min(20, qty||1));
+  if (ref===ITIN_REF) { var _ao=itinActiveOpt(); if(_ao) _ao.itinQty=SEL[ref].itinQty; if(typeof renderPropPanel==='function') renderPropPanel(); }
   if (typeof openModal==='function') openModal();
 }
 /* Overlay « Aperçu PDF » (in-app) */
@@ -1765,7 +1833,7 @@ function setItinAbo(qty) { setVirtAbo(ITIN_REF, qty); }
 function setItinQty(optId, qty) {
   var opt = OPTIONS.find(function(o){ return o.id===optId; });
   if (!opt) return;
-  opt.itinQty = Math.max(1, Math.min(5, qty||1));
+  opt.itinQty = Math.max(1, Math.min(20, qty||1));
   /* Also update the bureau data passed to email builder */
   if (SEL[ITIN_REF]) SEL[ITIN_REF].itinQty = opt.itinQty;
   renderOptPanel();
@@ -2145,6 +2213,7 @@ function updateSelBar() {
 function renderPropPanel(){
   var body=document.getElementById('propBody'); if(!body) return;
   ensureOptions();
+  if(typeof syncItinSel==='function') syncItinSel();
   var d=disc();
   var remEl=document.getElementById('remiseInput');
   var remise=remEl?Math.min(25,Math.max(0,parseFloat(remEl.value)||0))/100:0;
@@ -2176,9 +2245,9 @@ function renderPropPanel(){
     var name=isCo?tlang('Co-Résident','Co-Resident'):(b.isItin?(b.virtLabel||''):esc(b.label||''));
     var meta;
     if(isCo) meta=floorLblL(b.etage)+(b.surface?' · '+b.surface+' m²':'')+' · The Bureau I';
-    else if(b.isItin) meta=q+' '+tlang('abonnement'+(q>1?'s':''),'subscription'+(q>1?'s':''));
+    else if(b.isItin){ var _is=itinSiteInfo(o.itinSite); meta=q+' '+tlang('abonnement'+(q>1?'s':''),'subscription'+(q>1?'s':''))+' · '+(_is?_is.label:tlang('Tous nos sites','All our sites')); }
     else meta=floorLblL(b.etage)+(b.surface?' · '+b.surface.toLocaleString('fr-FR')+' m²':'')+' · '+b.cap+' '+tlang('poste'+(b.cap>1?'s':''),'desk'+(b.cap>1?'s':''));
-    html+='<div class="prow"><span class="prow-ref">'+ref+'</span><div class="prow-info"><div class="prow-name">'+name+'</div><div class="prow-meta">'+meta+'</div></div><span class="prow-price">'+fmt(price)+'<span class="eu">€</span></span><button class="prow-del" data-ref="'+esc(b.ref)+'" data-cores="'+(isCo?1:0)+'" title="Retirer">×</button></div>';
+    html+='<div class="prow"><span class="prow-ref">'+ref+'</span><div class="prow-info"><div class="prow-name">'+name+'</div><div class="prow-meta">'+meta+'</div></div>'+(b.isItin?('<div class="prow-twcol"><span class="prow-price">'+fmt(price)+'<span class="eu">€</span></span><div class="prow-tw"><button class="ptw-btn" data-itq="'+(q-1)+'">−</button><span class="ptw-val">'+q+'</span><button class="ptw-btn" data-itq="'+(q+1)+'">+</button></div></div>'):('<span class="prow-price">'+fmt(price)+'<span class="eu">€</span></span>'))+'<button class="prow-del" data-ref="'+esc(b.ref)+'" data-cores="'+(isCo?1:0)+'" title="Retirer">×</button></div>';
   });
   /* Options & services : lignes (comme les bureaux) + bouton vers la fenêtre à pictos */
   panelExtras().forEach(function(x){
@@ -2214,7 +2283,7 @@ function renderPropPanel(){
     btn.addEventListener('click',function(){ if(btn.dataset.exdel){ setExtraQty(o,btn.dataset.exdel,0); renderPropPanel(); return; } var r=btn.dataset.ref; if(btn.dataset.cores==='1'){ toggleCoresPoste(r); } else { toggleSel(r); } });
   });
   body.querySelectorAll('.ptw-btn').forEach(function(btn){
-    btn.addEventListener('click',function(){ var k=btn.dataset.exk; setExtraQty(o,k, extraQty(o,k)+(btn.dataset.exd==='+'?1:-1)); renderPropPanel(); });
+    btn.addEventListener('click',function(){ if(btn.dataset.itq){ setItinCfg(parseInt(btn.dataset.itq,10)); return; } var k=btn.dataset.exk; setExtraQty(o,k, extraQty(o,k)+(btn.dataset.exd==='+'?1:-1)); renderPropPanel(); });
   });
   var _ob=document.getElementById('propOptsBtn'); if(_ob) _ob.addEventListener('click', openExtraModal);
   var tot=optionTotalAt(o, dCoef);
@@ -3247,7 +3316,7 @@ function buildCard(b) {
       +'<tr>'
       +'<td width="74" valign="middle" style="padding:14px 0 14px 16px"><span style="display:inline-block;background:#1E4035;color:#F5EFE5;border-radius:50px;padding:5px 12px;font-weight:700;font-size:12px;font-family:Plus Jakarta Sans,Arial,sans-serif;white-space:nowrap">'+refTxt+'</span></td>'
       +'<td valign="middle" style="padding:12px 12px">'
-      +'<div style="font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:13.5px;font-weight:700;color:#0F0F0F">'+_nm+((!b.isItin&&b.adresse)?' <span style="font-size:10px;font-weight:500;color:#7A6015">· '+b.adresse+'</span>':'')+'</div>'
+      +'<div style="font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:13.5px;font-weight:700;color:#0F0F0F">'+_nm+((b.adresse)?' <span style="font-size:10px;font-weight:500;color:#7A6015">· '+b.adresse+'</span>':'')+'</div>'
       +'<div style="font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:11px;color:#5a5248;margin-top:2px">'+meta+'</div>'
       +'<div style="font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:10px;color:'+dispo_color+';font-weight:600;margin-top:3px">'+dispo_label+'</div>'
       +'</td>'
@@ -3862,7 +3931,7 @@ function renderOptPanel() {
     html += '</div><div class="opt-body"><div class="opt-lbl">Bureaux de cette option</div><div class="opt-pool">';
     selData.forEach(function(b) {
       var inOpt = opt.refs.indexOf(b.ref) > -1;
-      html += '<label class="pill'+(inOpt?' in':'')+'"><input type="checkbox" '+(inOpt?'checked':'')+' onchange="toggleBureauInOption(\''+b.ref+'\','+opt.id+')"><span class="chk"></span>'+(b.isItin?'Itinérant':'<span class="pref">'+esc(b.ref)+'</span>')+' <span class="pp">'+fmt(b.prix)+' €</span>'+(b.isItin && inOpt ? ' <span onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:2px;font-size:10px;margin-left:2px">×<input type="number" min="1" max="5" value="'+(opt.itinQty||1)+'" style="width:30px;border:1px solid var(--cf);border-radius:4px;font-size:10px;padding:1px 3px;text-align:center" onclick="event.stopPropagation()" onchange="event.stopPropagation();setItinQty('+opt.id+',parseInt(this.value)||1)"> abo.</span>' : '')+'</label>';
+      html += '<label class="pill'+(inOpt?' in':'')+'"><input type="checkbox" '+(inOpt?'checked':'')+' onchange="toggleBureauInOption(\''+b.ref+'\','+opt.id+')"><span class="chk"></span>'+(b.isItin?'Itinérant':'<span class="pref">'+esc(b.ref)+'</span>')+' <span class="pp">'+fmt(b.prix)+' €</span>'+(b.isItin && inOpt ? ' <span onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:2px;font-size:10px;margin-left:2px">×<input type="number" min="1" max="20" value="'+(opt.itinQty||1)+'" style="width:30px;border:1px solid var(--cf);border-radius:4px;font-size:10px;padding:1px 3px;text-align:center" onclick="event.stopPropagation()" onchange="event.stopPropagation();setItinQty('+opt.id+',parseInt(this.value)||1)"> abo.</span>' : '')+'</label>';
     });
     html += '</div>';
     var _twOpt = opt.tw || 0;
@@ -3927,7 +3996,7 @@ function buildOptionsEmail(allData, isEN, civ, soc, customMsg, LOGO_B64, CHEV_B6
   /* Enrich options with bureau data */
   var enrichedOpts = OPTIONS.map(function(opt) {
     var bureaux = allData.filter(function(b){ return opt.refs.indexOf(b.ref) > -1; }).map(function(b) {
-      return b.isItin ? Object.assign({},b,{itinQty:opt.itinQty||1}) : b;
+      return b.isItin ? itinWithOpt(b,opt) : b;
     });
     return { id:opt.id, label:opt.label, itinQty:opt.itinQty||1, tw:opt.tw||0, extras:opt.extras||{}, bureaux:bureaux };
   }).filter(function(o){ return o.bureaux.length > 0; });
@@ -4000,7 +4069,7 @@ function buildOptionsEmail(allData, isEN, civ, soc, customMsg, LOGO_B64, CHEV_B6
   }
 
   /* ===== Sous-titre header : nb bureaux + zone(s) ===== */
-  var _sites=[]; allData.forEach(function(b){ if(!b.isItin && b.site && _sites.indexOf(b.site)<0) _sites.push(b.site); });
+  var _sites=[]; allData.forEach(function(b){ if(!b.isItin && b.site && _sites.indexOf(b.site)<0) _sites.push(b.site); }); itinSitesUsed().forEach(function(k){ if(_sites.indexOf(k)<0) _sites.push(k); });
   var _nOff=allData.length;
   var _countTxt = isMulti ? (_nOpts+(isEN?' configurations':' configurations')) : (_nOff>1?(_nOff+' '+(isEN?'offices':'bureaux')):(isEN?'1 office':'1 bureau'));
   var _zoneTxt = _sites.length===1 ? (BLD[_sites[0]]?BLD[_sites[0]].zone:'') : (_sites.length>1 ? (_sites.length+(isEN?' sites':' sites')) : '');
@@ -4101,9 +4170,8 @@ function buildOptionsEmail(allData, isEN, civ, soc, customMsg, LOGO_B64, CHEV_B6
   h+='</td></tr></table></td></tr>';
 
   /* ===== ACCÈS (multi-site) ===== */
-  var usedB=[]; allData.forEach(function(b){ if(!b.isItin && b.site && usedB.indexOf(b.site)<0) usedB.push(b.site); });
-  if(usedB.length===0) usedB=['I'];
-  var addrByB={}; allData.forEach(function(b){ if(b.site && b.adresse && !addrByB[b.site]) addrByB[b.site]=b.adresse; });
+  var usedB=accessSites(allData);
+  var addrByB=accessAddr(allData);
   h+='<tr><td class="ep" style="background:#ffffff;padding:0 36px 26px">';
   h+='<div style="margin-bottom:12px">'+eyebrow(usedB.length>1?(isEN?'Access · '+usedB.length+' sites':'Accès · '+usedB.length+' sites'):(isEN?'Access':'Accès'))+'</div>';
   usedB.forEach(function(bk,ix){ var B=BLD[bk]||BLD.I; var ad=addrByB[bk]||'';
@@ -4192,7 +4260,7 @@ function buildOptionEmail(allData, opt, isEN, optNum, LOGO_B64, CHEV_B64) {
     var _isCo2=isCoresRow(b);
     var refTxt=_isCo2?('P'+coresNo(b.ref)):(b.isItin?'ITIN':esc(b.ref));
     var _nameTxt=_isCo2?(isEN?'Co-Resident':'Co-Résident'):(b.isItin?(b.virtLabel||(isEN?'Nomad':'Itinérant')):esc(b.label||''));
-    var _addr=(!b.isItin&&b.adresse)?b.adresse:'';
+    var _addr=b.adresse?b.adresse:'';
     var _qv=b.itinQty||1;
     var _desc=b.isItin?(_qv+' '+(isEN?('subscription'+(_qv>1?'s':'')):('abonnement'+(_qv>1?'s':'')))):((b.desc)?cleanDesc(b.desc):'');
     var _m2=b.isItin?'—':(b.surface!=null?b.surface.toLocaleString('fr-FR'):'—');
@@ -4720,7 +4788,7 @@ function exportPDF(){
   var showAnnexes = (typeof PROP_ANNEXES==='undefined') ? true : !!PROP_ANNEXES;
   /* ===== Calculs ===== */
   function offOf(ref){ return selData.filter(function(b){return b.ref===ref;})[0]; }
-  function optOffices(opt){ return opt.refs.map(offOf).filter(Boolean); }
+  function optOffices(opt){ return opt.refs.map(offOf).filter(Boolean).map(function(b){ return b.isItin?itinWithOpt(b,opt):b; }); }
   function addonsFlat(opt){ return (opt.tw||0)*170 + ((typeof optExtrasTotal==='function')?optExtrasTotal(opt):0); }
   function optTotalAt(opt, coef){ return optOffices(opt).reduce(function(s,b){var q=b.isItin?(opt.itinQty||1):1;return s+Math.round(b.prix*coef)*q;},0)+addonsFlat(opt); }
   var _flatAddon = getTwTotal()+getExtrasTotal();
@@ -4729,7 +4797,7 @@ function exportPDF(){
   function sumM2(offs){ var v=offs.reduce(function(s,b){return s+(b.surface||0);},0); return v?v.toLocaleString('fr-FR',{maximumFractionDigits:1}):'—'; }
   function refsStr(offs){ return offs.map(function(b){return b.isItin?(b.pdfRef||(isEN?'Nomad':'Itin.')):b.ref;}).join(' + '); }
   var clean=function(b){ return esc(cleanDesc((isEN&&b.descEN?b.descEN:b.desc)||'')); };
-  var addrOf=function(b){ return (!b.isItin&&b.adresse)?esc(b.adresse):''; };
+  var addrOf=function(b){ return b.adresse?esc(b.adresse):''; };
   var EUR='<span style="font-size:9px; color:'+GOLD+';"> €</span>';
   /* ===== Infos client / titre ===== */
   var soc=''; try{ soc=((document.getElementById('fs')||{}).value||'').trim(); }catch(e){}
@@ -4776,7 +4844,7 @@ function exportPDF(){
   h+='<style>*{box-sizing:border-box;margin:0;padding:0}.opt-block,.kt,tr{break-inside:avoid}a{color:'+GOLDAA+';text-decoration:none}</style></head>';
   h+='<body style="margin:0;background:'+WHITE+';"><div class="page" style="width:297mm;background:'+WHITE+';padding:9mm;font-family:\'Plus Jakarta Sans\',sans-serif;color:'+INK+';font-size:11px;line-height:1.5;-webkit-font-smoothing:antialiased;">';
   /* En-tête éditorial (client d'abord, date discrète) — identique au mail */
-  var _sitesH=[]; selData.forEach(function(b){ if(!b.isItin&&b.site&&_sitesH.indexOf(b.site)<0)_sitesH.push(b.site); });
+  var _sitesH=[]; selData.forEach(function(b){ if(!b.isItin&&b.site&&_sitesH.indexOf(b.site)<0)_sitesH.push(b.site); }); itinSitesUsed().forEach(function(k){ if(_sitesH.indexOf(k)<0) _sitesH.push(k); });
   var _zoneH=_sitesH.length===1?(BLD[_sitesH[0]]?BLD[_sitesH[0]].zone:''):(_sitesH.length>1?(_sitesH.length+(isEN?' sites':' sites')):'');
   var _nmH=((_pren+' '+_nom).trim());
   var _subH=countLine+(_zoneH?(' · '+_zoneH):'');
@@ -4868,9 +4936,8 @@ function exportPDF(){
     CARTE.forEach(function(k){ h+='<div style="display:flex; justify-content:space-between; gap:10px; border-bottom:0.5px solid rgba(15,15,15,0.10); padding-bottom:4px;"><span style="font-weight:300; font-size:10px;">'+k[0]+'</span><span style="font-size:10px; font-weight:600; color:'+SLATE+'; white-space:nowrap;">'+k[1]+'</span></div>'; });
     h+='</div><div style="font-size:8.5px; color:rgba(15,15,15,0.5); margin-top:8px; font-weight:300;">'+(isEN?'Billed on use, with or without subscription. Prices excl. VAT.':'Facturé à l’usage, avec ou sans abonnement. Prix hors taxes.')+'</div></div></div>';
     /* Rangée 2 : conditions + accès */
-    var usedB=[]; selData.forEach(function(b){ if(!b.isItin && b.site && usedB.indexOf(b.site)<0) usedB.push(b.site); });
-    if(usedB.length===0) usedB=['I'];
-    var addrByB={}; selData.forEach(function(b){ if(b.site && b.adresse && !addrByB[b.site]) addrByB[b.site]=b.adresse; });
+    var usedB=accessSites(selData);
+    var addrByB=accessAddr(selData);
     h+='<div class="kt" style="display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:2px; margin-top:2px;">';
     h+='<div style="border:0.5px solid rgba(15,15,15,0.14); padding:16px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+(isEN?'Contractual conditions':'Conditions contractuelles')+'</span></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 20px;">';
     CONDITIONS.forEach(function(t){ h+='<div style="display:grid; grid-template-columns:10px minmax(0,1fr); gap:8px; align-items:baseline;"><span style="color:'+GOLD+'; font-weight:700; font-size:11px; line-height:1.4;">›</span><span style="font-weight:300; font-size:10px; line-height:1.4;">'+t+'</span></div>'; });
