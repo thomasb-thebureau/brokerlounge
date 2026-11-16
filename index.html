@@ -1556,6 +1556,19 @@ function ensureOptions(){
   OPT_MODE=true;
 }
 function refInAnyOption(ref){ return OPTIONS.some(function(o){ return (o.refs||[]).indexOf(ref)>=0; }); }
+/* Retire de SEL tout bureau rattaché à aucune option (sélection « fantôme ») :
+   ce qui part dans le mail / PDF = exactement ce que montre le panneau Proposition. */
+function pruneSel(){
+  if(typeof OPTIONS==='undefined'||!OPTIONS) return;
+  Object.keys(SEL).forEach(function(r){ if(!refInAnyOption(r)) delete SEL[r]; });
+  SEL_ORDER=SEL_ORDER.filter(function(r){ return !!SEL[r]; });
+}
+/* Lien partagé (#sel=…) : les bureaux reçus sont placés dans l'option active pour être visibles */
+function adoptSelIntoOptions(){
+  if(typeof ensureOptions==='function') ensureOptions();
+  var o=OPTIONS[PROP_ACTIVE]||OPTIONS[0]; if(!o) return;
+  SEL_ORDER.forEach(function(r){ var known=(r===ITIN_REF)||DATA.some(function(d){ return d.ref===r; }); if(SEL[r] && known && !refInAnyOption(r) && o.refs.indexOf(r)<0){ if(r===ITIN_REF && SEL[r]===true) SEL[r]=itinSelObj(); o.refs.push(r); } });
+}
 function itinSelObj(){ return { ref:ITIN_REF, site:null, label:'Itinérant', adresse:'', prix:ITIN_PRIX, base:ITIN_PRIX, itinQty:1, cap:1, etage:0, surface:null, dispo:'immediate', date:null, desc:'Accès en placement libre aux espaces partagés et services The Bureau. Accès 24/7. Formule all-incluse.', descEN:'Flexible access to shared spaces and The Bureau services. 24/7 access. All-inclusive.', isItin:true, virtLabel:'Itinérant', virtMeta:'Placement libre · tous nos sites', virtUnit:'abonnement', virtTag:'ITIN' }; }
 /* Itinérant : quantité + site de rattachement, portés par l'option active (et reflétés dans SEL) */
 function itinSiteInfo(id){ for(var k=0;k<ITIN_SITES.length;k++){ if(ITIN_SITES[k].id===id) return ITIN_SITES[k]; } return null; }
@@ -1582,7 +1595,7 @@ function setItinCfg(qty, site){
 }
 /* Sites de rattachement Itinérant utilisés dans la proposition (toutes options) */
 function itinSitesUsed(){
-  var r=[]; if(!SEL[ITIN_REF]) return r;
+  var r=[]; if(!SEL[ITIN_REF] || !refInAnyOption(ITIN_REF)) return r;
   (OPTIONS||[]).forEach(function(o){ if(o.refs.indexOf(ITIN_REF)>=0 && o.itinSite && r.indexOf(o.itinSite)<0) r.push(o.itinSite); });
   if(SEL[ITIN_REF].site && r.indexOf(SEL[ITIN_REF].site)<0) r.push(SEL[ITIN_REF].site);
   return r;
@@ -1591,7 +1604,7 @@ function itinSitesUsed(){
 function accessSites(data){
   var u=[]; data.forEach(function(b){ if(!b.isItin && b.site && u.indexOf(b.site)<0) u.push(b.site); });
   itinSitesUsed().forEach(function(k){ if(u.indexOf(k)<0) u.push(k); });
-  if(!u.length) u = SEL[ITIN_REF] ? ITIN_SITES.map(function(x){ return x.id; }) : ['I'];
+  if(!u.length) u = (SEL[ITIN_REF] && refInAnyOption(ITIN_REF)) ? ITIN_SITES.map(function(x){ return x.id; }) : ['I'];
   return u;
 }
 /* Libellé de comptage : « 2 bureaux », « 3 abonnements Itinérant », « 1 bureau · 2 abonnements Itinérant » */
@@ -2758,6 +2771,7 @@ var _bprop=document.getElementById('bprop'); if(_bprop) _bprop.addEventListener(
 ============================================================ */
 var _ipTimer = null;
 function getEmailPreviewData(){
+  pruneSel();
   var d = DATA.filter(function(b){ return !!SEL[b.ref]; });
   injectVirt(d);
   if (MODAL_SORT==='nom')     return d.sort(function(a,b){ return a.ref.localeCompare(b.ref); });
@@ -3256,6 +3270,7 @@ document.getElementById('bsnd').addEventListener('click', function() {
   }
   /* Respect modal sort order in the email */
   function getSortedForEmail() {
+    pruneSel();
     var d = DATA.filter(function(b){ return !!SEL[b.ref]; });
     injectVirt(d);
     if (MODAL_SORT==='nom')     return d.sort(function(a,b){ return a.ref.localeCompare(b.ref); });
@@ -4778,6 +4793,7 @@ function exportPDF(){
   var WHITE='#FAFAFA', IVORY='#F5EFE5', RELIEF='#F2F2F2', INK='#0F0F0F', SLATE='#1E4035', GOLD='#B09438', GOLDAA='#8A6A18', GOLDLT='#D4B870';
   var SEP='rgba(15,15,15,0.12)', SEP16='rgba(15,15,15,0.16)';
   /* ===== Données sélection ===== */
+  pruneSel();
   var selData = DATA.filter(function(b){ return !!SEL[b.ref]; });
   injectVirt(selData);
   if(selData.length===0){showToast(isEN?'Select offices':'Sélectionnez des bureaux');return}
@@ -5303,8 +5319,9 @@ function syncMovLang(){
 function showToast(msg,dur){dur=dur||3000;var t=document.createElement('div');t.className='tb-toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(function(){t.remove()},300)},dur)}
 
 /* F1: Session */
-function saveSession(){try{localStorage.setItem('tb_session',JSON.stringify({SEL:SEL,SEL_ORDER:SEL_ORDER,ST:ST,fp:(document.getElementById('fp')||{}).value||'',fn:(document.getElementById('fn')||{}).value||'',fs:(document.getElementById('fs')||{}).value||'',fe:(document.getElementById('fe')||{}).value||''}))}catch(e){}}
-function restoreSession(){try{var r=localStorage.getItem('tb_session');if(!r)return false;var s=JSON.parse(r);if(s.SEL){SEL=s.SEL;SEL_ORDER=s.SEL_ORDER||Object.keys(s.SEL)}if(s.ST){for(var k in s.ST)if(ST.hasOwnProperty(k))ST[k]=s.ST[k]}setTimeout(function(){['fp','fn','fs','fe'].forEach(function(id){if(s[id]){var el=document.getElementById(id);if(el)el.value=s[id]}})},500);return true}catch(e){return false}}
+/* Session : seuls les filtres sont mémorisés. Sélection et client repartent à vide à chaque ouverture (évite de mélanger deux propositions). */
+function saveSession(){try{localStorage.setItem('tb_session',JSON.stringify({ST:ST}))}catch(e){}}
+function restoreSession(){try{var r=localStorage.getItem('tb_session');if(!r)return false;var s=JSON.parse(r);if(s.SEL){try{localStorage.setItem('tb_session',JSON.stringify({ST:s.ST||{}}))}catch(e){}}if(s.ST){for(var k in s.ST)if(ST.hasOwnProperty(k))ST[k]=s.ST[k]}return true}catch(e){return false}}
 var _svT=null;function debounceSave(){clearTimeout(_svT);_svT=setTimeout(saveSession,500)}
 
 /* F2: Share URL */
@@ -5433,6 +5450,6 @@ if('serviceWorker' in navigator){
 }
 
 /* F1+F2: Restore session + share URL */
-(function(){var restored=restoreSession();if(location.hash.length>1){parseFullShareUrl();restored=true}if(restored){setTimeout(function(){render();updateSelBar();document.querySelectorAll('#sf .sc').forEach(function(c){c.classList.toggle('on',ST.sites.all?c.dataset.site==='all':!!ST.sites[c.dataset.site])});document.querySelectorAll('#ef .sb').forEach(function(c){c.classList.toggle('on',c.dataset.eng===ST.eng)});document.querySelectorAll('#df .sb').forEach(function(c){c.classList.toggle('on',c.dataset.dispo===ST.dispo)});showToast('Session restauree')},800)}})();
+(function(){var restored=restoreSession();if(location.hash.length>1){parseFullShareUrl();restored=true}adoptSelIntoOptions();pruneSel();if(restored){setTimeout(function(){render();updateSelBar();document.querySelectorAll('#sf .sc').forEach(function(c){c.classList.toggle('on',ST.sites.all?c.dataset.site==='all':!!ST.sites[c.dataset.site])});document.querySelectorAll('#ef .sb').forEach(function(c){c.classList.toggle('on',c.dataset.eng===ST.eng)});document.querySelectorAll('#df .sb').forEach(function(c){c.classList.toggle('on',c.dataset.dispo===ST.dispo)});showToast('Session restauree')},800)}})();
 
 </script>
