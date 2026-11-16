@@ -4735,6 +4735,43 @@ function rasterizeSvg(url, cssH){
     });
   }).catch(function(){ return null; });
 }
+/* Découpe le PDF en pages A4 paysage. Coupes possibles : entre blocs de 1er niveau et entre lignes
+   des tableaux (.opt-block / .kt). Un titre court reste collé au bloc qui le suit. Le dernier bloc
+   (signature) est retiré du flux et reproduit en pied de chaque page. Valeurs en px CSS. */
+function a4Layout(doc, pageEl, w){
+  var PH=Math.floor(w*210/297), M=Math.round(w*9/297), G=Math.round(w*5/297);
+  var top0=pageEl.getBoundingClientRect().top;
+  var R=function(e){ var r=e.getBoundingClientRect(); return {t:r.top-top0, b:r.bottom-top0, h:r.height}; };
+  var kids=[].slice.call(pageEl.children).filter(function(c){ return c.getBoundingClientRect().height>0; });
+  var foot=null, F=0;
+  if(kids.length>2){ var fr=R(kids[kids.length-1]); foot=[fr.t,fr.b]; F=fr.h; kids=kids.slice(0,-1); }
+  var end=kids.length?R(kids[kids.length-1]).b:pageEl.scrollHeight;
+  var cands=[], heads=[], tabs=[];
+  [].slice.call(pageEl.querySelectorAll('.opt-block')).forEach(function(tb){ var hd=tb.firstElementChild; if(!hd) return; var r=R(tb), h=R(hd); tabs.push({t:r.t,b:r.b,hdr:[h.t,h.b]}); });
+  var prevB=-1e9;
+  kids.forEach(function(c){
+    var r=R(c), gap=r.t-prevB; prevB=r.b;
+    if(r.h<30 && gap<14) return;  /* légende collée au bloc précédent : jamais seule en haut de page */
+    cands.push(r.t);
+    if(r.h<30) heads.push(r);  /* titre de section */
+    [].slice.call(c.querySelectorAll('.opt-block > div, .kt > div')).forEach(function(row,ix){ if(ix>0) cands.push(R(row).t); });
+  });
+  cands.sort(function(a,b){ return a-b; });
+  var pages=[], start=0, guard=0, hdr=null;
+  while(guard++<40){
+    var hh=hdr?(hdr[1]-hdr[0]):0;
+    var avail=(pages.length? PH-M : PH) - M - F - G - hh;
+    if(end-start<=avail){ pages.push([start,end,hdr]); break; }
+    var lim=start+avail, cut=0;
+    cands.forEach(function(c){ if(c>start+20 && c<=lim) cut=c; });
+    heads.forEach(function(hd){ if(Math.abs(hd.b-cut)<26 && hd.t>start+20) cut=hd.t; }); /* garde le titre avec son bloc */
+    if(!cut) cut=lim;
+    pages.push([start,cut,hdr]); start=cut;
+    /* coupe au milieu d'un tableau → l'en-tête des colonnes est répété en haut de la page suivante */
+    hdr=null; tabs.forEach(function(tb){ if(cut>tb.hdr[1]+2 && cut<tb.b-2) hdr=tb.hdr; });
+  }
+  return {pages:pages, foot:foot, F:F, PH:PH, M:M};
+}
 function exportPDF(){
   var isEN = (typeof EP_LANG!=='undefined' && EP_LANG==='en');
   /* ===== Tokens ===== */
@@ -5002,10 +5039,21 @@ function exportPDF(){
       frame.style.height=ht+'px';
       setTimeout(function(){
         html2canvas(pageEl,{scale:2,useCORS:true,logging:false,backgroundColor:'#FAFAFA',width:w,height:ht,windowWidth:w}).then(function(canvas){
-          var orient=(canvas.width>=canvas.height)?'l':'p';
-          var pdf=new jsPDFLib({unit:'px',format:[w,ht],orientation:orient});
-          var pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
-          pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,pw,ph);
+          /* Pagination A4 paysage (297 × 210 mm) : coupes entre blocs / lignes, signature en pied de chaque page */
+          var L=a4Layout(fdoc, pageEl, w);
+          var pdf=new jsPDFLib({unit:'mm',format:'a4',orientation:'landscape'});
+          var k=297/w, sc=canvas.width/w;
+          var slice=function(y0,y1){ var c=document.createElement('canvas'); c.width=canvas.width; c.height=Math.max(1,Math.round((y1-y0)*sc)); var cx=c.getContext('2d'); cx.fillStyle='#FAFAFA'; cx.fillRect(0,0,c.width,c.height); cx.drawImage(canvas,0,Math.round(y0*sc),canvas.width,c.height,0,0,c.width,c.height); return c.toDataURL('image/jpeg',0.92); };
+          var foot=L.foot?slice(L.foot[0],L.foot[1]):null;
+          L.pages.forEach(function(pg,i){
+            if(i) pdf.addPage('a4','landscape');
+            pdf.setFillColor(250,250,250); pdf.rect(0,0,297,210,'F');
+            var y=i?L.M:0;
+            if(pg[2]){ pdf.addImage(slice(pg[2][0],pg[2][1]),'JPEG',0,y*k,297,(pg[2][1]-pg[2][0])*k); y+=pg[2][1]-pg[2][0]; }
+            pdf.addImage(slice(pg[0],pg[1]),'JPEG',0,y*k,297,(pg[1]-pg[0])*k);
+            if(foot) pdf.addImage(foot,'JPEG',0,(L.PH-L.M-L.F)*k,297,L.F*k);
+            if(L.pages.length>1){ pdf.setFontSize(7); pdf.setTextColor(138,106,24); pdf.text((i+1)+' / '+L.pages.length, 297-9, 210-3.2, {align:'right'}); }
+          });
           try{ pdf.setProperties&&pdf.setProperties({title:pdfTitle}); }catch(e){}
           var pdfBlob=pdf.output('blob');
           try{ document.body.removeChild(frame); }catch(e){}
