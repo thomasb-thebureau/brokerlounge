@@ -1357,7 +1357,7 @@ body.dark .sm-btn-ghost{color:rgba(245,239,229,.65);border-color:rgba(255,255,25
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
 </head>
 <body>
-<div class="top-bar"><div class="logo-wrap"><a href="#" onclick="return askReset();" title="Nouvelle session" style="display:flex;align-items:center;line-height:0"><img class="logo-main" src="./logo.svg?v=11" alt="The Bureau"/><img class="logo-main-dark" src="./logo-white.svg?v=11" alt="The Bureau"/></a><div class="logo-div"></div><span class="logo-tag">BROKER LOUNGE</span><span class="brk-badge">Confidentiel</span></div><div class="top-right"><button class="sync-pill" id="syncPill" onclick="fetchData()" title="Actualiser les données"><span class="sdot" id="sdot"></span><span class="stxt" id="stxt">Chargement…</span></button><button class="hdr-btn" id="resetBtn" onclick="return askReset();"><span style="font-size:13px;line-height:1">↺</span> Réinitialiser</button><div class="lang-toggle" id="langToggleHeader"><button data-lang="fr" class="on">FR</button><button data-lang="en">EN</button></div><button class="dark-toggle hdr-icon" id="darkToggle" title="Mode jour / nuit"><span class="dark-emoji">🌙</span></button><span class="dlabel" id="dlabel" style="display:none"></span><button class="user-avatar" id="userAvatar" title="Changer d'expéditeur">TB</button></div></div>
+<div class="top-bar"><div class="logo-wrap"><a href="#" onclick="return askReset();" title="Nouvelle session" style="display:flex;align-items:center;line-height:0"><img class="logo-main" src="./logo.svg?v=11" alt="The Bureau"/><img class="logo-main-dark" src="./logo-white.svg?v=11" alt="The Bureau"/></a><div class="logo-div"></div><span class="logo-tag">BROKER LOUNGE</span><span class="brk-badge">Confidentiel</span></div><div class="top-right"><button type="button" class="inc-chip" id="incChip" style="display:none" onclick="openIncentive()"><i>12–15 %</i><span id="incChipLbl">Incentive brokers</span></button><button class="sync-pill" id="syncPill" onclick="fetchData()" title="Actualiser les données"><span class="sdot" id="sdot"></span><span class="stxt" id="stxt">Chargement…</span></button><button class="hdr-btn" id="resetBtn" onclick="return askReset();"><span style="font-size:13px;line-height:1">↺</span> Réinitialiser</button><div class="lang-toggle" id="langToggleHeader"><button data-lang="fr" class="on">FR</button><button data-lang="en">EN</button></div><button class="dark-toggle hdr-icon" id="darkToggle" title="Mode jour / nuit"><span class="dark-emoji">🌙</span></button><span class="dlabel" id="dlabel" style="display:none"></span><button class="user-avatar" id="userAvatar" title="Changer d'expéditeur">TB</button></div></div>
 <div class="app3"><div class="rail-backdrop" id="railBackdrop"></div><aside class="rail"><img src="./chevrons.svg" alt="" class="rail-wm"><div class="rail-draghead"><span class="rail-draghead-t">Filtres</span><button class="rail-close" id="railClose" type="button" aria-label="Fermer les filtres"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="rail-sec"><div class="rail-lbl">Adresse</div><div class="site-chips site-list" id="sf"><span class="sc sc-all on" data-site="all">Toutes<span class="rc-ct" data-ct="all"></span></span><span class="sc sc-addr" data-site="I" title="28 Cours Albert 1er, 75008 Paris"><span class="sc-num">28</span><span class="sc-txt"><span class="sc-street">Cours Albert 1<sup>er</sup></span><span class="sc-cp">75008 Paris</span></span><span class="rc-ct" data-ct="I"></span></span><span class="sc sc-addr" data-site="II" title="16 Cours Albert 1er, 75008 Paris"><span class="sc-num">16</span><span class="sc-txt"><span class="sc-street">Cours Albert 1<sup>er</sup></span><span class="sc-cp">75008 Paris</span></span><span class="rc-ct" data-ct="II"></span></span><span class="sc sc-addr" data-site="III" title="25 Rue du 4 Septembre, 75002 Paris"><span class="sc-num">25</span><span class="sc-txt"><span class="sc-street">Rue du 4 Septembre</span><span class="sc-cp">75002 Paris</span></span><span class="rc-ct" data-ct="III"></span></span><span class="sc sc-addr" data-site="IV" title="42 Rue Notre-Dame des Victoires, 75002 Paris"><span class="sc-num">42</span><span class="sc-txt"><span class="sc-street">Rue Notre-Dame des Victoires</span><span class="sc-cp">75002 Paris</span></span><span class="rc-ct" data-ct="IV"></span></span></div></div><div class="rail-sec"><div class="rail-lbl">Postes</div><div class="cap-pills" id="capBtns"><button class="cb on" data-cap="all">Tous</button><button class="cb" data-cap="s">1–6</button><button class="cb" data-cap="m">7–12</button><button class="cb" data-cap="l">13–20</button><button class="cb" data-cap="xl">20+</button></div></div><div class="rail-sec"><div class="rail-lbl">Disponibilité</div><div class="cap-pills" id="df"><button class="sb on" data-dispo="all">Toutes</button><button class="sb" data-dispo="immediate">Immédiate</button><button class="sb" data-dispo="future">À venir</button><button class="occ-toggle" id="occBtn" title="Afficher les bureaux occupés"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="3" x2="21" y2="21" class="occ-slash"/></svg> Occupés</button></div></div><div class="rail-sec"><div class="rail-lbl">Référence</div><input type="text" class="ri wide" id="search" placeholder="ex. B402"></div><div class="rail-foot"><span class="rail-nf" id="railNf">Aucun filtre</span><button class="reset" id="rst">Réinitialiser →</button></div><div style="display:none" aria-hidden="true"><input id="cmin"><input id="cmax"><select id="etf"><option value="all">Tous</option><option value="0">RDC</option><option value="1">1er</option><option value="2">2e</option><option value="3">3e</option><option value="4">4e</option><option value="5">5e</option></select><span id="favFilter"></span></div></aside><main class="cat"><div class="cat-head"><div><div class="eyebrow-l">Paris · 75002 &amp; 75008</div><h1 class="cat-title"><strong id="cnt">-</strong> bureau<span id="ps"></span> <em>disponible<span id="ps2"></span></em></h1></div><div class="cat-tools"><button class="mob-filters-btn" id="mobFiltersBtn"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>Filtres<span class="mfb-dot" id="mobFiltersDot" style="display:none">0</span></button><div class="sort-btns" id="srtBtns"><button class="sortb on" data-sort="nom">Nom</button><button class="sortb" data-sort="pa">Prix</button><button class="sortb" data-sort="surface">Surface</button><button class="sortb" data-sort="dispo">Disponibilité</button></div><span class="data-warn" id="dataWarn" role="status">⚠ Données de secours · hors ligne</span><div style="display:none" aria-hidden="true"><select id="srt"><option value="nom" selected>Référence</option><option value="pa">Prix croissant</option><option value="pd">Prix décroissant</option><option value="ca">Capacité croissante</option><option value="cd">Capacité décroissante</option><option value="dispo">Disponibilité</option></select><div id="viewToggle"><button id="vtList"></button><button id="vtGrid"></button></div><button id="presentToggle"></button><button id="filterFab" onclick="openFilterDrawer()"><span id="filterFabDot"></span></button></div></div></div><div class="active-filters" id="activeFilters" aria-live="polite"></div><div class="grid" id="grid"><div class="empty" id="empty"><h3>Aucun bureau ne correspond à vos critères.</h3><p>Modifiez les filtres ou <a href="#" id="emptyRst" style="color:var(--or2)">réinitialisez</a>.</p></div></div></main><aside class="prop"><div class="prop-head"><div class="prop-eye">Proposition</div><span class="prop-count" id="propCount"></span><button class="prop-sheet-close" id="propSheetClose" type="button" aria-label="Fermer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="prop-client"><input class="pc-name" id="propClientName" placeholder="Prénom Nom" autocomplete="off"><input class="pc-comp" id="propClientComp" placeholder="Société" autocomplete="off"></div><div class="prop-eng"><div class="prop-eng-lbl">Engagement</div><div class="sr eng" id="ef"><button class="sb on" data-eng="mensuel">Mensuel<small>3 mois min.</small></button><button class="sb" data-eng="12m">12 mois<small>−5 %</small></button><button class="sb" data-eng="24m">24 mois<small>−10 %</small></button><button class="sb" data-eng="36m">36 mois<small>−15 %</small></button></div></div><div class="prop-tabs" id="propTabs"></div><div class="prop-opthead" id="propOpthead"></div><div class="prop-body" id="propBody"></div><div class="prop-foot" id="propFoot"><button class="prop-cta" id="propPdf" disabled>Aperçu &amp; téléchargement PDF</button></div></aside></div>
 <div class="prop-backdrop" id="propBackdrop"></div>
 <div class="prop-bar hidden" id="propBar" aria-label="Proposition"><div class="pb-tabs" id="pbTabs"></div><button class="pb-main" id="pbMain" type="button"><span class="pb-lbl" id="pbLabel">Proposition</span><span class="pb-tot" id="pbTotal"></span><svg class="pb-chev" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button></div>
@@ -2301,6 +2301,20 @@ function renderPropPanel(){
     var _monthly=(ST.eng==='mensuel');
     var _caMonth=ordered.reduce(function(s,b){ var q=b.isItin?(o.itinQty||1):1; return s+Math.round(b.prix*(1-dCoef))*q; },0);
     var _caYear=_caMonth*12;
+    var _inc=(typeof incentiveCalc==='function')?incentiveCalc(ordered,_caMonth,ST.eng):null;
+    if(_inc && _inc.ok){
+      /* Incentive brokers (entrée client avant le 28/02/2027) */
+      _commBig=_inc.comm;
+      html+='<div class="prop-comm">'
+        +'<div class="pc-eye">'+tlang('Commission estimée','Estimated commission')+'<span class="pc-inc">INCENTIVE</span></div>'
+        +'<div class="pc-big"><span class="pc-n">'+fmt(_inc.comm)+'</span><span class="eu"> €</span></div>'
+        +'<div class="pc-break">'
+          +'<div class="pc-r"><span>'+_inc.baseLbl+'</span><b>'+fmt(_inc.base)+' €</b></div>'
+          +'<div class="pc-r"><span>'+_inc.rateLbl+'</span><b><span class="pc-was">10 %</span>'+_inc.rate+' %</b></div>'
+        +'</div>'
+        +'<div class="pc-note">'+_inc.note+'</div>'
+      +'</div>';
+    } else {
     var _comm=_monthly?Math.round(_caMonth*0.10):Math.round(_caYear*0.10);
     var _per=_monthly?tlang(' /mois',' /mo'):'';
     _commBig=_comm;
@@ -2311,8 +2325,9 @@ function renderPropPanel(){
         +'<div class="pc-r"><span>'+(_monthly?tlang('CA mensuel H.T.','Monthly revenue excl. VAT'):tlang('CA annuel H.T.','Annual revenue excl. VAT'))+'</span><b>'+fmt(_monthly?_caMonth:_caYear)+' €</b></div>'
         +'<div class="pc-r"><span>'+tlang('Taux commission','Commission rate')+'</span><b>10 %</b></div>'
       +'</div>'
-      +'<div class="pc-note">'+tlang('Estimation non contractuelle. La commission dépend des termes de votre mandat. Télétravail et options hors assiette.','Non-binding estimate. Commission subject to the terms of your mandate. Telework and options excluded from the base.')+'</div>'
+      +'<div class="pc-note">'+(_inc&&_inc.why?_inc.why+' ':'')+tlang('Estimation non contractuelle. La commission dépend des termes de votre mandat. Télétravail et options hors assiette.','Non-binding estimate. Commission subject to the terms of your mandate. Telework and options excluded from the base.')+'</div>'
     +'</div>';
+    }
   }
   body.innerHTML=html;
   staggerIn(body.querySelectorAll('.prow'));
@@ -5452,4 +5467,114 @@ if('serviceWorker' in navigator){
 /* F1+F2: Restore session + share URL */
 (function(){var restored=restoreSession();if(location.hash.length>1){parseFullShareUrl();restored=true}adoptSelIntoOptions();pruneSel();if(restored){setTimeout(function(){render();updateSelBar();document.querySelectorAll('#sf .sc').forEach(function(c){c.classList.toggle('on',ST.sites.all?c.dataset.site==='all':!!ST.sites[c.dataset.site])});document.querySelectorAll('#ef .sb').forEach(function(c){c.classList.toggle('on',c.dataset.eng===ST.eng)});document.querySelectorAll('#df .sb').forEach(function(c){c.classList.toggle('on',c.dataset.dispo===ST.dispo)});showToast('Session restauree')},800)}})();
 
+</script>
+<script>
+/* ============================================================
+   INCENTIVE BROKERS — entrée client avant le 28/02/2027
+   12 % du CA H.T. (3 à 12 mois, au prorata) · 15 % du CA H.T. de la 1re année (13 mois et +)
+   Tout disparaît automatiquement à partir du 28/02/2027 (heure de Paris).
+============================================================ */
+var INC_END_ISO='2027-02-28';                       /* entrée strictement antérieure à cette date */
+var INC_END=new Date('2027-02-28T00:00:00+01:00');
+function incActive(){ return new Date() < INC_END; }
+/* Calcul de la commission incentive pour une option (null si incentive terminée) */
+function incentiveCalc(rows, caMonth, eng){
+  if(!incActive()) return null;
+  var late=rows.filter(function(b){ return b.dispo==='future' && b.date && b.date>=INC_END_ISO; });
+  if(late.length){
+    return {ok:false, why:tlang('Incentive non applicable : entrée possible après le 28/02/2027 ('+late.map(function(b){return b.ref;}).join(', ')+').','Incentive not applicable: move-in after 28/02/2027 ('+late.map(function(b){return b.ref;}).join(', ')+').')};
+  }
+  var months={mensuel:3,'12m':12,'24m':24,'36m':36}[eng]||3;
+  var long=months>12, rate=long?15:12, baseMonths=long?12:months;
+  var base=caMonth*baseMonths, comm=Math.round(base*rate/100);
+  return {ok:true, comm:comm, base:base, rate:rate,
+    baseLbl: long ? tlang('CA de la 1<sup>re</sup> année H.T.','First-year revenue excl. VAT')
+                  : (eng==='mensuel' ? tlang('CA H.T. · 3 mois minimum','Revenue excl. VAT · 3-month minimum') : tlang('CA H.T. · 12 mois','Revenue excl. VAT · 12 months')),
+    rateLbl: long ? tlang('Taux · contrat de 13 mois et plus','Rate · contracts of 13 months +') : tlang('Taux · contrat de 3 à 12 mois','Rate · 3 to 12-month contracts'),
+    note: (eng==='mensuel' ? tlang('Au prorata de la durée : 12 % du CA H.T. par mois de contrat (base affichée : 3 mois minimum). ','Pro rata: 12% of revenue excl. VAT per contract month (shown: 3-month minimum). ') : '')
+          + tlang('Incentive brokers : client entrant avant le 28/02/2027. Estimation non contractuelle, télétravail et options hors assiette.','Broker incentive: client moving in before 28/02/2027. Non-binding estimate, telework and options excluded from the base.')};
+}
+(function(){
+  var css=`
+.inc-ov{position:fixed;inset:0;background:rgba(9,8,12,.62);display:none;align-items:center;justify-content:center;overflow-y:auto;z-index:400;padding:16px;font-family:'Plus Jakarta Sans',sans-serif}
+.inc-ov.on{display:flex}
+.inc{width:min(680px,100%);background:#FAFAFA;border-radius:4px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.35);position:relative;margin:auto}
+.inc-band{background:#1E4035;color:#F5EFE5;padding:26px 32px 24px;position:relative;overflow:hidden}
+.inc-band img{position:absolute;right:-30px;top:-20px;width:190px;opacity:.12;pointer-events:none}
+.inc-eye{font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#D4B870;display:flex;align-items:center;gap:10px;padding-right:36px}
+.inc-eye:before{content:'';width:26px;height:1px;background:#D4B870;flex-shrink:0}
+.inc-t{font-size:30px;font-weight:200;letter-spacing:-.02em;line-height:1.08;margin-top:10px}
+.inc-t b{font-weight:800;color:#D4B870}
+.inc-x{position:absolute;top:14px;right:14px;width:30px;height:30px;border:0;background:rgba(255,255,255,.08);color:#F5EFE5;border-radius:50%;font-size:16px;cursor:pointer;z-index:1}
+.inc-b{padding:22px 32px 24px;color:#0F0F0F}
+.inc-lead{font-size:13px;line-height:1.6;color:#3a352e;margin:0 0 18px}
+.inc-tiles{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:12px}
+.inc-tile{background:#F5EFE5;padding:16px 18px}
+.inc-tile .p{font-size:40px;font-weight:800;color:#1E4035;letter-spacing:-.03em;line-height:1}
+.inc-tile .p span{font-size:20px;color:#8A6A18}
+.inc-tile .u{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A6A18;margin:6px 0 8px}
+.inc-tile .d{font-size:12px;color:#3a352e;line-height:1.45}
+.inc-cond{font-size:11px;color:#5a5248;margin:0 0 16px;line-height:1.5}
+.inc-cond b{color:#0F0F0F}
+.inc-ex{border:1px solid rgba(176,148,56,.45);border-left:3px solid #B09438;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.inc-ex .l{font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#8A6A18}
+.inc-ex .s{font-size:12.5px;color:#0F0F0F;margin-top:3px}
+.inc-ex .v{font-size:26px;font-weight:800;color:#1E4035;white-space:nowrap}
+.inc-ex .v small{font-size:11px;font-weight:600;color:#8A6A18}
+.inc-note{font-size:12px;line-height:1.55;color:#3a352e;margin:0 0 18px;font-style:italic}
+.inc-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:0.5px solid rgba(15,15,15,.12);padding-top:16px;flex-wrap:wrap}
+.inc-sig{font-size:11px;line-height:1.45;color:#5a5248}
+.inc-sig b{color:#0F0F0F;font-weight:700}
+.inc-act{display:flex;gap:12px;align-items:center}
+.inc-cta{background:#0F0F0F;color:#FAFAFA;border:0;padding:12px 18px;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.inc-sec{background:none;border:0;color:#8A6A18;font-size:10px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:inherit;text-decoration:underline;text-decoration-color:rgba(176,148,56,.4)}
+.inc-chip{display:inline-flex;align-items:center;gap:7px;background:#B09438;color:#fff;border:0;border-radius:50px;padding:6px 12px 6px 8px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-right:8px;white-space:nowrap;font-family:inherit}
+.inc-chip i{font-style:normal;background:#1E4035;color:#D4B870;border-radius:50px;padding:2px 7px}
+.pc-inc{display:inline-block;background:#B09438;color:#fff;border-radius:50px;font-size:8.5px;font-weight:700;letter-spacing:.12em;padding:2px 8px;margin-left:8px;vertical-align:1px}
+.pc-was{text-decoration:line-through;opacity:.55;font-weight:500;margin-right:6px}
+@media(max-width:900px){.inc-chip span{display:none}.inc-chip{padding:6px 8px}}
+@media(max-width:600px){.inc-ov{align-items:flex-start;padding:12px}.inc-band{padding:22px 20px 20px}.inc-t{font-size:26px}.inc-b{padding:18px 20px 20px}.inc-tile{padding:14px}.inc-tile .p{font-size:34px}.inc-ex{flex-direction:column;align-items:flex-start;gap:6px}.inc-foot{flex-direction:column;align-items:stretch}.inc-act{justify-content:space-between}}`;
+  var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+})();
+function incHtml(){
+  var T=function(fr,en){ return tlang(fr,en); };
+  return '<div class="inc" role="dialog" aria-modal="true" aria-label="'+T('Incentive partenaires','Partner incentive')+'">'
+   +'<div class="inc-band"><img src="./chevrons.svg" alt=""><button type="button" class="inc-x" aria-label="'+T('Fermer','Close')+'" data-inc-close>×</button>'
+   +'<div class="inc-eye">'+T('Incentive partenaires · jusqu\'au 28 février 2027','Partner incentive · until 28 February 2027')+'</div>'
+   +'<div class="inc-t">'+T('Vos commissions,<br><b>revalorisées.</b>','Your commissions,<br><b>enhanced.</b>')+'</div></div>'
+   +'<div class="inc-b">'
+   +'<p class="inc-lead">'+T('Caroline Vaubourgoin, notre nouvelle Directrice générale, et moi avons le plaisir de vous présenter une incentive dédiée à nos partenaires brokers.','Caroline Vaubourgoin, our new Managing Director, and I are delighted to introduce an incentive dedicated to our broker partners.')+'</p>'
+   +'<div class="inc-tiles">'
+     +'<div class="inc-tile"><div class="p">12<span> %</span></div><div class="u">'+T('du CA HT','of revenue excl. VAT')+'</div><div class="d">'+T('Contrats de <b>3 à 12 mois</b>, au prorata de la durée.','<b>3 to 12-month</b> contracts, pro rata to the term.')+'</div></div>'
+     +'<div class="inc-tile"><div class="p">15<span> %</span></div><div class="u">'+T('du CA HT de la 1<sup>re</sup> année','of first-year revenue excl. VAT')+'</div><div class="d">'+T('Contrats de <b>13 mois et plus</b>.','Contracts of <b>13 months or more</b>.')+'</div></div>'
+   +'</div>'
+   +'<p class="inc-cond">◆ '+T('Pour tout client dont l\'entrée dans nos espaces a lieu <b>avant le 28 février 2027</b>.','For any client moving into our spaces <b>before 28 February 2027</b>.')+'</p>'
+   +'<div class="inc-ex"><div><div class="l">'+T('Exemple','Example')+'</div><div class="s">'+T('Bureau à 10 000 € HT / mois · contrat de 24 mois','Office at €10,000 excl. VAT / month · 24-month contract')+'</div></div><div class="v">'+T('18 000 € <small>HT de commission</small>','€18,000 <small>commission excl. VAT</small>')+'</div></div>'
+   +'<p class="inc-note">'+T('Un dossier demande un effort particulier pour aboutir ? Nous restons à l\'écoute de propositions mesurées pour concrétiser la transaction.','Does a deal need an extra effort to close? We remain open to reasonable proposals to help you complete the transaction.')+'</p>'
+   +'<div class="inc-foot"><div class="inc-sig"><b>Caroline Vaubourgoin</b> · '+T('Directrice générale','Managing Director')+'<br><b>Thomas Bougeard</b> · '+T('Directeur commercial','Sales Director')+'</div>'
+   +'<div class="inc-act"><button type="button" class="inc-sec" data-inc-close>'+T('Ne plus afficher','Don\'t show again')+'</button><button type="button" class="inc-cta" data-inc-close>'+T('Voir les bureaux →','See the offices →')+'</button></div></div>'
+   +'</div></div>';
+}
+function openIncentive(){
+  if(!incActive()) return;
+  var ov=document.getElementById('incOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='incOv'; ov.className='inc-ov'; document.body.appendChild(ov);
+    ov.addEventListener('click',function(e){ if(e.target===ov || e.target.closest('[data-inc-close]')) closeIncentive(); });
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape' && ov.classList.contains('on')) closeIncentive(); }); }
+  ov.innerHTML=incHtml(); ov.classList.add('on');
+}
+function closeIncentive(){
+  var ov=document.getElementById('incOv'); if(ov) ov.classList.remove('on');
+  try{ localStorage.setItem('tb_inc_2027_seen','1'); }catch(e){}
+}
+(function(){
+  var chip=document.getElementById('incChip');
+  if(!incActive()){ if(chip) chip.remove(); return; }
+  if(chip) chip.style.display='';
+  var seen=false; try{ seen=localStorage.getItem('tb_inc_2027_seen')==='1'; }catch(e){}
+  if(!seen) setTimeout(openIncentive, 900);
+  /* bascule FR/EN : libellé de la pastille + pop-up ouvert */
+  document.addEventListener('click',function(e){ if(e.target.closest && e.target.closest('#langToggleHeader button')) setTimeout(function(){ var l=document.getElementById('incChipLbl'); if(l) l.textContent=tlang('Incentive brokers','Broker incentive'); var ov=document.getElementById('incOv'); if(ov&&ov.classList.contains('on')) ov.innerHTML=incHtml(); },0); });
+  var l=document.getElementById('incChipLbl'); if(l) l.textContent=tlang('Incentive brokers','Broker incentive');
+})();
 </script>
