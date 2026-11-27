@@ -4240,7 +4240,8 @@ function buildOptionsEmail(allData, isEN, civ, soc, customMsg, LOGO_B64, CHEV_B6
   /* ===== À LA CARTE (= options du bandeau droit) ===== */
   var CARTE=[[isEN?'Remote work':'Télétravail',170,(isEN?'/mo/pers.':'/mois/pers.')]];
   ADDONS.forEach(function(a){ CARTE.push([isEN?a.en:a.fr,a.p,(isEN?a.perEn:a.perFr)]); });
-  var _carteItem=function(k){return '<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:0.5px solid rgba(15,15,15,.1)"><tr><td style="padding:5px 0;font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:11px;color:'+GR+'">'+k[0]+'</td><td align="right" style="padding:5px 0;white-space:nowrap;font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:11px;font-weight:700;color:'+SLATE+'">'+k[1]+' €<span style="font-weight:400;color:'+GR+'"> '+k[2]+'</span></td></tr></table>';};
+  CARTE.sort(function(a,b){ return String(a[0]).localeCompare(String(b[0]), isEN?'en':'fr'); });
+  var _carteItem=function(k){return '<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:0.5px solid rgba(15,15,15,.1)"><tr><td style="padding:5px 0;font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:11px;color:'+GR+'">'+k[0]+'</td><td align="right" style="padding:5px 0;white-space:nowrap;font-family:Plus Jakarta Sans,Arial,sans-serif;font-size:11px;font-weight:700;color:'+SLATE+'">'+k[1]+' €<span style="font-weight:400;color:#0F0F0F"> '+k[2]+'</span></td></tr></table>';};
   var _ch=Math.ceil(CARTE.length/2);
   h+='<tr><td class="ep" style="background:#ffffff;padding:0 36px 26px">';
   h+='<div style="margin-bottom:10px">'+eyebrow(isEN?'À la carte, no commitment · excl. VAT':'À la carte, sans engagement · H.T.')+'</div>';
@@ -5026,7 +5027,7 @@ function exportPDF(){
     INCLUS.forEach(function(t){ h+='<div style="display:grid; grid-template-columns:10px minmax(0,1fr); gap:8px; align-items:baseline;"><span style="color:'+GOLD+'; font-weight:700; font-size:11px; line-height:1.4;">›</span><span style="font-weight:300; font-size:10px; line-height:1.4;">'+t+'</span></div>'; });
     h+='</div></div>';
     h+='<div style="background:'+IVORY+'; padding:18px 20px;"><div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><span style="display:block; width:28px; height:1px; background:'+GOLD+';"></span><span style="font-size:9.5px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:'+GOLDAA+';">'+(isEN?'À la carte, no commitment':'À la carte, sans engagement')+'</span></div><div style="display:flex; flex-direction:column; gap:5px;">';
-    CARTE.forEach(function(k){ h+='<div style="display:flex; justify-content:space-between; gap:10px; border-bottom:0.5px solid rgba(15,15,15,0.10); padding-bottom:4px;"><span style="font-weight:300; font-size:10px;">'+k[0]+'</span><span style="font-size:10px; font-weight:600; color:'+SLATE+'; white-space:nowrap;">'+k[1]+'</span></div>'; });
+    CARTE.forEach(function(k){ h+='<div style="display:flex; justify-content:space-between; gap:10px; border-bottom:0.5px solid rgba(15,15,15,0.10); padding-bottom:4px;"><span style="font-weight:400; font-size:10px;">'+k[0]+'</span><span style="font-size:10px; white-space:nowrap;">'+String(k[1]).replace(/^(.*?€)(.*)$/,'<b style="font-weight:700; color:'+SLATE+';">$1</b><span style="font-weight:400; color:#0F0F0F;">$2</span>')+'</span></div>'; });
     h+='</div><div style="font-size:8.5px; color:rgba(15,15,15,0.5); margin-top:8px; font-weight:300;">'+(isEN?'Billed on use, with or without subscription. Prices excl. VAT.':'Facturé à l’usage, avec ou sans abonnement. Prix hors taxes.')+'</div></div></div>';
     /* Rangée 2 : conditions + accès */
     var usedB=accessSites(selData);
