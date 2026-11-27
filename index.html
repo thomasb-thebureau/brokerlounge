@@ -1402,13 +1402,13 @@ const DATA_URL = './data.json';
 const REFRESH_MS = 5 * 60 * 1000;
 const TB_CONFIG = {
   contact: { name:'Thomas Bougeard', title:'Directeur Commercial', titleEN:'Commercial Director',
-             phone:'+33 6 59 23 15 92', email:'thomasb@thebureau.paris' },
+             phone:'+33 6 59 23 15 92', email:'thomas.bougeard@thebureau.paris' },
   senders: [
-    { id:'thomas', name:'Thomas Bougeard', title:'Directeur Commercial', titleEN:'Commercial Director', phone:'+33 6 59 23 15 92', email:'thomasb@thebureau.paris', isDefault:true },
-    { id:'charles', name:'Charles Caignol', title:'Responsable d\'exploitation', titleEN:'Operations Manager', phone:'+33 6 59 44 62 64', email:'charles@thebureau.paris' },
-    { id:'oscar', name:'Oscar Aumont', title:'Responsable de Centres', titleEN:'Centers Manager', phone:'+33 6 59 34 57 88', email:'oscar@thebureau.paris' },
-    { id:'pierrehenri', name:'Pierre-Henri Poulle', title:'Responsable Conciergerie', titleEN:'Concierge Manager', phone:'+33 6 58 48 62 45', email:'pierrehenri@thebureau.paris' },
-    { id:'dynah', name:'Dynah Laloum', title:'Responsable Conciergerie', titleEN:'Concierge Manager', phone:'+33 7 57 76 62 78', email:'dynah@thebureau.paris' }
+    { id:'thomas', name:'Thomas Bougeard', title:'Directeur Commercial', titleEN:'Commercial Director', phone:'+33 6 59 23 15 92', email:'thomas.bougeard@thebureau.paris', isDefault:true },
+    { id:'charles', name:'Charles Caignol', title:'Responsable d\'exploitation', titleEN:'Operations Manager', phone:'+33 6 59 44 62 64', email:'charles.caignol@thebureau.paris' },
+    { id:'oscar', name:'Oscar Aumont', title:'Responsable de Centres', titleEN:'Centers Manager', phone:'+33 6 59 34 57 88', email:'oscar.aumont@thebureau.paris' },
+    { id:'pierrehenri', name:'Pierre-Henri Poulle', title:'Responsable Conciergerie', titleEN:'Concierge Manager', phone:'+33 6 58 48 62 45', email:'pierre-henri.poulle@thebureau.paris' },
+    { id:'dynah', name:'Dynah Laloum', title:'Responsable Conciergerie', titleEN:'Concierge Manager', phone:'+33 7 57 76 62 78', email:'dynah.laloum@thebureau.paris' }
   ],
   siteUrls: { I:'https://thebureau.paris/fr/28-cours-albert-1-er', II:'https://thebureau.paris/fr/16-cours-albert-1-er',
               III:'https://thebureau.paris/fr/25-rue-iv-septembre', IV:'https://thebureau.paris/fr/42-rue-notre-dame-des-victoires' },
@@ -5040,7 +5040,7 @@ function exportPDF(){
     h+='</div></div></div>';
   }
   /* ===== Pied de page ===== */
-  var _snd=(typeof getCurrentSender==='function')?getCurrentSender():{name:'Thomas Bougeard',title:isEN?'Sales Director':'Directeur Commercial',phone:'+33 6 59 23 15 92',email:'thomasb@thebureau.paris'};
+  var _snd=(typeof getCurrentSender==='function')?getCurrentSender():{name:'Thomas Bougeard',title:isEN?'Sales Director':'Directeur Commercial',phone:'+33 6 59 23 15 92',email:'thomas.bougeard@thebureau.paris'};
   h+='<div class="kt" style="margin-top:22px; background:'+SLATE+'; color:'+IVORY+'; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:16px 24px; border-top:2px solid '+GOLD+'; line-height:1.25;"><div style="display:flex; align-items:center; gap:16px;"><img src="'+chevronsUrl+'" alt="" style="height:26px; width:auto; display:block; opacity:0.95;"><div><div style="font-size:11.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; line-height:1.2;">'+esc(_snd.name)+' <span style="font-size:9px; font-weight:400; color:rgba(245,239,229,0.65); letter-spacing:0.09em;">· '+esc(_snd.title)+'</span></div><div style="font-size:10.5px; font-weight:300; color:rgba(245,239,229,0.68); line-height:1.1; margin-top:3px;">'+esc(_snd.phone)+' · <a href="mailto:'+esc(_snd.email)+'">'+esc(_snd.email)+'</a> · thebureau.paris</div></div></div><div style="text-align:right;"><div style="font-size:8px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:rgba(245,239,229,0.6);">The Bureau Paris</div><div style="font-size:13px; font-weight:600; color:'+GOLDLT+'; margin-top:2px;">75002 · 75008</div></div></div>';
   h+='</div></body></html>';
 
@@ -5303,7 +5303,7 @@ function toggleUserMenu(e){ if(e) e.stopPropagation(); var m=document.getElement
 })();
 function getSenderCC(){
   var s=getCurrentSender();
-  return s.id==='thomas'?'':'thomasb@thebureau.paris';
+  return s.id==='thomas'?'':'thomas.bougeard@thebureau.paris';
 }
 /* Modele en chips -> pilote le <select id=tplSelect> cache (reutilise son listener) */
 function pickTpl(el){
@@ -5387,7 +5387,7 @@ function openHistory(){var hist=JSON.parse(localStorage.getItem('tb_proposal_his
     rows.push(['TOTAL','','','','','',fmt(totM),fmt(tot12),fmt(tot24),fmt(tot36),'',''].join(';'));
   }
   rows.push(['','','','','','','','','','','',''].join(';'));
-  rows.push(['The Bureau Paris','www.thebureau.paris','Thomas Bougeard','+33 6 59 23 15 92','thomasb@thebureau.paris','','','','','','',''].join(';'));
+  rows.push(['The Bureau Paris','www.thebureau.paris','Thomas Bougeard','+33 6 59 23 15 92','thomas.bougeard@thebureau.paris','','','','','','',''].join(';'));
   var csv='\uFEFF'+rows.join('\n');
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download='thebureau_proposition.csv';a.click();showToast('CSV telecharge');
